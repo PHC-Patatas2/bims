@@ -73,56 +73,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="lib/assets/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100 min-h-screen">
-    <div class="container mx-auto py-8">
-        <h1 class="text-2xl font-bold mb-4">Edit Individual</h1>
-        <a href="individuals.php" class="mb-4 inline-block bg-blue-500 text-white px-4 py-2 rounded">Back to List</a>
-        <div class="bg-white p-4 rounded shadow">
-            <form method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input class="border p-2 rounded" name="last_name" value="<?= htmlspecialchars($ind['last_name']) ?>" placeholder="Last Name" required>
-                <input class="border p-2 rounded" name="first_name" value="<?= htmlspecialchars($ind['first_name']) ?>" placeholder="First Name" required>
-                <input class="border p-2 rounded" name="middle_name" value="<?= htmlspecialchars($ind['middle_name']) ?>" placeholder="Middle Name">
-                <input class="border p-2 rounded" name="birthday" type="date" value="<?= htmlspecialchars($ind['birthday']) ?>" required>
-                <input class="border p-2 rounded" name="age" type="number" min="0" value="<?= htmlspecialchars($ind['age']) ?>" required>
-                <select class="border p-2 rounded" name="gender" required>
-                    <option value="">Gender</option>
-                    <option value="Male" <?= $ind['gender']=='Male'?'selected':'' ?>>Male</option>
-                    <option value="Female" <?= $ind['gender']=='Female'?'selected':'' ?>>Female</option>
-                    <option value="Other" <?= $ind['gender']=='Other'?'selected':'' ?>>Other</option>
-                </select>
-                <select class="border p-2 rounded" name="purok_id" required>
-                    <option value="">Purok</option>
-                    <?php foreach ($purok_options as $p): ?>
-                        <option value="<?= $p['id'] ?>" <?= $ind['purok_id']==$p['id']?'selected':'' ?>><?= $p['name'] ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <select class="border p-2 rounded" name="family_id">
-                    <option value="">Family (optional)</option>
-                    <?php foreach ($family_options as $f): ?>
-                        <option value="<?= $f['id'] ?>" <?= $ind['family_id']==$f['id']?'selected':'' ?>><?= $f['family_name'] ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <select class="border p-2 rounded" name="is_pwd">
-                    <option value="0" <?= !$ind['is_pwd']?'selected':'' ?>>Not PWD</option>
-                    <option value="1" <?= $ind['is_pwd']?'selected':'' ?>>PWD</option>
-                </select>
-                <select class="border p-2 rounded" name="is_4ps">
-                    <option value="0" <?= !$ind['is_4ps']?'selected':'' ?>>Not 4Ps</option>
-                    <option value="1" <?= $ind['is_4ps']?'selected':'' ?>>4Ps</option>
-                </select>
-                <input class="border p-2 rounded" name="contact_number" value="<?= htmlspecialchars($ind['contact_number']) ?>" placeholder="Contact Number">
-                <input class="border p-2 rounded" name="address" value="<?= htmlspecialchars($ind['address']) ?>" placeholder="Address">
-                <input class="border p-2 rounded" name="civil_status" value="<?= htmlspecialchars($ind['civil_status']) ?>" placeholder="Civil Status">
-                <input class="border p-2 rounded" name="occupation" value="<?= htmlspecialchars($ind['occupation']) ?>" placeholder="Occupation">
-                <input class="border p-2 rounded" name="education" value="<?= htmlspecialchars($ind['education']) ?>" placeholder="Education">
-                <input class="border p-2 rounded" name="religion" value="<?= htmlspecialchars($ind['religion']) ?>" placeholder="Religion">
-                <select class="border p-2 rounded" name="voter_status">
-                    <option value="0" <?= !$ind['voter_status']?'selected':'' ?>>Not a Voter</option>
-                    <option value="1" <?= $ind['voter_status']?'selected':'' ?>>Voter</option>
-                </select>
-                <input class="border p-2 rounded" name="email" value="<?= htmlspecialchars($ind['email']) ?>" placeholder="Email">
-                <input class="border p-2 rounded" name="photo" value="<?= htmlspecialchars($ind['photo']) ?>" placeholder="Photo Path (optional)">
-                <button class="col-span-1 md:col-span-2 bg-green-500 text-white py-2 rounded" type="submit">Update Individual</button>
-            </form>
+    <?php include 'navbar.php'; ?>
+    <div id="mainContent" class="transition-all duration-200 ml-0">
+        <div class="container mx-auto py-8">
+            <h1 class="text-2xl font-bold mb-4">Edit Individual</h1>
+            <a href="individuals.php" class="mb-4 inline-block bg-blue-500 text-white px-4 py-2 rounded">Back to List</a>
+            <div class="bg-white p-4 rounded shadow">
+                <form method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input class="border p-2 rounded" name="last_name" value="<?= htmlspecialchars($ind['last_name']) ?>" placeholder="Last Name" required>
+                    <input class="border p-2 rounded" name="first_name" value="<?= htmlspecialchars($ind['first_name']) ?>" placeholder="First Name" required>
+                    <input class="border p-2 rounded" name="middle_name" value="<?= htmlspecialchars($ind['middle_name']) ?>" placeholder="Middle Name">
+                    <input class="border p-2 rounded" name="birthday" type="date" value="<?= htmlspecialchars($ind['birthday']) ?>" required>
+                    <input class="border p-2 rounded" name="age" type="number" min="0" value="<?= htmlspecialchars($ind['age']) ?>" required>
+                    <select class="border p-2 rounded" name="gender" required>
+                        <option value="">Gender</option>
+                        <option value="Male" <?= $ind['gender']=='Male'?'selected':'' ?>>Male</option>
+                        <option value="Female" <?= $ind['gender']=='Female'?'selected':'' ?>>Female</option>
+                        <option value="Other" <?= $ind['gender']=='Other'?'selected':'' ?>>Other</option>
+                    </select>
+                    <select class="border p-2 rounded" name="purok_id" required>
+                        <option value="">Purok</option>
+                        <?php foreach ($purok_options as $p): ?>
+                            <option value="<?= $p['id'] ?>" <?= $ind['purok_id']==$p['id']?'selected':'' ?>><?= $p['name'] ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select class="border p-2 rounded" name="family_id">
+                        <option value="">Family (optional)</option>
+                        <?php foreach ($family_options as $f): ?>
+                            <option value="<?= $f['id'] ?>" <?= $ind['family_id']==$f['id']?'selected':'' ?>><?= $f['family_name'] ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select class="border p-2 rounded" name="is_pwd">
+                        <option value="0" <?= !$ind['is_pwd']?'selected':'' ?>>Not PWD</option>
+                        <option value="1" <?= $ind['is_pwd']?'selected':'' ?>>PWD</option>
+                    </select>
+                    <select class="border p-2 rounded" name="is_4ps">
+                        <option value="0" <?= !$ind['is_4ps']?'selected':'' ?>>Not 4Ps</option>
+                        <option value="1" <?= $ind['is_4ps']?'selected':'' ?>>4Ps</option>
+                    </select>
+                    <input class="border p-2 rounded" name="contact_number" value="<?= htmlspecialchars($ind['contact_number']) ?>" placeholder="Contact Number">
+                    <input class="border p-2 rounded" name="address" value="<?= htmlspecialchars($ind['address']) ?>" placeholder="Address">
+                    <input class="border p-2 rounded" name="civil_status" value="<?= htmlspecialchars($ind['civil_status']) ?>" placeholder="Civil Status">
+                    <input class="border p-2 rounded" name="occupation" value="<?= htmlspecialchars($ind['occupation']) ?>" placeholder="Occupation">
+                    <input class="border p-2 rounded" name="education" value="<?= htmlspecialchars($ind['education']) ?>" placeholder="Education">
+                    <input class="border p-2 rounded" name="religion" value="<?= htmlspecialchars($ind['religion']) ?>" placeholder="Religion">
+                    <select class="border p-2 rounded" name="voter_status">
+                        <option value="0" <?= !$ind['voter_status']?'selected':'' ?>>Not a Voter</option>
+                        <option value="1" <?= $ind['voter_status']?'selected':'' ?>>Voter</option>
+                    </select>
+                    <input class="border p-2 rounded" name="email" value="<?= htmlspecialchars($ind['email']) ?>" placeholder="Email">
+                    <input class="border p-2 rounded" name="photo" value="<?= htmlspecialchars($ind['photo']) ?>" placeholder="Photo Path (optional)">
+                    <button class="col-span-1 md:col-span-2 bg-green-500 text-white py-2 rounded" type="submit">Update Individual</button>
+                </form>
+            </div>
         </div>
     </div>
 </body>

@@ -34,12 +34,23 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : 'Secretary';
 const hamburgerBtn = document.getElementById('hamburgerBtn');
 const sidepanel = document.getElementById('sidepanel');
 const closeSidepanel = document.getElementById('closeSidepanel');
-hamburgerBtn.addEventListener('click', () => {
+const mainContent = document.getElementById('mainContent');
+
+function openSidepanel() {
     sidepanel.classList.remove('-translate-x-full');
-});
-closeSidepanel.addEventListener('click', () => {
+    // Only shift on desktop
+    if (window.innerWidth >= 768 && mainContent) {
+        mainContent.classList.add('ml-64');
+    }
+}
+function closeSidepanelFn() {
     sidepanel.classList.add('-translate-x-full');
-});
+    if (mainContent) {
+        mainContent.classList.remove('ml-64');
+    }
+}
+hamburgerBtn.addEventListener('click', openSidepanel);
+closeSidepanel.addEventListener('click', closeSidepanelFn);
 // User dropdown
 const userMenuBtn = document.getElementById('userMenuBtn');
 const userDropdown = document.getElementById('userDropdown');
@@ -49,6 +60,16 @@ userMenuBtn.addEventListener('click', () => {
 document.addEventListener('click', (e) => {
     if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
         userDropdown.classList.add('hidden');
+    }
+    // Close sidepanel on outside click (mobile)
+    if (sidepanel && !sidepanel.contains(e.target) && !hamburgerBtn.contains(e.target) && window.innerWidth < 768) {
+        closeSidepanelFn();
+    }
+});
+// Responsive: Remove ml-64 if window resized to mobile
+window.addEventListener('resize', () => {
+    if (window.innerWidth < 768 && mainContent) {
+        mainContent.classList.remove('ml-64');
     }
 });
 </script>

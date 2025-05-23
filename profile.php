@@ -53,25 +53,11 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 </head>
 <body class="bg-gray-100 min-h-screen">
     <?php include 'navbar.php'; ?>
-    <div class="flex items-center justify-center min-h-screen" style="padding-top:4.5rem">
-        <!-- Page content here -->
+    <div id="mainContent" class="transition-all duration-200 ml-0 flex items-center justify-center min-h-screen">
+        <div class="text-center">
+            <h1 class="text-3xl font-bold mb-2">Under Maintenance</h1>
+            <p class="text-gray-600">This page is currently under maintenance. Please check back later.</p>
+        </div>
     </div>
-    <script>
-        // Sidebar open/close logic
-        const sidebar = document.getElementById('sidebar');
-        const openSidebar = document.getElementById('openSidebar');
-        const closeSidebar = document.getElementById('closeSidebar');
-        if (openSidebar) {
-            openSidebar.onclick = () => sidebar.classList.remove('-translate-x-full');
-        }
-        if (closeSidebar) {
-            closeSidebar.onclick = () => sidebar.classList.add('-translate-x-full');
-        }
-        document.addEventListener('click', function(e) {
-            if (!sidebar.contains(e.target) && !openSidebar.contains(e.target) && window.innerWidth < 768) {
-                sidebar.classList.add('-translate-x-full');
-            }
-        });
-    </script>
 </body>
 </html>

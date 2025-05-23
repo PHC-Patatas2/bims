@@ -6,22 +6,22 @@
         <a href="dashboard.php" class="flex items-center gap-2 py-2 px-3 rounded hover:bg-gray-200 transition text-blue-700 font-semibold">
             <i class="fa-solid fa-gauge"></i> Dashboard
         </a>
-        <a href="#" class="flex items-center gap-2 py-2 px-3 rounded hover:bg-gray-200 transition">
+        <a href="individuals.php" class="flex items-center gap-2 py-2 px-3 rounded hover:bg-gray-200 transition">
             <i class="fa-solid fa-users"></i> Resident Information
         </a>
-        <a href="#" class="flex items-center gap-2 py-2 px-3 rounded hover:bg-gray-200 transition">
+        <a href="certificate.php" class="flex items-center gap-2 py-2 px-3 rounded hover:bg-gray-200 transition">
             <i class="fa-solid fa-certificate"></i> Print Certificates
         </a>
-        <a href="#" class="flex items-center gap-2 py-2 px-3 rounded hover:bg-gray-200 transition">
+        <a href="business_permit.php" class="flex items-center gap-2 py-2 px-3 rounded hover:bg-gray-200 transition">
             <i class="fa-solid fa-briefcase"></i> Business Permit
         </a>
-        <a href="#" class="flex items-center gap-2 py-2 px-3 rounded hover:bg-gray-200 transition">
+        <a href="blotter_records.php" class="flex items-center gap-2 py-2 px-3 rounded hover:bg-gray-200 transition">
             <i class="fa-solid fa-book"></i> Blotter Records
         </a>
-        <a href="#" class="flex items-center gap-2 py-2 px-3 rounded hover:bg-gray-200 transition">
+        <a href="system_settings.php" class="flex items-center gap-2 py-2 px-3 rounded hover:bg-gray-200 transition">
             <i class="fa-solid fa-gear"></i> System Settings
         </a>
-        <a href="#" class="flex items-center gap-2 py-2 px-3 rounded hover:bg-gray-200 transition">
+        <a href="frontend.php" class="flex items-center gap-2 py-2 px-3 rounded hover:bg-gray-200 transition">
             <i class="fa-solid fa-desktop"></i> Frontend
         </a>
     </nav>

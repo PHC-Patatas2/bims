@@ -1,37 +1,16 @@
 <?php
-// families.php
 session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['username'] !== 'secretary') {
     header('Location: index.php');
     exit();
 }
-require_once 'config.php';
-$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-if ($conn->connect_error) {
-    die('Database connection failed: ' . $conn->connect_error);
-}
-// Add family
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_family'])) {
-    $stmt = $conn->prepare('INSERT INTO families (family_name, purok_id, address) VALUES (?, ?, ?)');
-    $stmt->bind_param('sis', $_POST['family_name'], $_POST['purok_id'], $_POST['address']);
-    $stmt->execute();
-    $stmt->close();
-    header('Location: families.php');
-    exit();
-}
-// Fetch puroks
-$puroks = $conn->query('SELECT id, name FROM puroks');
-$purok_options = [];
-while ($row = $puroks->fetch_assoc()) $purok_options[] = $row;
-// Fetch families
-$families = $conn->query('SELECT f.*, p.name as purok_name FROM families f LEFT JOIN puroks p ON f.purok_id = p.id ORDER BY f.family_name');
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Families - BIMS</title>
+    <title>Frontend - BIMS</title>
     <link href="lib/assets/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="lib/assets/all.min.css">
     <script src="lib/assets/all.min.js" defer></script>
