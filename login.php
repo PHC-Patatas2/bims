@@ -65,12 +65,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
         <form method="post" class="w-full flex flex-col gap-4">
             <div>
-                <label for="username" class="block text-gray-700 font-semibold mb-1">Username</label>
-                <input type="text" id="username" name="username" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" required autofocus autocomplete="username">
+                <input type="text" id="username" name="username" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" required autofocus autocomplete="username" placeholder="Username">
             </div>
             <div>
-                <label for="password" class="block text-gray-700 font-semibold mb-1">Password</label>
-                <input type="password" id="password" name="password" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" required autocomplete="current-password">
+                <input type="password" id="password" name="password" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" required autocomplete="current-password" placeholder="Password">
             </div>
             <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded transition">Login</button>
         </form>
