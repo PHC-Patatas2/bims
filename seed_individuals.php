@@ -15,7 +15,7 @@ function randomDate($start, $end) {
 
 function randomNameParts() {
     $first = ['Juan', 'Maria', 'Pedro', 'Ana', 'Josefa', 'Carlos', 'Liza', 'Miguel', 'Sofia', 'Rosa', 'Mark', 'Ella', 'John', 'Grace', 'Paul', 'Daisy', 'Luke', 'Mia', 'Noah', 'Lea'];
-    $middle = ['A.', 'B.', 'C.', 'D.', 'E.', 'F.', 'G.', 'H.', 'I.', 'J.', null, null, null];
+    $middle = ['Andres', 'Bautista', 'Cruz', 'Domingo', 'Eduardo', 'Francisco', 'Garcia', 'Hernandez', 'Ignacio', 'Jose', null, null, null];
     $last = ['Dela Cruz', 'Santos', 'Reyes', 'Lopez', 'Cruz', 'Lim', 'Tan', 'Ramos', 'Gomez', 'Flores', 'Garcia', 'Torres', 'Rivera', 'Morales', 'Castro', 'Ortiz', 'Mendoza', 'Silva', 'Rojas', 'Vega'];
     $suffix = [null, null, null, 'Jr.', 'Sr.', 'III', 'IV'];
     return [
