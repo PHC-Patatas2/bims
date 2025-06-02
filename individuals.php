@@ -130,6 +130,24 @@ if (array_key_exists($filter_type, $filter_type_map)) {
             border: 1px solid #ced4da;
             margin-top: 4px; /* Add some space above the filter */
         }
+
+        /* Fix checkbox column styling */
+        #data-table .tabulator-cell.checkbox-cell-class { /* Targeting the custom class */
+            overflow: visible !important;
+            text-overflow: clip !important;
+            padding: 0px 8px !important; /* Adjust padding as needed, centering the checkbox */
+            line-height: 1; /* Helps with vertical alignment */
+        }
+        #data-table .tabulator-cell.checkbox-cell-class input[type="checkbox"] {
+            margin: 0; /* Remove default margins from checkbox */
+            vertical-align: middle; /* Align checkbox nicely */
+            cursor: pointer;
+        }
+        #data-table .tabulator-header .tabulator-col-title-holder .tabulator-col-title.checkbox-header-class {
+             /* Ensures header checkbox also doesn't get ellipsis if title is just the checkbox */
+            overflow: visible !important;
+            text-overflow: clip !important;
+        }
         
         /* Pagination styling (example, can be further customized) */
         #data-table .tabulator-footer {
@@ -161,6 +179,24 @@ if (array_key_exists($filter_type, $filter_type_map)) {
             border: 1px solid #ced4da;
         }
 
+        /* Cell overflow ellipsis */
+        #data-table .tabulator-cell {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Refined padding & font */
+        #data-table .tabulator-header .tabulator-col .tabulator-col-content,
+        #data-table .tabulator-row .tabulator-cell {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        /* Highlight selected row */
+        #data-table .tabulator-row.tabulator-selected {
+            background-color: #e0f2fe !important;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
@@ -260,8 +296,8 @@ if (array_key_exists($filter_type, $filter_type_map)) {
             <!-- Add more batch actions here if needed -->
         </div>
         
-        <div class="bg-white shadow-xl rounded-lg overflow-hidden">
-            <div id="data-table" class="p-1"></div> <!-- Tabulator will be initialized here -->
+        <div class="bg-white shadow-xl rounded-lg overflow-hidden flex-1 flex flex-col min-h-0">
+            <div id="data-table" class="p-1 flex-1 min-h-0"></div> <!-- Tabulator will be initialized here -->
         </div>
     </div>
 
@@ -326,76 +362,39 @@ if (array_key_exists($filter_type, $filter_type_map)) {
         const filterType = "<?php echo htmlspecialchars($filter_type, ENT_QUOTES, 'UTF-8'); ?>";
         
         const tableColumns = [
+            // selection checkbox
             {
                 formatter: "rowSelection",
                 titleFormatter: "rowSelection",
                 hozAlign: "center",
                 headerSort: false,
+                headerFilter: false,
                 width: 40,
-                cellClick: function(e, cell){
-                    cell.getRow().toggleSelect();
-                }
+                cssClass: "checkbox-cell-class",
+                cellClick: (e, cell) => cell.getRow().toggleSelect(),
             },
-            { title: "ID", field: "id", width: 70, hozAlign: "center", headerFilter: "input", headerFilterPlaceholder: "Filter ID", visible: false },
-            { title: "Last Name", field: "last_name", headerFilter: "input", minWidth: 100, headerFilterPlaceholder: "Filter Last Name" },
-            { title: "First Name", field: "first_name", headerFilter: "input", minWidth: 100, headerFilterPlaceholder: "Filter First Name" },
-            { title: "Middle Name", field: "middle_name", headerFilter: "input", minWidth: 100, headerFilterPlaceholder: "Filter Middle Name" },
-            { title: "Suffix", field: "suffix", width: 100, headerFilter: "input", headerFilterPlaceholder: "Filter Suffix" },
-            { 
-                title: "Sex", 
-                field: "gender", 
-                width: 100, 
-                headerFilter: "select", 
-                headerFilterParams: { values: {"": "Any", "male": "Male", "female": "Female"} },
-                formatter: function(cell, formatterParams, onRendered){
-                    const value = cell.getValue();
-                    if (value === 'male') return 'Male';
-                    if (value === 'female') return 'Female';
-                    return '';
-                }
-            },
-            {
-                title: "Birthdate", 
-                field: "birthdate", 
-                width: 120, 
-                hozAlign: "center", 
-                sorter: "date", 
-                headerFilter: "input", 
-                headerFilterPlaceholder: "Filter Birthdate",
-            },
-            { 
-                title: "Age", 
-                field: "age", 
-                width: 120,
-                hozAlign: "center", 
-                headerFilter: "input", 
-                headerFilterPlaceholder: "Filter Age",
-                formatter: function(cell, formatterParams, onRendered){
-                    const value = cell.getValue();
-                    if (value !== null && value !== undefined && value !== '') {
-                        return value + " years old";
-                    }
-                    return ""; 
-                }
-            },
-            {
-                title: "Actions",
-                field: "actions",
-                hozAlign: "center",
-                headerSort: false,
-                width: 100,
-                formatter: function(cell, formatterParams, onRendered) {
+            // ID (hidden)
+            { field: "id", visible: false },
+            // Personal name columns
+            { title: "Last Name", field: "last_name", width: 160, hozAlign: "left", headerFilter: "input", headerFilterPlaceholder: "Filter Last" },
+            { title: "First Name", field: "first_name", width: 160, hozAlign: "left", headerFilter: "input", headerFilterPlaceholder: "Filter First" },
+            { title: "Middle Name", field: "middle_name", width: 140, hozAlign: "left", headerFilter: "input", headerFilterPlaceholder: "Filter Middle" },
+            // Other details
+            { title: "Suffix", field: "suffix", width: 80, hozAlign: "center", headerFilter: "input", headerFilterPlaceholder: "Suffix" },
+            { title: "Sex", field: "gender", width: 80, hozAlign: "center", headerFilter: "select", headerFilterParams:{values:{"":"Any","male":"Male","female":"Female"}} },
+            { title: "Birthdate", field: "birthdate", width: 120, hozAlign: "center", sorter: "date", headerFilter: "input", headerFilterPlaceholder: "Filter Date" },
+            { title: "Age", field: "age", width: 100, hozAlign: "center", headerFilter: "input", headerFilterPlaceholder: "Filter Age", formatter: (cell)=> cell.getValue()? cell.getValue()+" yrs":"" },
+            // Actions
+            { title: "Actions", field: "actions", width: 100, hozAlign: "center", headerSort: false, formatter: (cell)=>{
                     const id = cell.getRow().getData().id;
-                    return `
-                        <button onclick="viewResident(${id})" class="text-blue-600 hover:text-blue-800 p-1" title="View Details"><i class="fas fa-eye"></i></button>
-                        <button onclick="editResident(${id})" class="text-green-600 hover:text-green-800 p-1" title="Edit Resident"><i class="fas fa-edit"></i></button>
-                    `;
+                    return `<button onclick="viewResident(${id})" class="text-blue-600 p-1"><i class="fas fa-eye"></i></button>
+                            <button onclick="editResident(${id})" class="text-green-600 p-1"><i class="fas fa-edit"></i></button>`;
                 }
             }
         ];
 
         const table = new Tabulator("#data-table", {
-            height: "calc(100vh - 350px)", // Adjusted height to accommodate new bars
+            height: "100%", // Use 100% height of parent container for responsiveness
             layout: "fitColumns", 
             selectable: "highlight", // Enable row selection with highlight
             resizableColumns: false, // Global setting for column resizing
@@ -564,7 +563,7 @@ if (array_key_exists($filter_type, $filter_type_map)) {
                             body: JSON.stringify({ ids: idsToDelete }) 
                         })
                         .then(response => response.json())
-                        .then(data => {
+                        .then data => {
                             if(data.success){
                                 // selectedRows.forEach(row => row.delete()); // This can cause issues if table is reloaded
                                 table.setData(); // Refresh table data from server to reflect deletions
