@@ -126,19 +126,19 @@ $conn->close();
         .dropdown-menu.show { display: block; }
         .form-input {
             border-radius: 0.375rem;
-            border: 1px solid #D1D5DB; /* gray-300 */
+            border: 2px solid #111827; /* gray-900, thicker and blacker */
             padding: 0.5rem 0.75rem;
             width: 100%;
             transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
         }
         .form-input:focus {
             outline: none;
-            border-color: #3B82F6; /* blue-500 */
-            box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+            border-color: #1e293b; /* even darker on focus */
+            box-shadow: 0 0 0 0.2rem rgba(30, 41, 59, 0.15);
         }
         .form-select {
             border-radius: 0.375rem;
-            border: 1px solid #D1D5DB; /* gray-300 */
+            border: 2px solid #111827; /* match form-input: gray-900, thicker and blacker */
             padding: 0.5rem 0.75rem;
             width: 100%;
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
@@ -148,6 +148,12 @@ $conn->close();
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        .form-select:focus {
+            outline: none;
+            border-color: #1e293b; /* even darker on focus, match form-input */
+            box-shadow: 0 0 0 0.2rem rgba(30, 41, 59, 0.15);
         }
         .form-checkbox {
             border-radius: 0.25rem;
@@ -251,136 +257,170 @@ $conn->close();
 
         <form action="add_individual.php" method="POST" class="bg-white shadow-xl rounded-lg p-6 md:p-8 space-y-6">
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div>
-                    <label for="last_name" class="block text-sm font-medium text-gray-700 required-label">Last Name</label>
-                    <input type="text" name="last_name" id="last_name" class="form-input mt-1" required>
-                </div>
-                <div>
-                    <label for="first_name" class="block text-sm font-medium text-gray-700 required-label">First Name</label>
-                    <input type="text" name="first_name" id="first_name" class="form-input mt-1" required>
-                </div>
-                <div>
-                    <label for="middle_name" class="block text-sm font-medium text-gray-700">Middle Name</label>
-                    <input type="text" name="middle_name" id="middle_name" class="form-input mt-1">
-                </div>
-                <div>
-                    <label for="suffix" class="block text-sm font-medium text-gray-700">Suffix (e.g., Jr., Sr., III)</label>
-                    <input type="text" name="suffix" id="suffix" class="form-input mt-1">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div>
-                    <label for="gender" class="block text-sm font-medium text-gray-700 required-label">Sex / Gender</label>
-                    <select name="gender" id="gender" class="form-select mt-1" required>
-                        <option value="" disabled selected>Select Gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="birthdate" class="block text-sm font-medium text-gray-700 required-label">Birthdate</label>
-                    <input type="date" name="birthdate" id="birthdate" class="form-input mt-1" required>
-                </div>
-                 <div>
-                    <label for="civil_status" class="block text-sm font-medium text-gray-700">Civil Status</label>
-                    <select name="civil_status" id="civil_status" class="form-select mt-1">
-                        <option value="" disabled selected>Select Civil Status</option>
-                        <option value="Single">Single</option>
-                        <option value="Married">Married</option>
-                        <option value="Widowed">Widowed</option>
-                        <option value="Separated">Separated</option>
-                        <option value="Divorced">Divorced</option>
-                        <option value="Annulled">Annulled</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div>
-                    <label for="blood_type" class="block text-sm font-medium text-gray-700">Blood Type</label>
-                    <select name="blood_type" id="blood_type" class="form-select mt-1">
-                        <option value="" disabled selected>Select Blood Type</option>
-                        <option value="A+">A+</option> <option value="A-">A-</option>
-                        <option value="B+">B+</option> <option value="B-">B-</option>
-                        <option value="AB+">AB+</option> <option value="AB-">AB-</option>
-                        <option value="O+">O+</option> <option value="O-">O-</option>
-                        <option value="Unknown">Unknown</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="place_of_birth" class="block text-sm font-medium text-gray-700">Place of Birth</label>
-                    <input type="text" name="place_of_birth" id="place_of_birth" class="form-input mt-1">
-                </div>
-                <div>
-                    <label for="citizenship" class="block text-sm font-medium text-gray-700">Citizenship</label>
-                    <input type="text" name="citizenship" id="citizenship" class="form-input mt-1" value="Filipino">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div>
-                    <label for="religion" class="block text-sm font-medium text-gray-700">Religion</label>
-                    <input type="text" name="religion" id="religion" class="form-input mt-1">
-                </div>
-                <div>
-                    <label for="contact_number" class="block text-sm font-medium text-gray-700">Contact Number</label>
-                    <input type="tel" name="contact_number" id="contact_number" class="form-input mt-1" placeholder="e.g., 09123456789">
-                </div>
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
-                    <input type="email" name="email" id="email" class="form-input mt-1" placeholder="e.g., juan.delacruz@example.com">
-                </div>
-            </div>
-
-            <fieldset class="border p-4 rounded-md">
-                <legend class="text-lg font-semibold text-gray-700 px-2">Address</legend>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mt-2">
+            <!-- Personal Information Section -->
+            <div class="mb-6">
+                <div class="text-2xl font-extrabold text-gray-800 px-2 mb-2">Personal Information</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div>
-                        <label for="purok_street" class="block text-sm font-medium text-gray-700 required-label">Purok / Street / Subd.</label>
-                        <input type="text" name="purok_street" id="purok_street" class="form-input mt-1" required>
-                    </div>
-                     <div>
-                        <label for="barangay" class="block text-sm font-medium text-gray-700 required-label">Barangay</label>
-                        <input type="text" name="barangay" id="barangay" class="form-input mt-1" value="<?php echo htmlspecialchars($default_barangay); ?>" required>
+                        <label for="last_name" class="block text-sm font-medium text-gray-700 required-label">Last Name</label>
+                        <input type="text" name="last_name" id="last_name" class="form-input mt-1" required>
                     </div>
                     <div>
-                        <label for="municipality" class="block text-sm font-medium text-gray-700 required-label">Municipality / City</label>
-                        <input type="text" name="municipality" id="municipality" class="form-input mt-1" value="<?php echo htmlspecialchars($default_municipality); ?>" required>
+                        <label for="first_name" class="block text-sm font-medium text-gray-700 required-label">First Name</label>
+                        <input type="text" name="first_name" id="first_name" class="form-input mt-1" required>
                     </div>
                     <div>
-                        <label for="province" class="block text-sm font-medium text-gray-700 required-label">Province</label>
-                        <input type="text" name="province" id="province" class="form-input mt-1" value="<?php echo htmlspecialchars($default_province); ?>" required>
+                        <label for="middle_name" class="block text-sm font-medium text-gray-700">Middle Name</label>
+                        <input type="text" name="middle_name" id="middle_name" class="form-input mt-1" placeholder="(leave blank if none)">
+                    </div>
+                    <div>
+                        <label for="suffix" class="block text-sm font-medium text-gray-700">Suffix (e.g., Jr., Sr., III)</label>
+                        <input type="text" name="suffix" id="suffix" class="form-input mt-1" placeholder="(leave blank if none)">
                     </div>
                 </div>
-            </fieldset>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label for="occupation" class="block text-sm font-medium text-gray-700">Occupation</label>
-                    <input type="text" name="occupation" id="occupation" class="form-input mt-1">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+                    <div>
+                        <label for="gender" class="block text-sm font-medium text-gray-700 required-label">Sex / Gender</label>
+                        <select name="gender" id="gender" class="form-select mt-1" required>
+                            <option value="" disabled selected>Select Gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="birthdate" class="block text-sm font-medium text-gray-700 required-label">Birthdate</label>
+                        <input type="date" name="birthdate" id="birthdate" class="form-input mt-1" required>
+                    </div>
+                    <div>
+                        <label for="civil_status" class="block text-sm font-medium text-gray-700">Civil Status</label>
+                        <select name="civil_status" id="civil_status" class="form-select mt-1">
+                            <option value="" disabled selected>Select Civil Status</option>
+                            <option value="Single">Single</option>
+                            <option value="Married">Married</option>
+                            <option value="Widowed">Widowed</option>
+                            <option value="Separated">Separated</option>
+                            <option value="Divorced">Divorced</option>
+                            <option value="Annulled">Annulled</option>
+                        </select>
+                    </div>
                 </div>
-                <div>
-                    <label for="educational_attainment" class="block text-sm font-medium text-gray-700">Educational Attainment</label>
-                    <select name="educational_attainment" id="educational_attainment" class="form-select mt-1">
-                        <option value="" disabled selected>Select Attainment</option>
-                        <option value="No Formal Education">No Formal Education</option>
-                        <option value="Elementary Level">Elementary Level</option>
-                        <option value="Elementary Graduate">Elementary Graduate</option>
-                        <option value="High School Level">High School Level</option>
-                        <option value="High School Graduate">High School Graduate</option>
-                        <option value="Vocational/Trade Course">Vocational/Trade Course</option>
-                        <option value="College Level">College Level</option>
-                        <option value="College Graduate">College Graduate</option>
-                        <option value="Post Graduate">Post Graduate</option>
-                        <option value="Other">Other</option>
-                    </select>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+                    <div>
+                        <label for="blood_type" class="block text-sm font-medium text-gray-700">Blood Type</label>
+                        <select name="blood_type" id="blood_type" class="form-select mt-1">
+                            <option value="" disabled selected>Select Blood Type</option>
+                            <option value="A+">A+</option> <option value="A-">A-</option>
+                            <option value="B+">B+</option> <option value="B-">B-</option>
+                            <option value="AB+">AB+</option> <option value="AB-">AB-</option>
+                            <option value="O+">O+</option> <option value="O-">O-</option>
+                            <option value="Unknown">Unknown</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="citizenship" class="block text-sm font-medium text-gray-700">Citizenship</label>
+                        <input type="text" name="citizenship" id="citizenship" class="form-input mt-1" value="Filipino">
+                    </div>
+                    <div>
+                        <label for="religion" class="block text-sm font-medium text-gray-700">Religion</label>
+                        <input type="text" name="religion" id="religion" class="form-input mt-1">
+                    </div>
                 </div>
             </div>
-
-            <fieldset class="border p-4 rounded-md">
-                <legend class="text-lg font-semibold text-gray-700 px-2">Other Information</legend>
+            <hr class="my-6 border-gray-500 border-2">
+            <!-- Place of Birth Section -->
+            <div class="mb-6">
+                <div class="text-2xl font-extrabold text-gray-800 px-2 mb-2">Place of Birth</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div>
+                        <label for="birthplace_barangay" class="block text-sm font-medium text-gray-700 required-label">Barangay</label>
+                        <input type="text" name="birthplace_barangay" id="birthplace_barangay" class="form-input mt-1" required>
+                    </div>
+                    <div>
+                        <label for="birthplace_municipality" class="block text-sm font-medium text-gray-700 required-label">Municipality / City</label>
+                        <input type="text" name="birthplace_municipality" id="birthplace_municipality" class="form-input mt-1" required>
+                    </div>
+                    <div>
+                        <label for="birthplace_province" class="block text-sm font-medium text-gray-700 required-label">Province</label>
+                        <input type="text" name="birthplace_province" id="birthplace_province" class="form-input mt-1" required>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-6 border-gray-500 border-2">
+            <!-- Current Address Section -->
+            <div class="mb-6">
+                <div class="text-2xl font-extrabold text-gray-800 px-2 mb-2">Current Address</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div>
+                        <label for="current_purok" class="block text-sm font-medium text-gray-700 required-label">Purok</label>
+                        <input type="text" name="current_purok" id="current_purok" class="form-input mt-1" required>
+                    </div>
+                    <div>
+                        <label for="current_barangay" class="block text-sm font-medium text-gray-700 required-label">Barangay</label>
+                        <input type="text" name="current_barangay" id="current_barangay" class="form-input mt-1" value="<?php echo htmlspecialchars($default_barangay); ?>" required>
+                    </div>
+                    <div>
+                        <label for="current_municipality" class="block text-sm font-medium text-gray-700 required-label">Municipality / City</label>
+                        <input type="text" name="current_municipality" id="current_municipality" class="form-input mt-1" value="<?php echo htmlspecialchars($default_municipality); ?>" required>
+                    </div>
+                    <div>
+                        <label for="current_province" class="block text-sm font-medium text-gray-700 required-label">Province</label>
+                        <input type="text" name="current_province" id="current_province" class="form-input mt-1" value="<?php echo htmlspecialchars($default_province); ?>" required>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-6 border-gray-500 border-2">
+            <!-- Contact Information Section -->
+            <div class="mb-6">
+                <div class="text-2xl font-extrabold text-gray-800 px-2 mb-2">Contact Information</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div>
+                        <label for="contact_number" class="block text-sm font-medium text-gray-700">Contact Number</label>
+                        <input type="tel" name="contact_number" id="contact_number" class="form-input mt-1" placeholder="e.g., 09123456789">
+                    </div>
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                        <input type="email" name="email" id="email" class="form-input mt-1" placeholder="e.g., juan.delacruz@example.com">
+                    </div>
+                </div>
+            </div>
+            <hr class="my-6 border-gray-500 border-2">
+            <!-- Educational Background Section -->
+            <div class="mb-6">
+                <div class="text-2xl font-extrabold text-gray-800 px-2 mb-2">Educational Background</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="educational_attainment" class="block text-sm font-medium text-gray-700">Educational Attainment</label>
+                        <select name="educational_attainment" id="educational_attainment" class="form-select mt-1">
+                            <option value="" disabled selected>Select Attainment</option>
+                            <option value="No Formal Education">No Formal Education</option>
+                            <option value="Elementary Level">Elementary Level</option>
+                            <option value="Elementary Graduate">Elementary Graduate</option>
+                            <option value="High School Level">High School Level</option>
+                            <option value="High School Graduate">High School Graduate</option>
+                            <option value="Vocational/Trade Course">Vocational/Trade Course</option>
+                            <option value="College Level">College Level</option>
+                            <option value="College Graduate">College Graduate</option>
+                            <option value="Post Graduate">Post Graduate</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-6 border-gray-500 border-2">
+            <!-- Livelihood Section -->
+            <div class="mb-6">
+                <div class="text-2xl font-extrabold text-gray-800 px-2 mb-2">Livelihood</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="occupation" class="block text-sm font-medium text-gray-700">Occupation</label>
+                        <input type="text" name="occupation" id="occupation" class="form-input mt-1">
+                    </div>
+                </div>
+            </div>
+            <hr class="my-6 border-gray-500 border-2">
+            <!-- Other Information Section -->
+            <div class="mb-6">
+                <div class="text-2xl font-extrabold text-gray-800 px-2 mb-2">Other Information</div>
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-4 mt-2">
                     <div class="flex items-center">
                         <input id="is_voter" name="is_voter" type="checkbox" class="form-checkbox h-5 w-5 text-blue-600">
@@ -403,7 +443,7 @@ $conn->close();
                         <label for="is_pregnant" class="ml-2 block text-sm text-gray-900">Pregnant?</label>
                     </div>
                 </div>
-            </fieldset>
+            </div>
 
             <div class="flex justify-end space-x-3 pt-4">
                 <a href="individuals.php" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg shadow hover:shadow-md transition-all duration-150 ease-in-out">

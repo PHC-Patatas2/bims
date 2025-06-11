@@ -121,40 +121,43 @@ foreach ($filters as $key => $filter) {
 
     $paramName = ":filter_value_" . $key; // PDO named placeholder
 
+    // Special handling for computed 'age' field
+    $sqlField = ($field === 'age') ? 'TIMESTAMPDIFF(YEAR, birthdate, CURDATE())' : ("`" . $field . "`");
+
     switch ($filterType) {
         case 'like':
-            $filterSubClauses[] = "`" . $field . "` LIKE " . $paramName;
+            $filterSubClauses[] = $sqlField . " LIKE " . $paramName;
             $pdoParams[$paramName] = '%' . $value . '%';
             break;
         case '=':
-            $filterSubClauses[] = "`" . $field . "` = " . $paramName;
+            $filterSubClauses[] = $sqlField . " = " . $paramName;
             $pdoParams[$paramName] = $value;
             break;
         case '!=':
-            $filterSubClauses[] = "`" . $field . "` != " . $paramName;
+            $filterSubClauses[] = $sqlField . " != " . $paramName;
             $pdoParams[$paramName] = $value;
             break;
         case '<':
-            $filterSubClauses[] = "`" . $field . "` < " . $paramName;
+            $filterSubClauses[] = $sqlField . " < " . $paramName;
             $pdoParams[$paramName] = $value;
             break;
         case '<=':
-            $filterSubClauses[] = "`" . $field . "` <= " . $paramName;
+            $filterSubClauses[] = $sqlField . " <= " . $paramName;
             $pdoParams[$paramName] = $value;
             break;
         case '>':
-            $filterSubClauses[] = "`" . $field . "` > " . $paramName;
+            $filterSubClauses[] = $sqlField . " > " . $paramName;
             $pdoParams[$paramName] = $value;
             break;
         case '>=':
-            $filterSubClauses[] = "`" . $field . "` >= " . $paramName;
+            $filterSubClauses[] = $sqlField . " >= " . $paramName;
             $pdoParams[$paramName] = $value;
             break;
         case 'tickCross': 
              if ($value === true || $value === 'true' || $value === 1 || $value === '1') {
-                $filterSubClauses[] = "`" . $field . "` = 1"; // No placeholder needed for literal 1/0
+                $filterSubClauses[] = $sqlField . " = 1"; // No placeholder needed for literal 1/0
             } elseif ($value === false || $value === 'false' || $value === 0 || $value === '0') {
-                $filterSubClauses[] = "`" . $field . "` = 0";
+                $filterSubClauses[] = $sqlField . " = 0";
             } 
             break;
     }

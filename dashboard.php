@@ -85,11 +85,12 @@ $purok_list = [
 ];
 $purok_stats = [];
 $purok_in = "'" . implode("','", array_map(function($p) use ($conn) { return $conn->real_escape_string($p); }, $purok_list)) . "'";
-$purok_query = "SELECT purok, COUNT(*) as total FROM individuals WHERE purok IN ($purok_in) GROUP BY purok ORDER BY FIELD(purok, $purok_in)";
+// Updated to use current_purok instead of purok
+$purok_query = "SELECT current_purok, COUNT(*) as total FROM individuals WHERE current_purok IN ($purok_in) GROUP BY current_purok ORDER BY FIELD(current_purok, $purok_in)";
 $purok_result = $conn->query($purok_query);
 if ($purok_result) {
     while ($row = $purok_result->fetch_assoc()) {
-        $purok_stats[$row['purok']] = (int)$row['total'];
+        $purok_stats[$row['current_purok']] = (int)$row['total'];
     }
 }
 
@@ -488,29 +489,21 @@ function stat_card_count($value) {
                     </h2>
                     <div class="flex flex-row gap-3 mt-2 w-full">
                         <div class="flex flex-col gap-3 flex-1">
-                            <a href="generate_pdf.php" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold shadow transition-all w-full justify-center ring-2 ring-transparent hover:ring-red-300 focus:ring-4 focus:ring-red-400">
+                            <a href="generate_pdf.php" class="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold shadow transition-all w-full justify-center ring-2 ring-transparent hover:ring-red-300 focus:ring-4 focus:ring-red-400 h-16 text-lg">
                                 <i class="fas fa-file-pdf text-xl"></i>
                                 Generate PDF Report
                             </a>
-                            <a href="export_excel.php" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold shadow transition-all w-full justify-center ring-2 ring-transparent hover:ring-green-300 focus:ring-4 focus:ring-green-400">
+                            <a href="export_excel.php" class="flex items-center gap-2 px-4 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold shadow transition-all w-full justify-center ring-2 ring-transparent hover:ring-green-300 focus:ring-4 focus:ring-green-400 h-16 text-lg">
                                 <i class="fas fa-file-excel text-xl"></i>
                                 Export Records via Excel
                             </a>
-                            <a href="add_resident.php" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow transition-all w-full justify-center ring-2 ring-transparent hover:ring-blue-300 focus:ring-4 focus:ring-blue-400">
+                            <a href="add_resident.php" class="flex items-center gap-2 px-4 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow transition-all w-full justify-center ring-2 ring-transparent hover:ring-blue-300 focus:ring-4 focus:ring-blue-400 h-16 text-lg">
                                 <i class="fas fa-user-plus text-xl"></i>
                                 Add New Resident
                             </a>
-                            <a href="import_residents.php" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-600 hover:bg-yellow-700 text-white font-semibold shadow transition-all w-full justify-center ring-2 ring-transparent hover:ring-yellow-300 focus:ring-4 focus:ring-yellow-400">
-                                <i class="fas fa-file-upload text-xl"></i>
-                                Import Residents (CSV/Excel)
-                            </a>
-                            <a href="backup_records.php" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-800 text-white font-semibold shadow transition-all w-full justify-center ring-2 ring-transparent hover:ring-gray-400 focus:ring-4 focus:ring-gray-500">
+                            <a href="backup_records.php" class="flex items-center gap-2 px-4 py-3 rounded-lg bg-gray-700 hover:bg-gray-800 text-white font-semibold shadow transition-all w-full justify-center ring-2 ring-transparent hover:ring-gray-400 focus:ring-4 focus:ring-gray-500 h-16 text-lg">
                                 <i class="fas fa-database text-xl"></i>
                                 Backup Records
-                            </a>
-                            <a href="add_family.php" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-semibold shadow transition-all w-full justify-center ring-2 ring-transparent hover:ring-teal-300 focus:ring-4 focus:ring-teal-400">
-                                <i class="fas fa-house-user text-xl"></i>
-                                Add New Family
                             </a>
                         </div>
                     </div>

@@ -160,7 +160,7 @@ function display_boolean($value, $yes = 'Yes', $no = 'No') {
     <!-- Main Content -->
     <div id="mainContent" class="flex-1 transition-all duration-300 ease-in-out p-4 md:px-8 md:pt-8 mt-16 flex flex-col">
         <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
-            <h1 class="text-3xl font-bold text-gray-800"><?php echo htmlspecialchars($page_title); ?>: <?php echo display_data($resident_data['first_name']) . ' ' . display_data($resident_data['last_name']); ?></h1>
+            <h1 class="text-3xl font-bold text-gray-800"><?php echo htmlspecialchars($page_title); ?>: <?php echo display_data($resident_data['first_name'] ?? null) . ' ' . display_data($resident_data['last_name'] ?? null); ?></h1>
             <div class="flex gap-2">
                 <a href="individuals.php" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg inline-flex items-center shadow hover:shadow-md transition-all duration-150 ease-in-out">
                     <i class="fas fa-arrow-left mr-2"></i> Back to List
@@ -176,15 +176,15 @@ function display_boolean($value, $yes = 'Yes', $no = 'No') {
             <div>
                 <h2 class="detail-section-title">Personal Information</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
-                    <div><span class="detail-label">Full Name:</span> <span class="detail-value"><?php echo display_data($resident_data['first_name']) . ' ' . display_data($resident_data['middle_name'], '') . ' ' . display_data($resident_data['last_name']) . ' ' . display_data($resident_data['suffix'], ''); ?></span></div>
-                    <div><span class="detail-label">Sex/Gender:</span> <span class="detail-value"><?php echo ucfirst(display_data($resident_data['gender'])); ?></span></div>
-                    <div><span class="detail-label">Birthdate:</span> <span class="detail-value"><?php echo display_data($resident_data['formatted_birthdate']); ?></span></div>
-                    <div><span class="detail-label">Age:</span> <span class="detail-value"><?php echo display_data($resident_data['age']); ?> years old</span></div>
-                    <div><span class="detail-label">Civil Status:</span> <span class="detail-value"><?php echo display_data($resident_data['civil_status']); ?></span></div>
-                    <div><span class="detail-label">Blood Type:</span> <span class="detail-value"><?php echo display_data($resident_data['blood_type']); ?></span></div>
-                    <div><span class="detail-label">Place of Birth:</span> <span class="detail-value"><?php echo display_data($resident_data['place_of_birth']); ?></span></div>
-                    <div><span class="detail-label">Citizenship:</span> <span class="detail-value"><?php echo display_data($resident_data['citizenship']); ?></span></div>
-                    <div><span class="detail-label">Religion:</span> <span class="detail-value"><?php echo display_data($resident_data['religion']); ?></span></div>
+                    <div><span class="detail-label">Full Name:</span> <span class="detail-value"><?php echo display_data($resident_data['first_name'] ?? null) . ' ' . display_data($resident_data['middle_name'] ?? null, '') . ' ' . display_data($resident_data['last_name'] ?? null) . ' ' . display_data($resident_data['suffix'] ?? null, ''); ?></span></div>
+                    <div><span class="detail-label">Sex/Gender:</span> <span class="detail-value"><?php echo ucfirst(display_data($resident_data['gender'] ?? null)); ?></span></div>
+                    <div><span class="detail-label">Birthdate:</span> <span class="detail-value"><?php echo display_data($resident_data['formatted_birthdate'] ?? null); ?></span></div>
+                    <div><span class="detail-label">Age:</span> <span class="detail-value"><?php echo display_data($resident_data['age'] ?? null); ?> years old</span></div>
+                    <div><span class="detail-label">Civil Status:</span> <span class="detail-value"><?php echo display_data($resident_data['civil_status'] ?? null); ?></span></div>
+                    <div><span class="detail-label">Blood Type:</span> <span class="detail-value"><?php echo display_data($resident_data['blood_type'] ?? null); ?></span></div>
+                    <div><span class="detail-label">Place of Birth:</span> <span class="detail-value"><?php echo display_data($resident_data['place_of_birth'] ?? null); ?></span></div>
+                    <div><span class="detail-label">Citizenship:</span> <span class="detail-value"><?php echo display_data($resident_data['citizenship'] ?? null); ?></span></div>
+                    <div><span class="detail-label">Religion:</span> <span class="detail-value"><?php echo display_data($resident_data['religion'] ?? null); ?></span></div>
                 </div>
             </div>
 
@@ -192,8 +192,8 @@ function display_boolean($value, $yes = 'Yes', $no = 'No') {
             <div>
                 <h2 class="detail-section-title">Contact Information</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
-                    <div><span class="detail-label">Contact Number:</span> <span class="detail-value"><?php echo display_data($resident_data['contact_number']); ?></span></div>
-                    <div><span class="detail-label">Email:</span> <span class="detail-value"><?php echo display_data($resident_data['email']); ?></span></div>
+                    <div><span class="detail-label">Contact Number:</span> <span class="detail-value"><?php echo display_data($resident_data['contact_number'] ?? null); ?></span></div>
+                    <div><span class="detail-label">Email:</span> <span class="detail-value"><?php echo display_data($resident_data['email'] ?? null); ?></span></div>
                 </div>
             </div>
 
@@ -201,10 +201,19 @@ function display_boolean($value, $yes = 'Yes', $no = 'No') {
             <div>
                 <h2 class="detail-section-title">Address</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
-                    <div><span class="detail-label">Purok/Street/Subdivision:</span> <span class="detail-value"><?php echo display_data($resident_data['purok_street']); ?></span></div>
-                    <div><span class="detail-label">Barangay:</span> <span class="detail-value"><?php echo display_data($resident_data['barangay']); ?></span></div>
-                    <div><span class="detail-label">Municipality/City:</span> <span class="detail-value"><?php echo display_data($resident_data['municipality']); ?></span></div>
-                    <div><span class="detail-label">Province:</span> <span class="detail-value"><?php echo display_data($resident_data['province']); ?></span></div>
+                    <div><span class="detail-label">Purok:</span> <span class="detail-value"><?php echo display_data($resident_data['current_purok'] ?? null); ?></span></div>
+                    <div><span class="detail-label">Barangay:</span> <span class="detail-value"><?php echo display_data($resident_data['current_barangay'] ?? null); ?></span></div>
+                    <div><span class="detail-label">Municipality/City:</span> <span class="detail-value"><?php echo display_data($resident_data['current_municipality'] ?? null); ?></span></div>
+                    <div><span class="detail-label">Province:</span> <span class="detail-value"><?php echo display_data($resident_data['current_province'] ?? null); ?></span></div>
+                </div>
+            </div>
+            <!-- Place of Birth Section -->
+            <div>
+                <h2 class="detail-section-title">Place of Birth</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
+                    <div><span class="detail-label">Barangay:</span> <span class="detail-value"><?php echo display_data($resident_data['birthplace_barangay'] ?? null); ?></span></div>
+                    <div><span class="detail-label">Municipality/City:</span> <span class="detail-value"><?php echo display_data($resident_data['birthplace_municipality'] ?? null); ?></span></div>
+                    <div><span class="detail-label">Province:</span> <span class="detail-value"><?php echo display_data($resident_data['birthplace_province'] ?? null); ?></span></div>
                 </div>
             </div>
             
@@ -212,13 +221,13 @@ function display_boolean($value, $yes = 'Yes', $no = 'No') {
             <div>
                 <h2 class="detail-section-title">Other Information</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
-                    <div><span class="detail-label">Occupation:</span> <span class="detail-value"><?php echo display_data($resident_data['occupation']); ?></span></div>
-                    <div><span class="detail-label">Educational Attainment:</span> <span class="detail-value"><?php echo display_data($resident_data['educational_attainment']); ?></span></div>
-                    <div><span class="detail-label">Registered Voter:</span> <span class="detail-value"><?php echo display_boolean($resident_data['is_voter']); ?></span></div>
-                    <div><span class="detail-label">4Ps Member:</span> <span class="detail-value"><?php echo display_boolean($resident_data['is_4ps_member']); ?></span></div>
-                    <div><span class="detail-label">PWD:</span> <span class="detail-value"><?php echo display_boolean($resident_data['is_pwd']); ?></span></div>
-                    <div><span class="detail-label">Solo Parent:</span> <span class="detail-value"><?php echo display_boolean($resident_data['is_solo_parent']); ?></span></div>
-                    <div><span class="detail-label">Pregnant:</span> <span class="detail-value"><?php echo display_boolean($resident_data['is_pregnant']); ?></span></div>
+                    <div><span class="detail-label">Occupation:</span> <span class="detail-value"><?php echo display_data($resident_data['occupation'] ?? null); ?></span></div>
+                    <div><span class="detail-label">Educational Attainment:</span> <span class="detail-value"><?php echo display_data($resident_data['educational_attainment'] ?? null); ?></span></div>
+                    <div><span class="detail-label">Registered Voter:</span> <span class="detail-value"><?php echo display_boolean($resident_data['is_voter'] ?? null); ?></span></div>
+                    <div><span class="detail-label">4Ps Member:</span> <span class="detail-value"><?php echo display_boolean($resident_data['is_4ps_member'] ?? null); ?></span></div>
+                    <div><span class="detail-label">PWD:</span> <span class="detail-value"><?php echo display_boolean($resident_data['is_pwd'] ?? null); ?></span></div>
+                    <div><span class="detail-label">Solo Parent:</span> <span class="detail-value"><?php echo display_boolean($resident_data['is_solo_parent'] ?? null); ?></span></div>
+                    <div><span class="detail-label">Pregnant:</span> <span class="detail-value"><?php echo display_boolean($resident_data['is_pregnant'] ?? null); ?></span></div>
                 </div>
             </div>
 
@@ -226,8 +235,8 @@ function display_boolean($value, $yes = 'Yes', $no = 'No') {
             <div>
                 <h2 class="detail-section-title">Record Timestamps</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                     <div><span class="detail-label">Date Created:</span> <span class="detail-value"><?php echo display_data(date('m/d/Y h:i A', strtotime($resident_data['created_at']))); ?></span></div>
-                     <div><span class="detail-label">Last Updated:</span> <span class="detail-value"><?php echo display_data(date('m/d/Y h:i A', strtotime($resident_data['updated_at']))); ?></span></div>
+                     <div><span class="detail-label">Date Created:</span> <span class="detail-value"><?php echo display_data(isset($resident_data['created_at']) ? date('m/d/Y h:i A', strtotime($resident_data['created_at'])) : null); ?></span></div>
+                     <div><span class="detail-label">Last Updated:</span> <span class="detail-value"><?php echo display_data(isset($resident_data['updated_at']) ? date('m/d/Y h:i A', strtotime($resident_data['updated_at'])) : null); ?></span></div>
                 </div>
             </div>
 
