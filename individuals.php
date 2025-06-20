@@ -154,8 +154,7 @@ $page_title = isset($filter_type_map[$filter_type]) ? $filter_type_map[$filter_t
                 ['families.php', 'fas fa-house-user', 'Families'],
                 ['reports.php', 'fas fa-chart-bar', 'Reports'],
                 ['certificate.php', 'fas fa-file-alt', 'Certificates'],
-                ['business_permit.php', 'fas fa-briefcase', 'Business Permits'],
-                ['blotter_records.php', 'fas fa-book', 'Blotter'],
+                ['announcement.php', 'fas fa-bullhorn', 'Announcement'],
                 ['system_settings.php', 'fas fa-cogs', 'System Settings'],
             ];
             $current = basename($_SERVER['PHP_SELF']);
@@ -700,15 +699,14 @@ $page_title = isset($filter_type_map[$filter_type]) ? $filter_type_map[$filter_t
         if (applyAdvancedSearchBtn) {
             applyAdvancedSearchBtn.addEventListener('click', function() {
                 const filters = buildAdvancedFilters();
-                currentAdvancedFilters = {};
-                filters.forEach(f => { currentAdvancedFilters[f.field] = f.value; });
-                table.setData('dashboard_data.php', { type: initialFilterType, ...currentAdvancedFilters });
+                currentAdvancedFilters = filters; // Store for possible future use
+                table.setData('dashboard_data.php', { type: initialFilterType, filter: filters });
             });
         }
         if (resetAdvancedSearchBtn) {
             resetAdvancedSearchBtn.addEventListener('click', function() {
                 advancedSearchForm.reset();
-                currentAdvancedFilters = {};
+                currentAdvancedFilters = [];
                 table.setData('dashboard_data.php', { type: initialFilterType });
             });
         }
@@ -724,9 +722,9 @@ $page_title = isset($filter_type_map[$filter_type]) ? $filter_type_map[$filter_t
             const birthdateFrom = document.getElementById('adv_search_birthdate_from').value;
             const birthdateTo = document.getElementById('adv_search_birthdate_to').value;
 
-            if (lastName) filters.push({ field: 'last_name', type: 'like', value: lastName });
-            if (firstName) filters.push({ field: 'first_name', type: 'like', value: firstName });
-            if (middleName) filters.push({ field: 'middle_name', type: 'like', value: middleName });
+            if (lastName) filters.push({ field: 'last_name', type: 'ilike', value: lastName });
+            if (firstName) filters.push({ field: 'first_name', type: 'ilike', value: firstName });
+            if (middleName) filters.push({ field: 'middle_name', type: 'ilike', value: middleName });
             if (gender) filters.push({ field: 'gender', type: '=', value: gender });
             if (ageMin) filters.push({ field: 'age', type: '>=', value: ageMin });
             if (ageMax) filters.push({ field: 'age', type: '<=', value: ageMax });

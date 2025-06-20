@@ -129,6 +129,10 @@ foreach ($filters as $key => $filter) {
             $filterSubClauses[] = $sqlField . " LIKE " . $paramName;
             $pdoParams[$paramName] = '%' . $value . '%';
             break;
+        case 'ilike': // Case-insensitive LIKE for MySQL
+            $filterSubClauses[] = "LOWER(" . $sqlField . ") LIKE LOWER(" . $paramName . ")";
+            $pdoParams[$paramName] = '%' . strtolower($value) . '%';
+            break;
         case '=':
             $filterSubClauses[] = $sqlField . " = " . $paramName;
             $pdoParams[$paramName] = $value;
@@ -230,7 +234,11 @@ $data = $stmtData->fetchAll(); // PDOStatement::fetchAll()
 // Prepare response for Tabulator
 $response = [
     "last_page" => (int)$lastPage,
-    "data" => $data
+    "data" => $data,
+    // Debug info for troubleshooting advanced search
+    "debug_sql" => $sql,
+    "debug_params" => $pdoParams,
+    "debug_where" => $finalWhereClause,
 ];
 
 header('Content-Type: application/json');

@@ -71,8 +71,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 ['families.php', 'fas fa-house-user', 'Families'],
                 ['reports.php', 'fas fa-chart-bar', 'Reports'],
                 ['certificate.php', 'fas fa-file-alt', 'Certificates'],
-                ['business_permit.php', 'fas fa-briefcase', 'Business Permits'],
-                ['blotter_records.php', 'fas fa-book', 'Blotter'],
+                ['announcement.php', 'fas fa-bullhorn', 'Announcement'],
                 ['system_settings.php', 'fas fa-cogs', 'System Settings'],
             ];
             $current = basename($_SERVER['PHP_SELF']);
