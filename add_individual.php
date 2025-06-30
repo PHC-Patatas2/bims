@@ -50,8 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $barangay = trim($_POST['barangay'] ?? ''); // Should ideally be pre-filled from system settings
     $municipality = trim($_POST['municipality'] ?? ''); // Should ideally be pre-filled from system settings
     $province = trim($_POST['province'] ?? ''); // Should ideally be pre-filled from system settings
-    $occupation = trim($_POST['occupation'] ?? '');
-    $educational_attainment = $_POST['educational_attainment'] ?? '';
     $is_voter = isset($_POST['is_voter']) ? 1 : 0;
     $is_4ps_member = isset($_POST['is_4ps_member']) ? 1 : 0;
     $is_pwd = isset($_POST['is_pwd']) ? 1 : 0;
@@ -63,14 +61,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message = "Please fill in all required fields (Last Name, First Name, Gender, Birthdate, Address).";
         $message_type = 'error';
     } else {
-        $sql = "INSERT INTO individuals (last_name, first_name, middle_name, suffix, gender, birthdate, civil_status, blood_type, place_of_birth, citizenship, religion, contact_number, email, purok_street, barangay, municipality, province, occupation, educational_attainment, is_voter, is_4ps_member, is_pwd, is_solo_parent, is_pregnant, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+        $sql = "INSERT INTO individuals (last_name, first_name, middle_name, suffix, gender, birthdate, civil_status, blood_type, place_of_birth, citizenship, religion, contact_number, email, purok_street, barangay, municipality, province, is_voter, is_4ps_member, is_pwd, is_solo_parent, is_pregnant, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
         $stmt = $conn->prepare($sql);
         if ($stmt) {
             $stmt->bind_param(
-                "ssssssssssssssssssssiiii",
+                "ssssssssssssssssiiii",
                 $last_name, $first_name, $middle_name, $suffix, $gender, $birthdate, $civil_status, $blood_type,
                 $place_of_birth, $citizenship, $religion, $contact_number, $email, $purok_street, $barangay,
-                $municipality, $province, $occupation, $educational_attainment, $is_voter, $is_4ps_member,
+                $municipality, $province, $is_voter, $is_4ps_member,
                 $is_pwd, $is_solo_parent, $is_pregnant
             );
 
@@ -118,8 +116,9 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($page_title); ?> - <?php echo htmlspecialchars($system_title); ?></title>
-    <link href="lib/assets/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="lib/assets/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js" integrity="sha512-u3fPA7V/q_dR0APDDUuOzvKFBBHlAwKRj5lHZRt1gs3osuTRswblYIWkxVAqkSgM3/CaHXMwEcOuc_2Nqbuhmw==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
     <style>
         .sidebar-border { border-right: 1px solid #e5e7eb; }
         .dropdown-menu { display: none; position: absolute; right: 0; top: 100%; background: white; min-width: 180px; box-shadow: 0 4px 16px #0001; border-radius: 0.5rem; z-index: 50; }
@@ -200,11 +199,8 @@ $conn->close();
             $pages = [
                 ['dashboard.php', 'fas fa-tachometer-alt', 'Dashboard'],
                 ['individuals.php', 'fas fa-users', 'Residents'],
-                ['families.php', 'fas fa-house-user', 'Families'],
                 ['reports.php', 'fas fa-chart-bar', 'Reports'],
                 ['certificate.php', 'fas fa-file-alt', 'Certificates'],
-                ['announcement.php', 'fas fa-bullhorn', 'Announcement'],
-                ['system_settings.php', 'fas fa-cogs', 'System Settings'],
             ];
             $current = basename($_SERVER['PHP_SELF']);
             foreach ($pages as $page) {
@@ -258,7 +254,7 @@ $conn->close();
             
             <!-- Personal Information Section -->
             <div class="mb-6">
-                <div class="text-2xl font-extrabold text-gray-800 px-2 mb-2">Personal Information</div>
+                <h3 class="text-2xl font-extrabold text-gray-800 mb-4">Personal Information</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div>
                         <label for="last_name" class="block text-sm font-medium text-gray-700 required-label">Last Name</label>
@@ -321,56 +317,100 @@ $conn->close();
                     </div>
                     <div>
                         <label for="religion" class="block text-sm font-medium text-gray-700">Religion</label>
-                        <input type="text" name="religion" id="religion" class="form-input mt-1">
+                        <select name="religion" id="religion" class="form-select mt-1">
+                            <option value="" disabled selected>Select Religion</option>
+                            <option value="Roman Catholic">Roman Catholic</option>
+                            <option value="Iglesia ni Cristo">Iglesia ni Cristo</option>
+                            <option value="Evangelical (Born Again)">Evangelical (Born Again)</option>
+                            <option value="Seventh-day Adventist">Seventh-day Adventist</option>
+                            <option value="Jehovah’s Witnesses">Jehovah’s Witnesses</option>
+                            <option value="Baptist">Baptist</option>
+                            <option value="United Church of Christ in the Philippines (UCCP)">United Church of Christ in the Philippines (UCCP)</option>
+                            <option value="Islam (Muslim)">Islam (Muslim)</option>
+                            <option value="Aglipayan / Philippine Independent Church">Aglipayan / Philippine Independent Church</option>
+                            <option value="Pentecostal">Pentecostal</option>
+                            <option value="Methodist">Methodist</option>
+                            <option value="Lutheran">Lutheran</option>
+                            <option value="Orthodox Christian">Orthodox Christian</option>
+                            <option value="Church of Jesus Christ of Latter-day Saints (Mormon)">Church of Jesus Christ of Latter-day Saints (Mormon)</option>
+                            <option value="Buddhist">Buddhist</option>
+                            <option value="Hindu">Hindu</option>
+                            <option value="Judaism (Jewish)">Judaism (Jewish)</option>
+                            <option value="No Religion / Atheist / Agnostic">No Religion / Atheist / Agnostic</option>
+                            <option value="Others">Others</option>
+                        </select>
                     </div>
                 </div>
             </div>
             <hr class="my-6 border-gray-500 border-2">
             <!-- Place of Birth Section -->
             <div class="mb-6">
-                <div class="text-2xl font-extrabold text-gray-800 px-2 mb-2">Place of Birth</div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <h3 class="text-2xl font-extrabold text-gray-800 mb-4">Place of Birth</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div>
-                        <label for="birthplace_barangay" class="block text-sm font-medium text-gray-700 required-label">Barangay</label>
-                        <input type="text" name="birthplace_barangay" id="birthplace_barangay" class="form-input mt-1" required>
+                        <label for="birthplace_province" class="block text-sm font-medium text-gray-700 required-label">Province</label>
+                        <select name="birthplace_province" id="birthplace_province" class="form-select mt-1" required>
+                            <option value="" disabled selected>Select Province</option>
+                        </select>
                     </div>
                     <div>
                         <label for="birthplace_municipality" class="block text-sm font-medium text-gray-700 required-label">Municipality / City</label>
-                        <input type="text" name="birthplace_municipality" id="birthplace_municipality" class="form-input mt-1" required>
+                        <select name="birthplace_municipality" id="birthplace_municipality" class="form-select mt-1" required>
+                            <option value="" disabled selected>Select Municipality / City</option>
+                        </select>
                     </div>
                     <div>
-                        <label for="birthplace_province" class="block text-sm font-medium text-gray-700 required-label">Province</label>
-                        <input type="text" name="birthplace_province" id="birthplace_province" class="form-input mt-1" required>
+                        <label for="birthplace_barangay" class="block text-sm font-medium text-gray-700 required-label">Barangay</label>
+                        <select name="birthplace_barangay" id="birthplace_barangay" class="form-select mt-1" required>
+                            <option value="" disabled selected>Select Barangay</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="birthplace_purok" class="block text-sm font-medium text-gray-700 required-label">Purok</label>
+                        <select name="birthplace_purok" id="birthplace_purok" class="form-select mt-1" required>
+                            <option value="" disabled selected>Select Purok</option>
+                        </select>
                     </div>
                 </div>
             </div>
             <hr class="my-6 border-gray-500 border-2">
             <!-- Current Address Section -->
             <div class="mb-6">
-                <div class="text-2xl font-extrabold text-gray-800 px-2 mb-2">Current Address</div>
+                <h3 class="text-2xl font-extrabold text-gray-800 mb-4">Current Address</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div>
-                        <label for="current_purok" class="block text-sm font-medium text-gray-700 required-label">Purok</label>
-                        <input type="text" name="current_purok" id="current_purok" class="form-input mt-1" required>
-                    </div>
-                    <div>
-                        <label for="current_barangay" class="block text-sm font-medium text-gray-700 required-label">Barangay</label>
-                        <input type="text" name="current_barangay" id="current_barangay" class="form-input mt-1" value="<?php echo htmlspecialchars($default_barangay); ?>" required>
+                        <label for="current_province" class="block text-sm font-medium text-gray-700 required-label">Province</label>
+                        <select name="current_province" id="current_province" class="form-select mt-1" required>
+                            <option value="Bulacan" selected>Bulacan</option>
+                        </select>
                     </div>
                     <div>
                         <label for="current_municipality" class="block text-sm font-medium text-gray-700 required-label">Municipality / City</label>
-                        <input type="text" name="current_municipality" id="current_municipality" class="form-input mt-1" value="<?php echo htmlspecialchars($default_municipality); ?>" required>
+                        <select name="current_municipality" id="current_municipality" class="form-select mt-1" required>
+                            <option value="Calumpit" selected>Calumpit</option>
+                        </select>
                     </div>
                     <div>
-                        <label for="current_province" class="block text-sm font-medium text-gray-700 required-label">Province</label>
-                        <input type="text" name="current_province" id="current_province" class="form-input mt-1" value="<?php echo htmlspecialchars($default_province); ?>" required>
+                        <label for="current_barangay" class="block text-sm font-medium text-gray-700 required-label">Barangay</label>
+                        <select name="current_barangay" id="current_barangay" class="form-select mt-1" required>
+                            <option value="Sucol" selected>Sucol</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="current_purok" class="block text-sm font-medium text-gray-700 required-label">Purok</label>
+                        <select name="current_purok" id="current_purok" class="form-select mt-1" required>
+                            <option value="" disabled selected>Select Purok</option>
+                            <option value="Purok 1">Purok 1</option>
+                            <option value="Purok 2">Purok 2</option>
+                            <option value="Purok 3">Purok 3</option>
+                        </select>
                     </div>
                 </div>
             </div>
             <hr class="my-6 border-gray-500 border-2">
             <!-- Contact Information Section -->
             <div class="mb-6">
-                <div class="text-2xl font-extrabold text-gray-800 px-2 mb-2">Contact Information</div>
+                <h3 class="text-2xl font-extrabold text-gray-800 mb-4">Contact Information</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div>
                         <label for="contact_number" class="block text-sm font-medium text-gray-700">Contact Number</label>
@@ -383,43 +423,9 @@ $conn->close();
                 </div>
             </div>
             <hr class="my-6 border-gray-500 border-2">
-            <!-- Educational Background Section -->
-            <div class="mb-6">
-                <div class="text-2xl font-extrabold text-gray-800 px-2 mb-2">Educational Background</div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="educational_attainment" class="block text-sm font-medium text-gray-700">Educational Attainment</label>
-                        <select name="educational_attainment" id="educational_attainment" class="form-select mt-1">
-                            <option value="" disabled selected>Select Attainment</option>
-                            <option value="No Formal Education">No Formal Education</option>
-                            <option value="Elementary Level">Elementary Level</option>
-                            <option value="Elementary Graduate">Elementary Graduate</option>
-                            <option value="High School Level">High School Level</option>
-                            <option value="High School Graduate">High School Graduate</option>
-                            <option value="Vocational/Trade Course">Vocational/Trade Course</option>
-                            <option value="College Level">College Level</option>
-                            <option value="College Graduate">College Graduate</option>
-                            <option value="Post Graduate">Post Graduate</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <hr class="my-6 border-gray-500 border-2">
-            <!-- Livelihood Section -->
-            <div class="mb-6">
-                <div class="text-2xl font-extrabold text-gray-800 px-2 mb-2">Livelihood</div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="occupation" class="block text-sm font-medium text-gray-700">Occupation</label>
-                        <input type="text" name="occupation" id="occupation" class="form-input mt-1">
-                    </div>
-                </div>
-            </div>
-            <hr class="my-6 border-gray-500 border-2">
             <!-- Other Information Section -->
             <div class="mb-6">
-                <div class="text-2xl font-extrabold text-gray-800 px-2 mb-2">Other Information</div>
+                <h3 class="text-2xl font-extrabold text-gray-800 mb-4">Other Information</h3>
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-4 mt-2">
                     <div class="flex items-center">
                         <input id="is_voter" name="is_voter" type="checkbox" class="form-checkbox h-5 w-5 text-blue-600">
@@ -436,10 +442,6 @@ $conn->close();
                     <div class="flex items-center">
                         <input id="is_solo_parent" name="is_solo_parent" type="checkbox" class="form-checkbox h-5 w-5 text-blue-600">
                         <label for="is_solo_parent" class="ml-2 block text-sm text-gray-900">Solo Parent?</label>
-                    </div>
-                    <div class="flex items-center">
-                        <input id="is_pregnant" name="is_pregnant" type="checkbox" class="form-checkbox h-5 w-5 text-blue-600">
-                        <label for="is_pregnant" class="ml-2 block text-sm text-gray-900">Pregnant?</label>
                     </div>
                 </div>
             </div>
@@ -505,7 +507,156 @@ $conn->close();
             }
         }, 5000); // Hide after 5 seconds
         <?php endif; ?>
+
+        // Load PH locations and populate dropdowns
+        let phLocations = null;
+        fetch('lib/assets/ph_locations.json')
+            .then(res => res.json())
+            .then(data => {
+                phLocations = data;
+                const provinceSelect = document.getElementById('birthplace_province');
+                data.provinces.forEach(prov => {
+                    const opt = document.createElement('option');
+                    opt.value = prov.name;
+                    opt.textContent = prov.name;
+                    provinceSelect.appendChild(opt);
+                });
+            });
+
+        document.getElementById('birthplace_province').addEventListener('change', function() {
+            const provName = this.value;
+            const munSelect = document.getElementById('birthplace_municipality');
+            const brgySelect = document.getElementById('birthplace_barangay');
+            const purokSelect = document.getElementById('birthplace_purok');
+            munSelect.innerHTML = '<option value="" disabled selected>Select Municipality / City</option>';
+            brgySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
+            purokSelect.innerHTML = '<option value="" disabled selected>Select Purok</option>';
+            if (!phLocations) return;
+            const prov = phLocations.provinces.find(p => p.name === provName);
+            if (prov) {
+                prov.municipalities.forEach(mun => {
+                    const opt = document.createElement('option');
+                    opt.value = mun.name;
+                    opt.textContent = mun.name;
+                    munSelect.appendChild(opt);
+                });
+            }
+        });
+
+        document.getElementById('birthplace_municipality').addEventListener('change', function() {
+            const provName = document.getElementById('birthplace_province').value;
+            const munName = this.value;
+            const brgySelect = document.getElementById('birthplace_barangay');
+            const purokSelect = document.getElementById('birthplace_purok');
+            brgySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
+            purokSelect.innerHTML = '<option value="" disabled selected>Select Purok</option>';
+            if (!phLocations) return;
+            const prov = phLocations.provinces.find(p => p.name === provName);
+            if (prov) {
+                const mun = prov.municipalities.find(m => m.name === munName);
+                if (mun) {
+                    mun.barangays.forEach(brgy => {
+                        const opt = document.createElement('option');
+                        opt.value = brgy.name;
+                        opt.textContent = brgy.name;
+                        brgySelect.appendChild(opt);
+                    });
+                }
+            }
+        });
+
+        document.getElementById('birthplace_barangay').addEventListener('change', function() {
+            const provName = document.getElementById('birthplace_province').value;
+            const munName = document.getElementById('birthplace_municipality').value;
+            const brgyName = this.value;
+            const purokSelect = document.getElementById('birthplace_purok');
+            purokSelect.innerHTML = '<option value="" disabled selected>Select Purok</option>';
+            if (!phLocations) return;
+            const prov = phLocations.provinces.find(p => p.name === provName);
+            if (prov) {
+                const mun = prov.municipalities.find(m => m.name === munName);
+                if (mun) {
+                    const brgy = mun.barangays.find(b => b.name === brgyName);
+                    if (brgy && brgy.puroks) {
+                        brgy.puroks.forEach(purok => {
+                            const opt = document.createElement('option');
+                            opt.value = purok;
+                            opt.textContent = purok;
+                            purokSelect.appendChild(opt);
+                        });
+                    }
+                }
+            }
+        });
+
+        // Current Address cascading dropdowns (similar to Place of Birth)
+        let currentAddressInitialized = false;
+        document.getElementById('current_province').addEventListener('change', function() {
+            const provName = this.value;
+            const munSelect = document.getElementById('current_municipality');
+            const brgySelect = document.getElementById('current_barangay');
+            const purokSelect = document.getElementById('current_purok');
+            munSelect.innerHTML = '<option value="" disabled selected>Select Municipality / City</option>';
+            brgySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
+            purokSelect.innerHTML = '<option value="" disabled selected>Select Purok</option>';
+            if (!phLocations) return;
+            const prov = phLocations.provinces.find(p => p.name === provName);
+            if (prov) {
+                prov.municipalities.forEach(mun => {
+                    const opt = document.createElement('option');
+                    opt.value = mun.name;
+                    opt.textContent = mun.name;
+                    munSelect.appendChild(opt);
+                });
+            }
+            currentAddressInitialized = true;
+        });
+
+        document.getElementById('current_municipality').addEventListener('change', function() {
+            const provName = document.getElementById('current_province').value;
+            const munName = this.value;
+            const brgySelect = document.getElementById('current_barangay');
+            const purokSelect = document.getElementById('current_purok');
+            brgySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
+            purokSelect.innerHTML = '<option value="" disabled selected>Select Purok</option>';
+            if (!phLocations) return;
+            const prov = phLocations.provinces.find(p => p.name === provName);
+            if (prov) {
+                const mun = prov.municipalities.find(m => m.name === munName);
+                if (mun) {
+                    mun.barangays.forEach(brgy => {
+                        const opt = document.createElement('option');
+                        opt.value = brgy.name;
+                        opt.textContent = brgy.name;
+                        brgySelect.appendChild(opt);
+                    });
+                }
+            }
+        });
+
+        document.getElementById('current_barangay').addEventListener('change', function() {
+            const provName = document.getElementById('current_province').value;
+            const munName = document.getElementById('current_municipality').value;
+            const brgyName = this.value;
+            const purokSelect = document.getElementById('current_purok');
+            purokSelect.innerHTML = '<option value="" disabled selected>Select Purok</option>';
+            if (!phLocations) return;
+            const prov = phLocations.provinces.find(p => p.name === provName);
+            if (prov) {
+                const mun = prov.municipalities.find(m => m.name === munName);
+                if (mun) {
+                    const brgy = mun.barangays.find(b => b.name === brgyName);
+                    if (brgy && brgy.puroks) {
+                        brgy.puroks.forEach(purok => {
+                            const opt = document.createElement('option');
+                            opt.value = purok;
+                            opt.textContent = purok;
+                            purokSelect.appendChild(opt);
+                        });
+                    }
+                }
+            }
+        });
     </script>
-    <script src="lib/assets/all.min.js" defer></script>
 </body>
 </html>

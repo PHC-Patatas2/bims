@@ -47,8 +47,6 @@ $stats = [
 $queries = [
     // All individuals
     'total_residents' => "SELECT COUNT(*) FROM individuals",
-    // Families: group by family_id, count unique families
-    'total_families' => "SELECT COUNT(DISTINCT family_id) FROM individuals WHERE family_id IS NOT NULL",
     // Male
     'total_male' => "SELECT COUNT(*) FROM individuals WHERE gender = 'male'",
     // Female
@@ -63,8 +61,6 @@ $queries = [
     'total_pwd' => "SELECT COUNT(*) FROM individuals WHERE is_pwd = 1",
     // Solo Parents
     'total_solo_parents' => "SELECT COUNT(*) FROM individuals WHERE is_solo_parent = 1",
-    // Pregnant Women
-    'total_pregnant' => "SELECT COUNT(*) FROM individuals WHERE is_pregnant = 1 AND gender = 'female' AND TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) BETWEEN 10 AND 50",
     // Newborns (age < 28 days)
     'total_newborns' => "SELECT COUNT(*) FROM individuals WHERE birthdate IS NOT NULL AND DATEDIFF(CURDATE(), birthdate) >= 0 AND DATEDIFF(CURDATE(), birthdate) < 28",
     // Minors (age < 18, not a voter)
@@ -117,11 +113,11 @@ function stat_card_count($value) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - <?php echo htmlspecialchars($system_title); ?></title>
-    <link href="lib/assets/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="lib/assets/all.min.css">
-    <link rel="stylesheet" href="lib/assets/tabulator.min.css">
-    <script src="lib/assets/all.min.js" defer></script>
-    <script src="lib/assets/tabulator.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator.min.css" integrity="sha512-2sMSqSgItz/dYVwJbT3T1zXm0u+U5B/hTgaLhWpU/O2hJpS/4b+z/pGjHk/2d/D/kR2J2/z+w/g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js" integrity="sha512-u3fPA7V/q_dR0APDDUuOzvKFBBHlAwKRj5lHZRt1gs3osuTRswblYIWkxVAqkSgM3/CaHXMwEcOuc_2Nqbuhmw==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js" integrity="sha512-oU2D37pQ9zslO6/1aV12S2sO6sQo+2qHk3Q2GZ9JpP9Jc2aEw+Ew/gIeHkHjQpG9/4Jm/wXh2o+0pM4w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style>
         .stat-card { transition: transform 0.2s, box-shadow 0.2s; }
         .stat-card:hover { transform: translateY(-5px) scale(1.03); box-shadow: 0 10px 20px -5px #0002; }
@@ -233,11 +229,8 @@ function stat_card_count($value) {
             $pages = [
                 ['dashboard.php', 'fas fa-tachometer-alt', 'Dashboard'],
                 ['individuals.php', 'fas fa-users', 'Residents'],
-                ['families.php', 'fas fa-house-user', 'Families'],
                 ['reports.php', 'fas fa-chart-bar', 'Reports'],
                 ['certificate.php', 'fas fa-file-alt', 'Certificates'],
-                ['announcement.php', 'fas fa-bullhorn', 'Announcement'],
-                ['system_settings.php', 'fas fa-cogs', 'System Settings'],
             ];
             $current = basename($_SERVER['PHP_SELF']);
             foreach ($pages as $page) {
@@ -276,7 +269,7 @@ function stat_card_count($value) {
     <!-- Main Content -->
     <div id="mainContent" class="flex-1 transition-all duration-300 ease-in-out p-2 md:px-0 md:pt-4 mt-16 flex flex-col items-center">
         <div class="w-full px-4 md:px-8">
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 mb-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 mb-4">
                 <div class="stat-card bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-xl shadow-lg p-3 m-1 flex flex-col justify-between min-h-[110px]">
                     <div class="flex justify-between items-start">
                         <div>
@@ -286,19 +279,6 @@ function stat_card_count($value) {
                         <i class="fas fa-users icon text-6xl opacity-30"></i>
                     </div>
                     <a href="individuals.php?filter_type=all_residents" class="mt-4 text-blue-100 hover:text-white text-sm font-medium flex items-center gap-1 self-end transition-colors">
-                        <span>View more info</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-                <div class="stat-card bg-gradient-to-br from-green-500 to-green-700 text-white rounded-xl shadow-lg p-3 m-1 flex flex-col justify-between min-h-[110px]">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <?php echo stat_card_count($stats['total_families']); ?>
-                            <div class="mb-2 text-base">Total Families</div>
-                        </div>
-                        <i class="fas fa-people-roof icon text-6xl opacity-30"></i>
-                    </div>
-                    <a href="individuals.php?filter_type=members_with_family_id" class="mt-4 text-blue-100 hover:text-white text-sm font-medium flex items-center gap-1 self-end transition-colors">
                         <span>View more info</span>
                         <i class="fas fa-arrow-right"></i>
                     </a>
@@ -390,32 +370,6 @@ function stat_card_count($value) {
                         <i class="fas fa-user-shield icon text-6xl opacity-30"></i>
                     </div>
                     <a href="individuals.php?filter_type=solo_parent" class="mt-4 text-red-100 hover:text-white text-sm font-medium flex items-center gap-1 self-end transition-colors">
-                        <span>View more info</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-                <div class="stat-card bg-gradient-to-br from-fuchsia-600 to-fuchsia-800 text-white rounded-xl shadow-lg p-3 m-1 flex flex-col justify-between min-h-[110px]">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <?php echo stat_card_count($stats['total_pregnant']); ?>
-                            <div class="mb-2 text-base">Pregnant Women</div>
-                        </div>
-                        <i class="fas fa-baby-carriage icon text-6xl opacity-30"></i>
-                    </div>
-                    <a href="individuals.php?filter_type=pregnant" class="mt-4 text-pink-100 hover:text-white text-sm font-medium flex items-center gap-1 self-end transition-colors">
-                        <span>View more info</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-                <div class="stat-card bg-gradient-to-br from-lime-600 to-lime-800 text-white rounded-xl shadow-lg p-3 m-1 flex flex-col justify-between min-h-[110px]">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <?php echo stat_card_count($stats['total_newborns']); ?>
-                            <div class="mb-2 text-base">Newborns</div>
-                        </div>
-                        <i class="fas fa-baby icon text-6xl opacity-30"></i>
-                    </div>
-                    <a href="individuals.php?filter_type=newborn" class="mt-4 text-yellow-100 hover:text-white text-sm font-medium flex items-center gap-1 self-end transition-colors">
                         <span>View more info</span>
                         <i class="fas fa-arrow-right"></i>
                     </a>

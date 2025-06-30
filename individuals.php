@@ -42,7 +42,6 @@ $filter_type_map = [
     'senior' => 'Senior Citizens',
     'pwd' => 'PWDs',
     'solo_parent' => 'Solo Parents',
-    'pregnant' => 'Pregnant Women',
     'newborn' => 'Newborns',
     'minor' => 'Minors',
     // Add other filters as they come from dashboard cards
@@ -57,14 +56,15 @@ $page_title = isset($filter_type_map[$filter_type]) ? $filter_type_map[$filter_t
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $page_title; ?> - Barangay Information Management System</title>
-    <link href="lib/assets/tailwind.min.css" rel="stylesheet">
-    <link href="lib/assets/tabulator.min.css" rel="stylesheet">
-    <link href="lib/assets/all.min.css" rel="stylesheet"> <!-- Font Awesome -->
-    <script src="lib/assets/luxon.min.js"></script>
-    <script src="lib/assets/xlsx.full.min.js"></script>
-    <script src="lib/assets/jspdf.umd.min.js"></script>
-    <script src="lib/assets/jspdf.plugin.autotable.min.js"></script>
-    <script src="lib/assets/tabulator.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js" integrity="sha512-u3fPA7V/q_dR0APDDUuOzvKFBBHlAwKRj5lHZRt1gs3osuTRswblYIWkxVAqkSgM3/CaHXMwEcOuc_2Nqbuhmw==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/luxon/3.4.4/luxon.min.js" integrity="sha512-dUlS3qwHTnsCbUPNAfOBDWfs2LSunNUnrTJWzTkv2/5kZGcQP9GD23jTwMrSoI_8EDZ5T3gYJkO2taPl9iNmzg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha512-r22gChDnGvBylQ90+2e/ycr3RVr/flN6s84ocJUi7CHKV9yW3yuGaxR/FGNv_DbWIvOJo_s12QDkC/WbzHxOqg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" integrity="sha512-2/YdOMV+1Ys2sQ4YjPzDwOEeN1UeI1Hh+21s9oM6O3xY/eyWy0j+QzQy6/HjM2kGjLh2sDqJOI/1lZ2Iq/A+g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js" integrity="sha512-oU2D37pQ9zslO6/1aV12S2sO6sQo+2qHk3Q2GZ9JpP9Jc2aEw+Ew/gIeHkHjQpG9/4Jm/wXh2o+0pM4w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style>
         .sidebar-border { border-right: 1px solid #e5e7eb; }
         .dropdown-menu { display: none; position: absolute; right: 0; top: 100%; background: white; min-width: 180px; box-shadow: 0 4px 16px #0001; border-radius: 0.5rem; z-index: 50; }
@@ -151,11 +151,8 @@ $page_title = isset($filter_type_map[$filter_type]) ? $filter_type_map[$filter_t
             $pages = [
                 ['dashboard.php', 'fas fa-tachometer-alt', 'Dashboard'],
                 ['individuals.php', 'fas fa-users', 'Residents'],
-                ['families.php', 'fas fa-house-user', 'Families'],
                 ['reports.php', 'fas fa-chart-bar', 'Reports'],
                 ['certificate.php', 'fas fa-file-alt', 'Certificates'],
-                ['announcement.php', 'fas fa-bullhorn', 'Announcement'],
-                ['system_settings.php', 'fas fa-cogs', 'System Settings'],
             ];
             $current = basename($_SERVER['PHP_SELF']);
             foreach ($pages as $page) {
@@ -250,8 +247,13 @@ $page_title = isset($filter_type_map[$filter_type]) ? $filter_type_map[$filter_t
                     <input type="number" id="adv_search_age_max" name="adv_search_age_max" min="0">
                 </div>
                 <div class="advanced-search-field">
-                    <label for="adv_search_birthdate_from">Birthdate From:</label>
-                    <input type="date" id="adv_search_birthdate_from" name="adv_search_birthdate_from">
+                    <label for="adv_search_purok">Purok:</label>
+                    <select id="adv_search_purok" name="adv_search_purok">
+                        <option value="">Any</option>
+                        <option value="Purok 1 (pulongtingga)">Purok 1</option>
+                        <option value="Purok 2 (looban)">Purok 2</option>
+                        <option value="Purok 3 (proper)">Purok 3</option>
+                    </select>
                 </div>
                 <div class="advanced-search-field">
                     <label for="adv_search_birthdate_to">Birthdate To:</label>
@@ -400,7 +402,28 @@ $page_title = isset($filter_type_map[$filter_type]) ? $filter_type_map[$filter_t
                         </div>
                         <div>
                             <label for="religion" class="block text-xs font-medium text-gray-700">Religion</label>
-                            <input type="text" name="religion" id="religion" class="form-input mt-0.5 py-1 px-2 text-xs">
+                            <select name="religion" id="religion" class="form-select mt-0.5 py-1 px-2 text-xs">
+                                <option value="" disabled selected>Select Religion</option>
+                                <option value="Roman Catholic">Roman Catholic</option>
+                                <option value="Iglesia ni Cristo">Iglesia ni Cristo</option>
+                                <option value="Evangelical (Born Again)">Evangelical (Born Again)</option>
+                                <option value="Seventh-day Adventist">Seventh-day Adventist</option>
+                                <option value="Jehovah’s Witnesses">Jehovah’s Witnesses</option>
+                                <option value="Baptist">Baptist</option>
+                                <option value="United Church of Christ in the Philippines (UCCP)">United Church of Christ in the Philippines (UCCP)</option>
+                                <option value="Islam (Muslim)">Islam (Muslim)</option>
+                                <option value="Aglipayan / Philippine Independent Church">Aglipayan / Philippine Independent Church</option>
+                                <option value="Pentecostal">Pentecostal</option>
+                                <option value="Methodist">Methodist</option>
+                                <option value="Lutheran">Lutheran</option>
+                                <option value="Orthodox Christian">Orthodox Christian</option>
+                                <option value="Church of Jesus Christ of Latter-day Saints (Mormon)">Church of Jesus Christ of Latter-day Saints (Mormon)</option>
+                                <option value="Buddhist">Buddhist</option>
+                                <option value="Hindu">Hindu</option>
+                                <option value="Judaism (Jewish)">Judaism (Jewish)</option>
+                                <option value="No Religion / Atheist / Agnostic">No Religion / Atheist / Agnostic</option>
+                                <option value="Others">Others</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -410,16 +433,28 @@ $page_title = isset($filter_type_map[$filter_type]) ? $filter_type_map[$filter_t
                     <div class="text-base font-extrabold text-gray-800 px-2 mb-1 text-center">Place of Birth</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                         <div>
-                            <label for="birthplace_barangay" class="block text-xs font-medium text-gray-700 required-label">Barangay</label>
-                            <input type="text" name="birthplace_barangay" id="birthplace_barangay" class="form-input mt-0.5 py-1 px-2 text-xs" required>
+                            <label for="birthplace_province" class="block text-xs font-medium text-gray-700 required-label">Province</label>
+                            <select name="birthplace_province" id="birthplace_province" class="form-select mt-0.5 py-1 px-2 text-xs" required>
+                                <option value="" disabled selected>Select Province</option>
+                            </select>
                         </div>
                         <div>
                             <label for="birthplace_municipality" class="block text-xs font-medium text-gray-700 required-label">Municipality / City</label>
-                            <input type="text" name="birthplace_municipality" id="birthplace_municipality" class="form-input mt-0.5 py-1 px-2 text-xs" required>
+                            <select name="birthplace_municipality" id="birthplace_municipality" class="form-select mt-0.5 py-1 px-2 text-xs" required>
+                                <option value="" disabled selected>Select Municipality / City</option>
+                            </select>
                         </div>
                         <div>
-                            <label for="birthplace_province" class="block text-xs font-medium text-gray-700 required-label">Province</label>
-                            <input type="text" name="birthplace_province" id="birthplace_province" class="form-input mt-0.5 py-1 px-2 text-xs" required>
+                            <label for="birthplace_barangay" class="block text-xs font-medium text-gray-700 required-label">Barangay</label>
+                            <select name="birthplace_barangay" id="birthplace_barangay" class="form-select mt-0.5 py-1 px-2 text-xs" required>
+                                <option value="" disabled selected>Select Barangay</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="birthplace_purok" class="block text-xs font-medium text-gray-700 required-label">Purok</label>
+                            <select name="birthplace_purok" id="birthplace_purok" class="form-select mt-0.5 py-1 px-2 text-xs" required>
+                                <option value="" disabled selected>Select Purok</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -429,20 +464,31 @@ $page_title = isset($filter_type_map[$filter_type]) ? $filter_type_map[$filter_t
                     <div class="text-base font-extrabold text-gray-800 px-2 mb-1 text-center">Current Address</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                         <div>
-                            <label for="current_purok" class="block text-xs font-medium text-gray-700 required-label">Purok</label>
-                            <input type="text" name="current_purok" id="current_purok" class="form-input mt-0.5 py-1 px-2 text-xs" required>
-                        </div>
-                        <div>
-                            <label for="current_barangay" class="block text-xs font-medium text-gray-700 required-label">Barangay</label>
-                            <input type="text" name="current_barangay" id="current_barangay" class="form-input mt-0.5 py-1 px-2 text-xs" value="<?php echo htmlspecialchars($default_barangay ?? ''); ?>" required>
+                            <label for="current_province" class="block text-xs font-medium text-gray-700 required-label">Province</label>
+                            <select name="current_province" id="current_province" class="form-select mt-0.5 py-1 px-2 text-xs" required>
+                                <option value="Bulacan" selected>Bulacan</option>
+                            </select>
                         </div>
                         <div>
                             <label for="current_municipality" class="block text-xs font-medium text-gray-700 required-label">Municipality / City</label>
-                            <input type="text" name="current_municipality" id="current_municipality" class="form-input mt-0.5 py-1 px-2 text-xs" value="<?php echo htmlspecialchars($default_municipality ?? ''); ?>" required>
+                            <select name="current_municipality" id="current_municipality" class="form-select mt-0.5 py-1 px-2 text-xs" required>
+                                <option value="Calumpit" selected>Calumpit</option>
+                            </select>
                         </div>
                         <div>
-                            <label for="current_province" class="block text-xs font-medium text-gray-700 required-label">Province</label>
-                            <input type="text" name="current_province" id="current_province" class="form-input mt-0.5 py-1 px-2 text-xs" value="<?php echo htmlspecialchars($default_province ?? ''); ?>" required>
+                            <label for="current_barangay" class="block text-xs font-medium text-gray-700 required-label">Barangay</label>
+                            <select name="current_barangay" id="current_barangay" class="form-select mt-0.5 py-1 px-2 text-xs" required>
+                                <option value="Sucol" selected>Sucol</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="current_purok" class="block text-xs font-medium text-gray-700 required-label">Purok</label>
+                            <select name="current_purok" id="current_purok" class="form-select mt-0.5 py-1 px-2 text-xs" required>
+                                <option value="" disabled selected>Select Purok</option>
+                                <option value="Purok 1">Purok 1</option>
+                                <option value="Purok 2">Purok 2</option>
+                                <option value="Purok 3">Purok 3</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -459,36 +505,6 @@ $page_title = isset($filter_type_map[$filter_type]) ? $filter_type_map[$filter_t
                             <label for="email" class="block text-xs font-medium text-gray-700">Email Address</label>
                             <input type="email" name="email" id="email" class="form-input mt-0.5 py-1 px-2 text-xs" placeholder="e.g., juan.delacruz@example.com">
                         </div>
-                    </div>
-                </div>
-                <hr class="my-2 border-gray-200 border">
-                <!-- Educational Background Section -->
-                <div class="mb-2">
-                    <div class="text-base font-extrabold text-gray-800 px-2 mb-1 text-center">Educational Background</div>
-                    <div>
-                        <label for="educational_attainment" class="block text-xs font-medium text-gray-700">Educational Attainment</label>
-                        <select name="educational_attainment" id="educational_attainment" class="form-select mt-0.5 py-1 px-2 text-xs">
-                            <option value="" disabled selected>Select Attainment</option>
-                            <option value="No Formal Education">No Formal Education</option>
-                            <option value="Elementary Level">Elementary Level</option>
-                            <option value="Elementary Graduate">Elementary Graduate</option>
-                            <option value="High School Level">High School Level</option>
-                            <option value="High School Graduate">High School Graduate</option>
-                            <option value="Vocational/Trade Course">Vocational/Trade Course</option>
-                            <option value="College Level">College Level</option>
-                            <option value="College Graduate">College Graduate</option>
-                            <option value="Post Graduate">Post Graduate</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                </div>
-                <hr class="my-2 border-gray-200 border">
-                <!-- Livelihood Section -->
-                <div class="mb-2">
-                    <div class="text-base font-extrabold text-gray-800 px-2 mb-1 text-center">Livelihood</div>
-                    <div>
-                        <label for="occupation" class="block text-xs font-medium text-gray-700">Occupation</label>
-                        <input type="text" name="occupation" id="occupation" class="form-input mt-0.5 py-1 px-2 text-xs">
                     </div>
                 </div>
                 <hr class="my-2 border-gray-200 border">
@@ -511,10 +527,6 @@ $page_title = isset($filter_type_map[$filter_type]) ? $filter_type_map[$filter_t
                         <div class="flex items-center">
                             <input id="is_solo_parent" name="is_solo_parent" type="checkbox" class="form-checkbox h-4 w-4 text-blue-600">
                             <label for="is_solo_parent" class="ml-2 block text-xs text-gray-900">Solo Parent?</label>
-                        </div>
-                        <div class="flex items-center">
-                            <input id="is_pregnant" name="is_pregnant" type="checkbox" class="form-checkbox h-4 w-4 text-blue-600">
-                            <label for="is_pregnant" class="ml-2 block text-xs text-gray-900">Pregnant?</label>
                         </div>
                     </div>
                 </div>
@@ -601,6 +613,15 @@ $page_title = isset($filter_type_map[$filter_type]) ? $filter_type_map[$filter_t
             { title: "Middle Name", field: "middle_name", minWidth: 130, hozAlign: "left", tooltip: true, resizable:true },
             { title: "Suffix", field: "suffix", minWidth: 60, hozAlign: "center", tooltip: true, resizable:true },
             { title: "Sex", field: "gender", minWidth: 80, hozAlign: "center", formatter: cell => cell.getValue() === 'male' ? 'Male' : (cell.getValue() === 'female' ? 'Female' : ''), resizable:true },
+            { title: "Purok", field: "current_purok", minWidth: 120, hozAlign: "center", tooltip: true, resizable:true, formatter: function(cell) {
+                // Only show 'Purok 1', 'Purok 2', or 'Purok 3'
+                const value = cell.getValue();
+                if (!value) return '';
+                if (value.startsWith('Purok 1')) return 'Purok 1';
+                if (value.startsWith('Purok 2')) return 'Purok 2';
+                if (value.startsWith('Purok 3')) return 'Purok 3';
+                return value;
+            } },
             { title: "Birthdate", field: "birthdate", minWidth: 110, hozAlign: "center", sorter: "date", tooltip: true, resizable:true },
             { title: "Age", field: "age", minWidth: 70, hozAlign: "center", formatter: cell => cell.getValue() ? cell.getValue() + " yrs" : "", resizable:true },
             { 
@@ -719,7 +740,7 @@ $page_title = isset($filter_type_map[$filter_type]) ? $filter_type_map[$filter_t
             const gender = document.getElementById('adv_search_gender').value;
             const ageMin = document.getElementById('adv_search_age_min').value;
             const ageMax = document.getElementById('adv_search_age_max').value;
-            const birthdateFrom = document.getElementById('adv_search_birthdate_from').value;
+            const purok = document.getElementById('adv_search_purok').value;
             const birthdateTo = document.getElementById('adv_search_birthdate_to').value;
 
             if (lastName) filters.push({ field: 'last_name', type: 'ilike', value: lastName });
@@ -728,7 +749,7 @@ $page_title = isset($filter_type_map[$filter_type]) ? $filter_type_map[$filter_t
             if (gender) filters.push({ field: 'gender', type: '=', value: gender });
             if (ageMin) filters.push({ field: 'age', type: '>=', value: ageMin });
             if (ageMax) filters.push({ field: 'age', type: '<=', value: ageMax });
-            if (birthdateFrom) filters.push({ field: 'birthdate', type: '>=', value: birthdateFrom });
+            if (purok) filters.push({ field: 'current_purok', type: '=', value: purok });
             if (birthdateTo) filters.push({ field: 'birthdate', type: '<=', value: birthdateTo });
             return filters;
         }
@@ -953,6 +974,87 @@ $page_title = isset($filter_type_map[$filter_type]) ? $filter_type_map[$filter_t
                 document.getElementById('addResidentMessage').innerHTML = '<div class="bg-red-100 text-red-700 p-3 rounded mb-2">An error occurred. Please try again.</div>';
             });
         });
+
+        // Load PH locations and populate dropdowns
+let phLocations = null;
+fetch('lib/assets/ph_locations.json')
+    .then(res => res.json())
+    .then(data => {
+        phLocations = data;
+        const provinceSelect = document.getElementById('birthplace_province');
+        data.provinces.forEach(prov => {
+            const opt = document.createElement('option');
+            opt.value = prov.name;
+            opt.textContent = prov.name;
+            provinceSelect.appendChild(opt);
+        });
+    });
+
+document.getElementById('birthplace_province').addEventListener('change', function() {
+    const provName = this.value;
+    const munSelect = document.getElementById('birthplace_municipality');
+    const brgySelect = document.getElementById('birthplace_barangay');
+    const purokSelect = document.getElementById('birthplace_purok');
+    munSelect.innerHTML = '<option value="" disabled selected>Select Municipality / City</option>';
+    brgySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
+    purokSelect.innerHTML = '<option value="" disabled selected>Select Purok</option>';
+    if (!phLocations) return;
+    const prov = phLocations.provinces.find(p => p.name === provName);
+    if (prov) {
+        prov.municipalities.forEach(mun => {
+            const opt = document.createElement('option');
+            opt.value = mun.name;
+            opt.textContent = mun.name;
+            munSelect.appendChild(opt);
+        });
+    }
+});
+
+document.getElementById('birthplace_municipality').addEventListener('change', function() {
+    const provName = document.getElementById('birthplace_province').value;
+    const munName = this.value;
+    const brgySelect = document.getElementById('birthplace_barangay');
+    const purokSelect = document.getElementById('birthplace_purok');
+    brgySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
+    purokSelect.innerHTML = '<option value="" disabled selected>Select Purok</option>';
+    if (!phLocations) return;
+    const prov = phLocations.provinces.find(p => p.name === provName);
+    if (prov) {
+        const mun = prov.municipalities.find(m => m.name === munName);
+        if (mun) {
+            mun.barangays.forEach(brgy => {
+                const opt = document.createElement('option');
+                opt.value = brgy.name;
+                opt.textContent = brgy.name;
+                brgySelect.appendChild(opt);
+            });
+        }
+    }
+});
+
+document.getElementById('birthplace_barangay').addEventListener('change', function() {
+    const provName = document.getElementById('birthplace_province').value;
+    const munName = document.getElementById('birthplace_municipality').value;
+    const brgyName = this.value;
+    const purokSelect = document.getElementById('birthplace_purok');
+    purokSelect.innerHTML = '<option value="" disabled selected>Select Purok</option>';
+    if (!phLocations) return;
+    const prov = phLocations.provinces.find(p => p.name === provName);
+    if (prov) {
+        const mun = prov.municipalities.find(m => m.name === munName);
+        if (mun) {
+            const brgy = mun.barangays.find(b => b.name === brgyName);
+            if (brgy && brgy.puroks) {
+                brgy.puroks.forEach(purok => {
+                    const opt = document.createElement('option');
+                    opt.value = purok;
+                    opt.textContent = purok;
+                    purokSelect.appendChild(opt);
+                });
+            }
+        }
+    }
+});
     </script>
     <?php if(isset($conn)) $conn->close(); ?>
 </body>

@@ -87,9 +87,6 @@ switch ($type) {
     case 'solo_parent':
         $typeWhereClause = "is_solo_parent = 1";
         break;
-    case 'pregnant':
-        $typeWhereClause = "is_pregnant = 1 AND gender = 'female' AND TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) BETWEEN 10 AND 50";
-        break;
     case 'newborn':
         $typeWhereClause = "birthdate IS NOT NULL AND DATEDIFF(CURDATE(), birthdate) >= 0 AND DATEDIFF(CURDATE(), birthdate) < 28";
         break;

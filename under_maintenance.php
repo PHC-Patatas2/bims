@@ -31,9 +31,9 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Under Maintenance - <?php echo htmlspecialchars($system_title); ?></title>
-    <link href="lib/assets/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="lib/assets/all.min.css">
-    <script src="lib/assets/all.min.js" defer></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js" integrity="sha512-u3fPA7V/q_dR0APDDUuOzvKFBBHlAwKRj5lHZRt1gs3osuTRswblYIWkxVAqkSgM3/CaHXMwEcOuc_2Nqbuhmw==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
     <style>
         .stat-card { transition: transform 0.2s, box-shadow 0.2s; }
         .stat-card:hover { transform: translateY(-5px) scale(1.03); box-shadow: 0 10px 20px -5px #0002; }
@@ -68,11 +68,8 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             $pages = [
                 ['dashboard.php', 'fas fa-tachometer-alt', 'Dashboard'],
                 ['individuals.php', 'fas fa-users', 'Residents'],
-                ['families.php', 'fas fa-house-user', 'Families'],
                 ['reports.php', 'fas fa-chart-bar', 'Reports'],
                 ['certificate.php', 'fas fa-file-alt', 'Certificates'],
-                ['announcement.php', 'fas fa-bullhorn', 'Announcement'],
-                ['system_settings.php', 'fas fa-cogs', 'System Settings'],
             ];
             $current = basename($_SERVER['PHP_SELF']);
             foreach ($pages as $page) {

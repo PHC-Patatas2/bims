@@ -24,7 +24,7 @@ BIMS (Barangay Information Management System)
 
 **Features:**
 - Secure login for secretary
-- Manage individuals and families (CRUD)
+- Manage individuals (CRUD)
 - Responsive sidebar and navbar
 - Search/filter and modals for records
 - Export individuals as PDF

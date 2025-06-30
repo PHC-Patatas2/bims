@@ -15,7 +15,7 @@ if ($conn->connect_error) {
 // Retrieve and sanitize form data
 $fields = [
     'last_name', 'first_name', 'middle_name', 'suffix', 'gender', 'birthdate', 'civil_status', 'blood_type',
-    'citizenship', 'religion', 'contact_number', 'email', 'occupation', 'educational_attainment',
+    'citizenship', 'religion', 'contact_number', 'email',
     'birthplace_barangay', 'birthplace_municipality', 'birthplace_province',
     'current_purok', 'current_barangay', 'current_municipality', 'current_province'
 ];
@@ -36,17 +36,17 @@ if (empty($data['last_name']) || empty($data['first_name']) || empty($data['gend
 }
 
 $sql = "INSERT INTO individuals (
-    last_name, first_name, middle_name, suffix, gender, birthdate, civil_status, blood_type, citizenship, religion, contact_number, email, occupation, educational_attainment,
+    last_name, first_name, middle_name, suffix, gender, birthdate, civil_status, blood_type, citizenship, religion, contact_number, email,
     birthplace_barangay, birthplace_municipality, birthplace_province,
     current_purok, current_barangay, current_municipality, current_province,
     is_voter, is_4ps_member, is_pwd, is_solo_parent, is_pregnant, created_at, updated_at
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
 $stmt = $conn->prepare($sql);
 if ($stmt) {
     $stmt->bind_param(
-        "ssssssssssssssssssssiiiii",
+        "ssssssssssssssssssiiiii",
         $data['last_name'], $data['first_name'], $data['middle_name'], $data['suffix'], $data['gender'], $data['birthdate'], $data['civil_status'], $data['blood_type'],
-        $data['citizenship'], $data['religion'], $data['contact_number'], $data['email'], $data['occupation'], $data['educational_attainment'],
+        $data['citizenship'], $data['religion'], $data['contact_number'], $data['email'],
         $data['birthplace_barangay'], $data['birthplace_municipality'], $data['birthplace_province'],
         $data['current_purok'], $data['current_barangay'], $data['current_municipality'], $data['current_province'],
         $is_voter, $is_4ps_member, $is_pwd, $is_solo_parent, $is_pregnant

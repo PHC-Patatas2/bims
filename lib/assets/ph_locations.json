@@ -1,0 +1,39 @@
+{
+  "provinces": [
+    { "name": "Bulacan", "municipalities": [
+      { "name": "Calumpit", "barangays": [
+        { "name": "Balite", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] },
+        { "name": "Balungao", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] },
+        { "name": "Bulusan", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] },
+        { "name": "Calizon", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] },
+        { "name": "Calumpang", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] },
+        { "name": "Caniogan", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] },
+        { "name": "Frances", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] },
+        { "name": "Gatbuca", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] },
+        { "name": "Iba O Este", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] },
+        { "name": "Iba Este", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] },
+        { "name": "Longos", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] },
+        { "name": "Meysulao", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] },
+        { "name": "Palimbang", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] },
+        { "name": "Poblacion", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] },
+        { "name": "Pungo", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] },
+        { "name": "Santa Lucia", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] },
+        { "name": "Sapang Bayan", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] },
+        { "name": "Sucol", "puroks": ["Purok 1", "Purok 2", "Purok 3"] }
+      ] },
+      { "name": "Malolos City", "barangays": [
+        { "name": "Anilao", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] },
+        { "name": "Atlag", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] },
+        { "name": "Babatnin", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] },
+        { "name": "Bagna", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] },
+        { "name": "Bagong Nayon", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] }
+      ] }
+    ] },
+    { "name": "Metro Manila", "municipalities": [
+      { "name": "Quezon City", "barangays": [
+        { "name": "Barangay 1", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] },
+        { "name": "Barangay 2", "puroks": ["Purok 1", "Purok 2", "Purok 3", "Purok 4", "Purok 5"] }
+      ] }
+    ] }
+  ]
+}

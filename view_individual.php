@@ -79,8 +79,9 @@ function display_boolean($value, $yes = 'Yes', $no = 'No') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($page_title); ?> - <?php echo htmlspecialchars($system_title); ?></title>
-    <link href="lib/assets/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="lib/assets/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js" integrity="sha512-u3fPA7V/q_dR0APDDUuOzvKFBBHlAwKRj5lHZRt1gs3osuTRswblYIWkxVAqkSgM3/CaHXMwEcOuc_2Nqbuhmw==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
     <style>
         .sidebar-border { border-right: 1px solid #e5e7eb; }
         .dropdown-menu { display: none; position: absolute; right: 0; top: 100%; background: white; min-width: 180px; box-shadow: 0 4px 16px #0001; border-radius: 0.5rem; z-index: 50; }
@@ -117,11 +118,8 @@ function display_boolean($value, $yes = 'Yes', $no = 'No') {
             $pages = [
                 ['dashboard.php', 'fas fa-tachometer-alt', 'Dashboard'],
                 ['individuals.php', 'fas fa-users', 'Residents'],
-                ['families.php', 'fas fa-house-user', 'Families'],
                 ['reports.php', 'fas fa-chart-bar', 'Reports'],
                 ['certificate.php', 'fas fa-file-alt', 'Certificates'],
-                ['announcement.php', 'fas fa-bullhorn', 'Announcement'],
-                ['system_settings.php', 'fas fa-cogs', 'System Settings'],
             ];
             $current = 'individuals.php'; // Highlight Residents as active
             foreach ($pages as $page) {
@@ -220,13 +218,10 @@ function display_boolean($value, $yes = 'Yes', $no = 'No') {
             <div>
                 <h2 class="detail-section-title">Other Information</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
-                    <div><span class="detail-label">Occupation:</span> <span class="detail-value"><?php echo display_data($resident_data['occupation'] ?? null); ?></span></div>
-                    <div><span class="detail-label">Educational Attainment:</span> <span class="detail-value"><?php echo display_data($resident_data['educational_attainment'] ?? null); ?></span></div>
                     <div><span class="detail-label">Registered Voter:</span> <span class="detail-value"><?php echo display_boolean($resident_data['is_voter'] ?? null); ?></span></div>
                     <div><span class="detail-label">4Ps Member:</span> <span class="detail-value"><?php echo display_boolean($resident_data['is_4ps_member'] ?? null); ?></span></div>
                     <div><span class="detail-label">PWD:</span> <span class="detail-value"><?php echo display_boolean($resident_data['is_pwd'] ?? null); ?></span></div>
                     <div><span class="detail-label">Solo Parent:</span> <span class="detail-value"><?php echo display_boolean($resident_data['is_solo_parent'] ?? null); ?></span></div>
-                    <div><span class="detail-label">Pregnant:</span> <span class="detail-value"><?php echo display_boolean($resident_data['is_pregnant'] ?? null); ?></span></div>
                 </div>
             </div>
 
@@ -280,6 +275,5 @@ function display_boolean($value, $yes = 'Yes', $no = 'No') {
             }
         });
     </script>
-    <script src="lib/assets/all.min.js" defer></script>
 </body>
 </html>

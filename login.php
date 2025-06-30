@@ -41,9 +41,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - <?php echo htmlspecialchars($system_title); ?></title>
-    <link href="lib/assets/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="lib/assets/all.min.css">
-    <script src="lib/assets/all.min.js" defer></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js" integrity="sha512-u3fPA7V/q_dR0APDDUuOzvKFBBHlAwKRj5lHZRt1gs3osuTRswblYIWkxVAqkSgM3/CaHXMwEcOuc_2Nqbuhmw==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
     <style>
         .fade-out { transition: opacity 0.5s; opacity: 0; }
     </style>
@@ -70,8 +70,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div>
                 <input type="password" id="password" name="password" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" required autocomplete="current-password" placeholder="Password">
             </div>
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded transition">Login</button>
+            <div class="flex items-center mt-2">
+                <input id="show-password" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label for="show-password" class="ml-2 block text-sm text-gray-900">Show Password</label>
+            </div>
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded transition mt-4">Login</button>
         </form>
     </div>
+    <script>
+        const showPasswordCheckbox = document.getElementById('show-password');
+        const passwordInput = document.getElementById('password');
+
+        showPasswordCheckbox.addEventListener('change', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+        });
+    </script>
 </body>
 </html>

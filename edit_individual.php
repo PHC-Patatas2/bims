@@ -75,30 +75,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $religion = trim($_POST['religion'] ?? '');
         $contact_number = trim($_POST['contact_number'] ?? '');
         $email = trim($_POST['email'] ?? '');
-        $purok_street = trim($_POST['purok_street'] ?? '');
-        $barangay = trim($_POST['barangay'] ?? '');
-        $municipality = trim($_POST['municipality'] ?? '');
-        $province = trim($_POST['province'] ?? '');
-        $occupation = trim($_POST['occupation'] ?? '');
-        $educational_attainment = $_POST['educational_attainment'] ?? '';
+        
+        // Handle Place of Birth cascading fields
+        $birthplace_province = trim($_POST['birthplace_province'] ?? '');
+        $birthplace_municipality = trim($_POST['birthplace_municipality'] ?? '');
+        $birthplace_barangay = trim($_POST['birthplace_barangay'] ?? '');
+        $birthplace_purok = trim($_POST['birthplace_purok'] ?? '');
+        $place_of_birth = '';
+        if (!empty($birthplace_purok) && !empty($birthplace_barangay) && !empty($birthplace_municipality) && !empty($birthplace_province)) {
+            $place_of_birth = $birthplace_purok . ', ' . $birthplace_barangay . ', ' . $birthplace_municipality . ', ' . $birthplace_province;
+        } elseif (!empty($birthplace_barangay) && !empty($birthplace_municipality) && !empty($birthplace_province)) {
+            $place_of_birth = $birthplace_barangay . ', ' . $birthplace_municipality . ', ' . $birthplace_province;
+        }
+        
+        // Handle Current Address cascading fields  
+        $current_province = trim($_POST['current_province'] ?? '');
+        $current_municipality = trim($_POST['current_municipality'] ?? '');
+        $current_barangay = trim($_POST['current_barangay'] ?? '');
+        $current_purok = trim($_POST['current_purok'] ?? '');
+        $purok_street = $current_purok; // Use purok as the purok_street field
+        $barangay = $current_barangay;
+        $municipality = $current_municipality;
+        $province = $current_province;
         $is_voter = isset($_POST['is_voter']) ? 1 : 0;
         $is_4ps_member = isset($_POST['is_4ps_member']) ? 1 : 0;
         $is_pwd = isset($_POST['is_pwd']) ? 1 : 0;
         $is_solo_parent = isset($_POST['is_solo_parent']) ? 1 : 0;
         $is_pregnant = isset($_POST['is_pregnant']) ? 1 : 0;
 
-        if (empty($last_name) || empty($first_name) || empty($gender) || empty($birthdate) || empty($purok_street) || empty($barangay) || empty($municipality) || empty($province)) {
-            $message = "Please fill in all required fields (Last Name, First Name, Gender, Birthdate, Address).";
+        if (empty($last_name) || empty($first_name) || empty($gender) || empty($birthdate) || empty($current_purok) || empty($current_barangay) || empty($current_municipality) || empty($current_province)) {
+            $message = "Please fill in all required fields (Last Name, First Name, Gender, Birthdate, Current Address).";
             $message_type = 'error';
         } else {
-            $sql = "UPDATE individuals SET last_name=?, first_name=?, middle_name=?, suffix=?, gender=?, birthdate=?, civil_status=?, blood_type=?, place_of_birth=?, citizenship=?, religion=?, contact_number=?, email=?, purok_street=?, barangay=?, municipality=?, province=?, occupation=?, educational_attainment=?, is_voter=?, is_4ps_member=?, is_pwd=?, is_solo_parent=?, is_pregnant=?, updated_at=NOW() WHERE id=?";
+            $sql = "UPDATE individuals SET last_name=?, first_name=?, middle_name=?, suffix=?, gender=?, birthdate=?, civil_status=?, blood_type=?, place_of_birth=?, citizenship=?, religion=?, contact_number=?, email=?, purok_street=?, barangay=?, municipality=?, province=?, is_voter=?, is_4ps_member=?, is_pwd=?, is_solo_parent=?, is_pregnant=?, updated_at=NOW() WHERE id=?";
             $stmt_update = $conn->prepare($sql);
             if ($stmt_update) {
                 $stmt_update->bind_param(
-                    "ssssssssssssssssssssiiiis",
+                    "ssssssssssssssssiiiiis",
                     $last_name, $first_name, $middle_name, $suffix, $gender, $birthdate, $civil_status, $blood_type,
                     $place_of_birth, $citizenship, $religion, $contact_number, $email, $purok_street, $barangay,
-                    $municipality, $province, $occupation, $educational_attainment, $is_voter, $is_4ps_member,
+                    $municipality, $province, $is_voter, $is_4ps_member,
                     $is_pwd, $is_solo_parent, $is_pregnant, $resident_id
                 );
 
@@ -157,8 +173,9 @@ function old_checked($field_name, $data_array) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($page_title); ?> - <?php echo htmlspecialchars($system_title); ?></title>
-    <link href="lib/assets/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="lib/assets/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js" integrity="sha512-u3fPA7V/q_dR0APDDUuOzvKFBBHlAwKRj5lHZRt1gs3osuTRswblYIWkxVAqkSgM3/CaHXMwEcOuc_2Nqbuhmw==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
     <style>
         .sidebar-border { border-right: 1px solid #e5e7eb; }
         .dropdown-menu { display: none; position: absolute; right: 0; top: 100%; background: white; min-width: 180px; box-shadow: 0 4px 16px #0001; border-radius: 0.5rem; z-index: 50; }
@@ -194,11 +211,8 @@ function old_checked($field_name, $data_array) {
             $pages = [
                 ['dashboard.php', 'fas fa-tachometer-alt', 'Dashboard'],
                 ['individuals.php', 'fas fa-users', 'Residents'],
-                ['families.php', 'fas fa-house-user', 'Families'],
                 ['reports.php', 'fas fa-chart-bar', 'Reports'],
                 ['certificate.php', 'fas fa-file-alt', 'Certificates'],
-                ['announcement.php', 'fas fa-bullhorn', 'Announcement'],
-                ['system_settings.php', 'fas fa-cogs', 'System Settings'],
             ];
             $current = 'individuals.php';
             foreach ($pages as $page) {
@@ -242,140 +256,182 @@ function old_checked($field_name, $data_array) {
 
         <?php if ($resident_data): // Only show form if resident data is loaded ?>
         <form action="edit_individual.php?id=<?php echo $resident_id; ?>" method="POST" class="bg-white shadow-xl rounded-lg p-6 md:p-8 space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div>
-                    <label for="last_name" class="block text-sm font-medium text-gray-700 required-label">Last Name</label>
-                    <input type="text" name="last_name" id="last_name" class="form-input mt-1" value="<?php echo old_value('last_name', $resident_data); ?>" required>
-                </div>
-                <div>
-                    <label for="first_name" class="block text-sm font-medium text-gray-700 required-label">First Name</label>
-                    <input type="text" name="first_name" id="first_name" class="form-input mt-1" value="<?php echo old_value('first_name', $resident_data); ?>" required>
-                </div>
-                <div>
-                    <label for="middle_name" class="block text-sm font-medium text-gray-700">Middle Name</label>
-                    <input type="text" name="middle_name" id="middle_name" class="form-input mt-1" value="<?php echo old_value('middle_name', $resident_data); ?>">
-                </div>
-                <div>
-                    <label for="suffix" class="block text-sm font-medium text-gray-700">Suffix</label>
-                    <input type="text" name="suffix" id="suffix" class="form-input mt-1" value="<?php echo old_value('suffix', $resident_data); ?>">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div>
-                    <label for="gender" class="block text-sm font-medium text-gray-700 required-label">Sex / Gender</label>
-                    <select name="gender" id="gender" class="form-select mt-1" required>
-                        <option value="male" <?php echo (old_value('gender', $resident_data) == 'male') ? 'selected' : ''; ?>>Male</option>
-                        <option value="female" <?php echo (old_value('gender', $resident_data) == 'female') ? 'selected' : ''; ?>>Female</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="birthdate" class="block text-sm font-medium text-gray-700 required-label">Birthdate</label>
-                    <input type="date" name="birthdate" id="birthdate" class="form-input mt-1" value="<?php echo old_value('birthdate', $resident_data); ?>" required>
-                </div>
-                <div>
-                    <label for="civil_status" class="block text-sm font-medium text-gray-700">Civil Status</label>
-                    <select name="civil_status" id="civil_status" class="form-select mt-1">
-                        <option value="" <?php echo (old_value('civil_status', $resident_data) == '') ? 'selected' : ''; ?>>Select Civil Status</option>
-                        <option value="Single" <?php echo (old_value('civil_status', $resident_data) == 'Single') ? 'selected' : ''; ?>>Single</option>
-                        <option value="Married" <?php echo (old_value('civil_status', $resident_data) == 'Married') ? 'selected' : ''; ?>>Married</option>
-                        <option value="Widowed" <?php echo (old_value('civil_status', $resident_data) == 'Widowed') ? 'selected' : ''; ?>>Widowed</option>
-                        <option value="Separated" <?php echo (old_value('civil_status', $resident_data) == 'Separated') ? 'selected' : ''; ?>>Separated</option>
-                        <option value="Divorced" <?php echo (old_value('civil_status', $resident_data) == 'Divorced') ? 'selected' : ''; ?>>Divorced</option>
-                        <option value="Annulled" <?php echo (old_value('civil_status', $resident_data) == 'Annulled') ? 'selected' : ''; ?>>Annulled</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                 <div>
-                    <label for="blood_type" class="block text-sm font-medium text-gray-700">Blood Type</label>
-                    <select name="blood_type" id="blood_type" class="form-select mt-1">
-                        <option value="" <?php echo (old_value('blood_type', $resident_data) == '') ? 'selected' : ''; ?>>Select Blood Type</option>
-                        <option value="A+" <?php echo (old_value('blood_type', $resident_data) == 'A+') ? 'selected' : ''; ?>>A+</option>
-                        <option value="A-" <?php echo (old_value('blood_type', $resident_data) == 'A-') ? 'selected' : ''; ?>>A-</option>
-                        <option value="B+" <?php echo (old_value('blood_type', $resident_data) == 'B+') ? 'selected' : ''; ?>>B+</option>
-                        <option value="B-" <?php echo (old_value('blood_type', $resident_data) == 'B-') ? 'selected' : ''; ?>>B-</option>
-                        <option value="AB+" <?php echo (old_value('blood_type', $resident_data) == 'AB+') ? 'selected' : ''; ?>>AB+</option>
-                        <option value="AB-" <?php echo (old_value('blood_type', $resident_data) == 'AB-') ? 'selected' : ''; ?>>AB-</option>
-                        <option value="O+" <?php echo (old_value('blood_type', $resident_data) == 'O+') ? 'selected' : ''; ?>>O+</option>
-                        <option value="O-" <?php echo (old_value('blood_type', $resident_data) == 'O-') ? 'selected' : ''; ?>>O-</option>
-                        <option value="Unknown" <?php echo (old_value('blood_type', $resident_data) == 'Unknown') ? 'selected' : ''; ?>>Unknown</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="place_of_birth" class="block text-sm font-medium text-gray-700">Place of Birth</label>
-                    <input type="text" name="place_of_birth" id="place_of_birth" class="form-input mt-1" value="<?php echo old_value('place_of_birth', $resident_data); ?>">
-                </div>
-                <div>
-                    <label for="citizenship" class="block text-sm font-medium text-gray-700">Citizenship</label>
-                    <input type="text" name="citizenship" id="citizenship" class="form-input mt-1" value="<?php echo old_value('citizenship', $resident_data, 'Filipino'); ?>">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div>
-                    <label for="religion" class="block text-sm font-medium text-gray-700">Religion</label>
-                    <input type="text" name="religion" id="religion" class="form-input mt-1" value="<?php echo old_value('religion', $resident_data); ?>">
-                </div>
-                <div>
-                    <label for="contact_number" class="block text-sm font-medium text-gray-700">Contact Number</label>
-                    <input type="tel" name="contact_number" id="contact_number" class="form-input mt-1" value="<?php echo old_value('contact_number', $resident_data); ?>">
-                </div>
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
-                    <input type="email" name="email" id="email" class="form-input mt-1" value="<?php echo old_value('email', $resident_data); ?>">
-                </div>
-            </div>
-
-            <fieldset class="border p-4 rounded-md">
-                <legend class="text-lg font-semibold text-gray-700 px-2">Address</legend>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mt-2">
+            <!-- Personal Information Section -->
+            <div class="mb-6">
+                <h3 class="text-2xl font-extrabold text-gray-800 mb-4">Personal Information</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div>
-                        <label for="purok_street" class="block text-sm font-medium text-gray-700 required-label">Purok / Street / Subd.</label>
-                        <input type="text" name="purok_street" id="purok_street" class="form-input mt-1" value="<?php echo old_value('purok_street', $resident_data); ?>" required>
+                        <label for="last_name" class="block text-sm font-medium text-gray-700 required-label">Last Name</label>
+                        <input type="text" name="last_name" id="last_name" class="form-input mt-1" value="<?php echo old_value('last_name', $resident_data); ?>" required>
                     </div>
                     <div>
-                        <label for="barangay" class="block text-sm font-medium text-gray-700 required-label">Barangay</label>
-                        <input type="text" name="barangay" id="barangay" class="form-input mt-1" value="<?php echo old_value('barangay', $resident_data); ?>" required>
+                        <label for="first_name" class="block text-sm font-medium text-gray-700 required-label">First Name</label>
+                        <input type="text" name="first_name" id="first_name" class="form-input mt-1" value="<?php echo old_value('first_name', $resident_data); ?>" required>
                     </div>
                     <div>
-                        <label for="municipality" class="block text-sm font-medium text-gray-700 required-label">Municipality / City</label>
-                        <input type="text" name="municipality" id="municipality" class="form-input mt-1" value="<?php echo old_value('municipality', $resident_data); ?>" required>
+                        <label for="middle_name" class="block text-sm font-medium text-gray-700">Middle Name</label>
+                        <input type="text" name="middle_name" id="middle_name" class="form-input mt-1" value="<?php echo old_value('middle_name', $resident_data); ?>">
                     </div>
                     <div>
-                        <label for="province" class="block text-sm font-medium text-gray-700 required-label">Province</label>
-                        <input type="text" name="province" id="province" class="form-input mt-1" value="<?php echo old_value('province', $resident_data); ?>" required>
+                        <label for="suffix" class="block text-sm font-medium text-gray-700">Suffix</label>
+                        <input type="text" name="suffix" id="suffix" class="form-input mt-1" value="<?php echo old_value('suffix', $resident_data); ?>">
                     </div>
                 </div>
-            </fieldset>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+                    <div>
+                        <label for="gender" class="block text-sm font-medium text-gray-700 required-label">Sex / Gender</label>
+                        <select name="gender" id="gender" class="form-select mt-1" required>
+                            <option value="male" <?php echo (old_value('gender', $resident_data) == 'male') ? 'selected' : ''; ?>>Male</option>
+                            <option value="female" <?php echo (old_value('gender', $resident_data) == 'female') ? 'selected' : ''; ?>>Female</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="birthdate" class="block text-sm font-medium text-gray-700 required-label">Birthdate</label>
+                        <input type="date" name="birthdate" id="birthdate" class="form-input mt-1" value="<?php echo old_value('birthdate', $resident_data); ?>" required>
+                    </div>
+                    <div>
+                        <label for="civil_status" class="block text-sm font-medium text-gray-700">Civil Status</label>
+                        <select name="civil_status" id="civil_status" class="form-select mt-1">
+                            <option value="" <?php echo (old_value('civil_status', $resident_data) == '') ? 'selected' : ''; ?>>Select Civil Status</option>
+                            <option value="Single" <?php echo (old_value('civil_status', $resident_data) == 'Single') ? 'selected' : ''; ?>>Single</option>
+                            <option value="Married" <?php echo (old_value('civil_status', $resident_data) == 'Married') ? 'selected' : ''; ?>>Married</option>
+                            <option value="Widowed" <?php echo (old_value('civil_status', $resident_data) == 'Widowed') ? 'selected' : ''; ?>>Widowed</option>
+                            <option value="Separated" <?php echo (old_value('civil_status', $resident_data) == 'Separated') ? 'selected' : ''; ?>>Separated</option>
+                            <option value="Divorced" <?php echo (old_value('civil_status', $resident_data) == 'Divorced') ? 'selected' : ''; ?>>Divorced</option>
+                            <option value="Annulled" <?php echo (old_value('civil_status', $resident_data) == 'Annulled') ? 'selected' : ''; ?>>Annulled</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+                    <div>
+                        <label for="blood_type" class="block text-sm font-medium text-gray-700">Blood Type</label>
+                        <select name="blood_type" id="blood_type" class="form-select mt-1">
+                            <option value="" <?php echo (old_value('blood_type', $resident_data) == '') ? 'selected' : ''; ?>>Select Blood Type</option>
+                            <option value="A+" <?php echo (old_value('blood_type', $resident_data) == 'A+') ? 'selected' : ''; ?>>A+</option>
+                            <option value="A-" <?php echo (old_value('blood_type', $resident_data) == 'A-') ? 'selected' : ''; ?>>A-</option>
+                            <option value="B+" <?php echo (old_value('blood_type', $resident_data) == 'B+') ? 'selected' : ''; ?>>B+</option>
+                            <option value="B-" <?php echo (old_value('blood_type', $resident_data) == 'B-') ? 'selected' : ''; ?>>B-</option>
+                            <option value="AB+" <?php echo (old_value('blood_type', $resident_data) == 'AB+') ? 'selected' : ''; ?>>AB+</option>
+                            <option value="AB-" <?php echo (old_value('blood_type', $resident_data) == 'AB-') ? 'selected' : ''; ?>>AB-</option>
+                            <option value="O+" <?php echo (old_value('blood_type', $resident_data) == 'O+') ? 'selected' : ''; ?>>O+</option>
+                            <option value="O-" <?php echo (old_value('blood_type', $resident_data) == 'O-') ? 'selected' : ''; ?>>O-</option>
+                            <option value="Unknown" <?php echo (old_value('blood_type', $resident_data) == 'Unknown') ? 'selected' : ''; ?>>Unknown</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="citizenship" class="block text-sm font-medium text-gray-700">Citizenship</label>
+                        <input type="text" name="citizenship" id="citizenship" class="form-input mt-1" value="<?php echo old_value('citizenship', $resident_data, 'Filipino'); ?>">
+                    </div>
+                    <div>
+                        <label for="religion" class="block text-sm font-medium text-gray-700">Religion</label>
+                        <select name="religion" id="religion" class="form-select mt-1">
+                            <option value="" <?php echo (old_value('religion', $resident_data) == '') ? 'selected' : ''; ?>>Select Religion</option>
+                            <option value="Roman Catholic" <?php echo (old_value('religion', $resident_data) == 'Roman Catholic') ? 'selected' : ''; ?>>Roman Catholic</option>
+                            <option value="Protestant" <?php echo (old_value('religion', $resident_data) == 'Protestant') ? 'selected' : ''; ?>>Protestant</option>
+                            <option value="Iglesia ni Cristo" <?php echo (old_value('religion', $resident_data) == 'Iglesia ni Cristo') ? 'selected' : ''; ?>>Iglesia ni Cristo</option>
+                            <option value="Seventh-day Adventist" <?php echo (old_value('religion', $resident_data) == 'Seventh-day Adventist') ? 'selected' : ''; ?>>Seventh-day Adventist</option>
+                            <option value="Baptist" <?php echo (old_value('religion', $resident_data) == 'Baptist') ? 'selected' : ''; ?>>Baptist</option>
+                            <option value="Methodist" <?php echo (old_value('religion', $resident_data) == 'Methodist') ? 'selected' : ''; ?>>Methodist</option>
+                            <option value="Pentecostal" <?php echo (old_value('religion', $resident_data) == 'Pentecostal') ? 'selected' : ''; ?>>Pentecostal</option>
+                            <option value="Jehovah's Witness" <?php echo (old_value('religion', $resident_data) == 'Jehovah\'s Witness') ? 'selected' : ''; ?>>Jehovah's Witness</option>
+                            <option value="Born Again" <?php echo (old_value('religion', $resident_data) == 'Born Again') ? 'selected' : ''; ?>>Born Again</option>
+                            <option value="Islam" <?php echo (old_value('religion', $resident_data) == 'Islam') ? 'selected' : ''; ?>>Islam</option>
+                            <option value="Buddhism" <?php echo (old_value('religion', $resident_data) == 'Buddhism') ? 'selected' : ''; ?>>Buddhism</option>
+                            <option value="Hinduism" <?php echo (old_value('religion', $resident_data) == 'Hinduism') ? 'selected' : ''; ?>>Hinduism</option>
+                            <option value="Judaism" <?php echo (old_value('religion', $resident_data) == 'Judaism') ? 'selected' : ''; ?>>Judaism</option>
+                            <option value="Other" <?php echo (old_value('religion', $resident_data) == 'Other') ? 'selected' : ''; ?>>Other</option>
+                            <option value="None" <?php echo (old_value('religion', $resident_data) == 'None') ? 'selected' : ''; ?>>None</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label for="occupation" class="block text-sm font-medium text-gray-700">Occupation</label>
-                    <input type="text" name="occupation" id="occupation" class="form-input mt-1" value="<?php echo old_value('occupation', $resident_data); ?>">
-                </div>
-                <div>
-                    <label for="educational_attainment" class="block text-sm font-medium text-gray-700">Educational Attainment</label>
-                    <select name="educational_attainment" id="educational_attainment" class="form-select mt-1">
-                        <option value="" <?php echo (old_value('educational_attainment', $resident_data) == '') ? 'selected' : ''; ?>>Select Attainment</option>
-                        <option value="No Formal Education" <?php echo (old_value('educational_attainment', $resident_data) == 'No Formal Education') ? 'selected' : ''; ?>>No Formal Education</option>
-                        <option value="Elementary Level" <?php echo (old_value('educational_attainment', $resident_data) == 'Elementary Level') ? 'selected' : ''; ?>>Elementary Level</option>
-                        <option value="Elementary Graduate" <?php echo (old_value('educational_attainment', $resident_data) == 'Elementary Graduate') ? 'selected' : ''; ?>>Elementary Graduate</option>
-                        <option value="High School Level" <?php echo (old_value('educational_attainment', $resident_data) == 'High School Level') ? 'selected' : ''; ?>>High School Level</option>
-                        <option value="High School Graduate" <?php echo (old_value('educational_attainment', $resident_data) == 'High School Graduate') ? 'selected' : ''; ?>>High School Graduate</option>
-                        <option value="Vocational/Trade Course" <?php echo (old_value('educational_attainment', $resident_data) == 'Vocational/Trade Course') ? 'selected' : ''; ?>>Vocational/Trade Course</option>
-                        <option value="College Level" <?php echo (old_value('educational_attainment', $resident_data) == 'College Level') ? 'selected' : ''; ?>>College Level</option>
-                        <option value="College Graduate" <?php echo (old_value('educational_attainment', $resident_data) == 'College Graduate') ? 'selected' : ''; ?>>College Graduate</option>
-                        <option value="Post Graduate" <?php echo (old_value('educational_attainment', $resident_data) == 'Post Graduate') ? 'selected' : ''; ?>>Post Graduate</option>
-                        <option value="Other" <?php echo (old_value('educational_attainment', $resident_data) == 'Other') ? 'selected' : ''; ?>>Other</option>
-                    </select>
+            <!-- Place of Birth Section -->
+            <div class="mb-6">
+                <h3 class="text-2xl font-extrabold text-gray-800 mb-4">Place of Birth</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div>
+                        <label for="birthplace_province" class="block text-sm font-medium text-gray-700 required-label">Province</label>
+                        <select name="birthplace_province" id="birthplace_province" class="form-select mt-1" required>
+                            <option value="" disabled selected>Select Province</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="birthplace_municipality" class="block text-sm font-medium text-gray-700 required-label">Municipality / City</label>
+                        <select name="birthplace_municipality" id="birthplace_municipality" class="form-select mt-1" required>
+                            <option value="" disabled selected>Select Municipality / City</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="birthplace_barangay" class="block text-sm font-medium text-gray-700 required-label">Barangay</label>
+                        <select name="birthplace_barangay" id="birthplace_barangay" class="form-select mt-1" required>
+                            <option value="" disabled selected>Select Barangay</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="birthplace_purok" class="block text-sm font-medium text-gray-700 required-label">Purok</label>
+                        <select name="birthplace_purok" id="birthplace_purok" class="form-select mt-1" required>
+                            <option value="" disabled selected>Select Purok</option>
+                        </select>
+                    </div>
                 </div>
             </div>
-
-            <fieldset class="border p-4 rounded-md">
-                <legend class="text-lg font-semibold text-gray-700 px-2">Other Information</legend>
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-4 mt-2">
+            
+            <!-- Current Address Section -->
+            <div class="mb-6">
+                <h3 class="text-2xl font-extrabold text-gray-800 mb-4">Current Address</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div>
+                        <label for="current_province" class="block text-sm font-medium text-gray-700 required-label">Province</label>
+                        <select name="current_province" id="current_province" class="form-select mt-1" required>
+                            <option value="Bulacan" selected>Bulacan</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="current_municipality" class="block text-sm font-medium text-gray-700 required-label">Municipality / City</label>
+                        <select name="current_municipality" id="current_municipality" class="form-select mt-1" required>
+                            <option value="Calumpit" selected>Calumpit</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="current_barangay" class="block text-sm font-medium text-gray-700 required-label">Barangay</label>
+                        <select name="current_barangay" id="current_barangay" class="form-select mt-1" required>
+                            <option value="Sucol" selected>Sucol</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="current_purok" class="block text-sm font-medium text-gray-700 required-label">Purok</label>
+                        <select name="current_purok" id="current_purok" class="form-select mt-1" required>
+                            <option value="" <?php echo (old_value('purok_street', $resident_data) == '') ? 'selected' : ''; ?> disabled>Select Purok</option>
+                            <option value="Purok 1" <?php echo (old_value('purok_street', $resident_data) == 'Purok 1') ? 'selected' : ''; ?>>Purok 1</option>
+                            <option value="Purok 2" <?php echo (old_value('purok_street', $resident_data) == 'Purok 2') ? 'selected' : ''; ?>>Purok 2</option>
+                            <option value="Purok 3" <?php echo (old_value('purok_street', $resident_data) == 'Purok 3') ? 'selected' : ''; ?>>Purok 3</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contact Information Section -->
+            <div class="mb-6">
+                <h3 class="text-2xl font-extrabold text-gray-800 mb-4">Contact Information</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="contact_number" class="block text-sm font-medium text-gray-700">Contact Number</label>
+                        <input type="tel" name="contact_number" id="contact_number" class="form-input mt-1" value="<?php echo old_value('contact_number', $resident_data); ?>" placeholder="e.g., 09123456789">
+                    </div>
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                        <input type="email" name="email" id="email" class="form-input mt-1" value="<?php echo old_value('email', $resident_data); ?>" placeholder="e.g., juan.delacruz@example.com">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Other Information Section -->
+            <div class="mb-6">
+                <h3 class="text-2xl font-extrabold text-gray-800 mb-4">Other Information</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
                     <div class="flex items-center">
                         <input id="is_voter" name="is_voter" type="checkbox" class="form-checkbox h-5 w-5 text-blue-600" <?php echo old_checked('is_voter', $resident_data); ?>>
                         <label for="is_voter" class="ml-2 block text-sm text-gray-900">Registered Voter?</label>
@@ -392,12 +448,8 @@ function old_checked($field_name, $data_array) {
                         <input id="is_solo_parent" name="is_solo_parent" type="checkbox" class="form-checkbox h-5 w-5 text-blue-600" <?php echo old_checked('is_solo_parent', $resident_data); ?>>
                         <label for="is_solo_parent" class="ml-2 block text-sm text-gray-900">Solo Parent?</label>
                     </div>
-                    <div class="flex items-center">
-                        <input id="is_pregnant" name="is_pregnant" type="checkbox" class="form-checkbox h-5 w-5 text-blue-600" <?php echo old_checked('is_pregnant', $resident_data); ?>>
-                        <label for="is_pregnant" class="ml-2 block text-sm text-gray-900">Pregnant?</label>
-                    </div>
                 </div>
-            </fieldset>
+            </div>
 
             <div class="flex justify-end space-x-3 pt-4">
                 <a href="view_individual.php?id=<?php echo $resident_id; ?>" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg shadow hover:shadow-md transition-all duration-150 ease-in-out">
@@ -449,6 +501,87 @@ function old_checked($field_name, $data_array) {
             }
         });
 
+        // Load PH locations and populate dropdowns
+        let phLocations = null;
+        fetch('lib/assets/ph_locations.json')
+            .then(res => res.json())
+            .then(data => {
+                phLocations = data;
+                const provinceSelect = document.getElementById('birthplace_province');
+                data.provinces.forEach(prov => {
+                    const opt = document.createElement('option');
+                    opt.value = prov.name;
+                    opt.textContent = prov.name;
+                    provinceSelect.appendChild(opt);
+                });
+            });
+
+        document.getElementById('birthplace_province').addEventListener('change', function() {
+            const provName = this.value;
+            const munSelect = document.getElementById('birthplace_municipality');
+            const brgySelect = document.getElementById('birthplace_barangay');
+            const purokSelect = document.getElementById('birthplace_purok');
+            munSelect.innerHTML = '<option value="" disabled selected>Select Municipality / City</option>';
+            brgySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
+            purokSelect.innerHTML = '<option value="" disabled selected>Select Purok</option>';
+            if (!phLocations) return;
+            const prov = phLocations.provinces.find(p => p.name === provName);
+            if (prov) {
+                prov.municipalities.forEach(mun => {
+                    const opt = document.createElement('option');
+                    opt.value = mun.name;
+                    opt.textContent = mun.name;
+                    munSelect.appendChild(opt);
+                });
+            }
+        });
+
+        document.getElementById('birthplace_municipality').addEventListener('change', function() {
+            const provName = document.getElementById('birthplace_province').value;
+            const munName = this.value;
+            const brgySelect = document.getElementById('birthplace_barangay');
+            const purokSelect = document.getElementById('birthplace_purok');
+            brgySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
+            purokSelect.innerHTML = '<option value="" disabled selected>Select Purok</option>';
+            if (!phLocations) return;
+            const prov = phLocations.provinces.find(p => p.name === provName);
+            if (prov) {
+                const mun = prov.municipalities.find(m => m.name === munName);
+                if (mun) {
+                    mun.barangays.forEach(brgy => {
+                        const opt = document.createElement('option');
+                        opt.value = brgy.name;
+                        opt.textContent = brgy.name;
+                        brgySelect.appendChild(opt);
+                    });
+                }
+            }
+        });
+
+        document.getElementById('birthplace_barangay').addEventListener('change', function() {
+            const provName = document.getElementById('birthplace_province').value;
+            const munName = document.getElementById('birthplace_municipality').value;
+            const brgyName = this.value;
+            const purokSelect = document.getElementById('birthplace_purok');
+            purokSelect.innerHTML = '<option value="" disabled selected>Select Purok</option>';
+            if (!phLocations) return;
+            const prov = phLocations.provinces.find(p => p.name === provName);
+            if (prov) {
+                const mun = prov.municipalities.find(m => m.name === munName);
+                if (mun) {
+                    const brgy = mun.barangays.find(b => b.name === brgyName);
+                    if (brgy && brgy.puroks) {
+                        brgy.puroks.forEach(purok => {
+                            const opt = document.createElement('option');
+                            opt.value = purok;
+                            opt.textContent = purok;
+                            purokSelect.appendChild(opt);
+                        });
+                    }
+                }
+            }
+        });
+
         <?php if ($message_type === 'success' && !empty($message)): ?>
         setTimeout(() => {
             const successMessageDiv = document.querySelector('.bg-green-100');
@@ -460,6 +593,5 @@ function old_checked($field_name, $data_array) {
         }, 3000); // Hide after 3 seconds
         <?php endif; ?>
     </script>
-    <script src="lib/assets/all.min.js" defer></script>
 </body>
 </html>
