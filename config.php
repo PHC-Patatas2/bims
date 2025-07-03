@@ -26,8 +26,9 @@ $options = [
 try {
     $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
 } catch (PDOException $e) {
-    // For a real application, you might want to log this error and display a user-friendly message
+    // Log the error and show a friendly error page
     error_log("Database Connection Error: " . $e->getMessage());
-    die("Database connection failed. Please check server logs or contact support.");
+    include __DIR__ . '/error_page.php';
+    exit();
 }
 ?>

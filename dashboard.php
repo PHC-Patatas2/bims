@@ -7,7 +7,11 @@ if (!isset($_SESSION['user_id'])) {
 require_once 'config.php';
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) {
-    die('Database connection failed: ' . $conn->connect_error);
+    // Log the detailed error for yourself
+    error_log('Database connection failed: ' . $conn->connect_error);
+    // Show a friendly message to the user
+    include 'error_page.php';
+    exit();
 }
 $user_id = $_SESSION['user_id'];
 
@@ -30,49 +34,36 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
     }
 }
 
-// Fetch dashboard stats from database
+// Fetch dashboard stats from database (optimized single query, no newborns, correct minors/seniors logic)
 $stats = [
     'total_residents' => null,
-    'total_families' => null,
     'total_male' => null,
     'total_female' => null,
+    'total_voters' => null,
+    'total_minors' => null,
     'total_seniors' => null,
     'total_pwd' => null,
-    'total_voters' => null,
-    'total_4ps' => null,
     'total_solo_parents' => null,
-    'total_pregnant' => null,
-    'total_newborns' => null,
-    'total_minors' => null,
+    'total_4ps' => null,
 ];
 
-// Updated queries for each stat as per new requirements
-$queries = [
-    // All individuals
-    'total_residents' => "SELECT COUNT(*) FROM individuals",
-    // Male
-    'total_male' => "SELECT COUNT(*) FROM individuals WHERE gender = 'male'",
-    // Female
-    'total_female' => "SELECT COUNT(*) FROM individuals WHERE gender = 'female'",
-    // Registered Voters
-    'total_voters' => "SELECT COUNT(*) FROM individuals WHERE is_voter = 1",
-    // Minors (age < 18, not a voter)
-    'total_minors' => "SELECT COUNT(*) FROM individuals WHERE birthdate IS NOT NULL AND TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) < 18 AND is_voter = 0",
-    // Senior Citizens (age >= 60)
-    'total_seniors' => "SELECT COUNT(*) FROM individuals WHERE birthdate IS NOT NULL AND TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) >= 60",
-    // PWDs
-    'total_pwd' => "SELECT COUNT(*) FROM individuals WHERE is_pwd = 1",
-    // Solo Parents
-    'total_solo_parents' => "SELECT COUNT(*) FROM individuals WHERE is_solo_parent = 1",
-    // Newborns (age < 28 days)
-    'total_newborns' => "SELECT COUNT(*) FROM individuals WHERE birthdate IS NOT NULL AND DATEDIFF(CURDATE(), birthdate) >= 0 AND DATEDIFF(CURDATE(), birthdate) < 28",
-    // 4Ps Members
-    'total_4ps' => "SELECT COUNT(*) FROM individuals WHERE is_4ps = 1",
-];
-foreach ($queries as $key => $sql) {
-    $result = $conn->query($sql);
-    if ($result && $row = $result->fetch_row()) {
-        $stats[$key] = (int)$row[0];
+$sql = "SELECT
+    COUNT(*) AS total_residents,
+    IFNULL(SUM(CASE WHEN gender = 'male' THEN 1 ELSE 0 END), 0) AS total_male,
+    IFNULL(SUM(CASE WHEN gender = 'female' THEN 1 ELSE 0 END), 0) AS total_female,
+    IFNULL(SUM(is_voter), 0) AS total_voters,
+    IFNULL(SUM(CASE WHEN birthdate IS NOT NULL AND TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) <= 17 THEN 1 ELSE 0 END), 0) AS total_minors,
+    IFNULL(SUM(CASE WHEN birthdate IS NOT NULL AND TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) >= 60 THEN 1 ELSE 0 END), 0) AS total_seniors,
+    IFNULL(SUM(is_pwd), 0) AS total_pwd,
+    IFNULL(SUM(is_solo_parent), 0) AS total_solo_parents,
+    IFNULL(SUM(is_4ps), 0) AS total_4ps
+FROM individuals";
+$result = $conn->query($sql);
+if ($result && $row = $result->fetch_assoc()) {
+    foreach ($stats as $key => $_) {
+        if (isset($row[$key])) {
+            $stats[$key] = (int)$row[$key];
+        }
     }
 }
 
