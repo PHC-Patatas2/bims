@@ -19,7 +19,7 @@ $stmt_user->bind_result($user_full_name);
 $stmt_user->fetch();
 $stmt_user->close();
 
-$system_title = 'Barangay Information Management System';
+$system_title = 'Resident Information and Certification Management System';
 $title_result = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key='system_title' LIMIT 1");
 if ($title_result && $title_row = $title_result->fetch_assoc()) {
     if (!empty($title_row['setting_value'])) {
@@ -54,14 +54,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $is_4ps_member = isset($_POST['is_4ps_member']) ? 1 : 0;
     $is_pwd = isset($_POST['is_pwd']) ? 1 : 0;
     $is_solo_parent = isset($_POST['is_solo_parent']) ? 1 : 0;
-    $is_pregnant = isset($_POST['is_pregnant']) ? 1 : 0;
-
+    
     // Basic validation
     if (empty($last_name) || empty($first_name) || empty($gender) || empty($birthdate) || empty($purok_street) || empty($barangay) || empty($municipality) || empty($province)) {
         $message = "Please fill in all required fields (Last Name, First Name, Gender, Birthdate, Address).";
         $message_type = 'error';
     } else {
-        $sql = "INSERT INTO individuals (last_name, first_name, middle_name, suffix, gender, birthdate, civil_status, blood_type, place_of_birth, citizenship, religion, contact_number, email, purok_street, barangay, municipality, province, is_voter, is_4ps_member, is_pwd, is_solo_parent, is_pregnant, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+        $sql = "INSERT INTO individuals (last_name, first_name, middle_name, suffix, gender, birthdate, civil_status, blood_type, place_of_birth, citizenship, religion, contact_number, email, purok_street, barangay, municipality, province, is_voter, is_4ps_member, is_pwd, is_solo_parent, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
         $stmt = $conn->prepare($sql);
         if ($stmt) {
             $stmt->bind_param(
@@ -69,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $last_name, $first_name, $middle_name, $suffix, $gender, $birthdate, $civil_status, $blood_type,
                 $place_of_birth, $citizenship, $religion, $contact_number, $email, $purok_street, $barangay,
                 $municipality, $province, $is_voter, $is_4ps_member,
-                $is_pwd, $is_solo_parent, $is_pregnant
+                $is_pwd, $is_solo_parent
             );
 
             if ($stmt->execute()) {

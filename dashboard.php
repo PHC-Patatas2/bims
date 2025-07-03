@@ -10,16 +10,19 @@ if ($conn->connect_error) {
     die('Database connection failed: ' . $conn->connect_error);
 }
 $user_id = $_SESSION['user_id'];
-$user_full_name = '';
-$stmt = $conn->prepare('SELECT full_name FROM users WHERE id = ?');
+
+$user_first_name = '';
+$user_last_name = '';
+$stmt = $conn->prepare('SELECT first_name, last_name FROM users WHERE id = ?');
 $stmt->bind_param('i', $user_id);
 $stmt->execute();
-$stmt->bind_result($user_full_name);
+$stmt->bind_result($user_first_name, $user_last_name);
 $stmt->fetch();
 $stmt->close();
+$user_full_name = trim($user_first_name . ' ' . $user_last_name);
 
 // Fetch system title from system_settings table
-$system_title = 'Barangay Information Management System'; // default fallback
+$system_title = 'Resident Information and Certification Management System'; // default fallback
 $title_result = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key='system_title' LIMIT 1");
 if ($title_result && $title_row = $title_result->fetch_assoc()) {
     if (!empty($title_row['setting_value'])) {
@@ -53,8 +56,8 @@ $queries = [
     'total_female' => "SELECT COUNT(*) FROM individuals WHERE gender = 'female'",
     // Registered Voters
     'total_voters' => "SELECT COUNT(*) FROM individuals WHERE is_voter = 1",
-    // 4Ps Members
-    'total_4ps' => "SELECT COUNT(*) FROM individuals WHERE is_4ps = 1",
+    // Minors (age < 18, not a voter)
+    'total_minors' => "SELECT COUNT(*) FROM individuals WHERE birthdate IS NOT NULL AND TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) < 18 AND is_voter = 0",
     // Senior Citizens (age >= 60)
     'total_seniors' => "SELECT COUNT(*) FROM individuals WHERE birthdate IS NOT NULL AND TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) >= 60",
     // PWDs
@@ -63,8 +66,8 @@ $queries = [
     'total_solo_parents' => "SELECT COUNT(*) FROM individuals WHERE is_solo_parent = 1",
     // Newborns (age < 28 days)
     'total_newborns' => "SELECT COUNT(*) FROM individuals WHERE birthdate IS NOT NULL AND DATEDIFF(CURDATE(), birthdate) >= 0 AND DATEDIFF(CURDATE(), birthdate) < 28",
-    // Minors (age < 18, not a voter)
-    'total_minors' => "SELECT COUNT(*) FROM individuals WHERE birthdate IS NOT NULL AND TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) < 18 AND is_voter = 0",
+    // 4Ps Members
+    'total_4ps' => "SELECT COUNT(*) FROM individuals WHERE is_4ps = 1",
 ];
 foreach ($queries as $key => $sql) {
     $result = $conn->query($sql);
@@ -75,9 +78,9 @@ foreach ($queries as $key => $sql) {
 
 // Use the actual ENUM values for the 3 valid puroks
 $purok_list = [
-    'Purok 1 (pulongtingga)',
-    'Purok 2 (looban)',
-    'Purok 3 (proper)'
+    'Purok 1 (Pulongtingga)',
+    'Purok 2 (Looban)',
+    'Purok 3 (Proper)'
 ];
 $purok_stats = [];
 $purok_in = "'" . implode("','", array_map(function($p) use ($conn) { return $conn->real_escape_string($p); }, $purok_list)) . "'";
@@ -442,21 +445,22 @@ function stat_card_count($value) {
                     </h2>
                     <div class="flex flex-row gap-3 mt-2 w-full">
                         <div class="flex flex-col gap-3 flex-1">
-                            <a href="generate_pdf.php" class="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold shadow transition-all w-full justify-center ring-2 ring-transparent hover:ring-red-300 focus:ring-4 focus:ring-red-400 h-16 text-lg">
-                                <i class="fas fa-file-pdf text-xl"></i>
-                                Generate PDF Report
+                            <!-- Quick Actions for Barangay Resident Info System -->
+                            <a href="certificate.php" class="flex items-center gap-2 px-4 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow transition-all w-full justify-center ring-2 ring-transparent hover:ring-indigo-300 focus:ring-4 focus:ring-indigo-400 h-16 text-lg">
+                                <i class="fas fa-file-alt text-xl"></i>
+                                Print Barangay Certificate
+                            </a>
+                            <a href="reports.php" class="flex items-center gap-2 px-4 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow transition-all w-full justify-center ring-2 ring-transparent hover:ring-blue-300 focus:ring-4 focus:ring-blue-400 h-16 text-lg">
+                                <i class="fas fa-chart-pie text-xl"></i>
+                                Generate Demographic Reports
                             </a>
                             <a href="export_excel.php" class="flex items-center gap-2 px-4 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold shadow transition-all w-full justify-center ring-2 ring-transparent hover:ring-green-300 focus:ring-4 focus:ring-green-400 h-16 text-lg">
                                 <i class="fas fa-file-excel text-xl"></i>
-                                Export Records via Excel
+                                Export Resident List (Excel)
                             </a>
-                            <a href="add_resident.php" class="flex items-center gap-2 px-4 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow transition-all w-full justify-center ring-2 ring-transparent hover:ring-blue-300 focus:ring-4 focus:ring-blue-400 h-16 text-lg">
-                                <i class="fas fa-user-plus text-xl"></i>
-                                Add New Resident
-                            </a>
-                            <a href="backup_records.php" class="flex items-center gap-2 px-4 py-3 rounded-lg bg-gray-700 hover:bg-gray-800 text-white font-semibold shadow transition-all w-full justify-center ring-2 ring-transparent hover:ring-gray-400 focus:ring-4 focus:ring-gray-500 h-16 text-lg">
-                                <i class="fas fa-database text-xl"></i>
-                                Backup Records
+                            <a href="create_barangay_id.php" class="flex items-center gap-2 px-4 py-3 rounded-lg bg-yellow-600 hover:bg-yellow-700 text-white font-semibold shadow transition-all w-full justify-center ring-2 ring-transparent hover:ring-yellow-300 focus:ring-4 focus:ring-yellow-400 h-16 text-lg">
+                                <i class="fas fa-id-card text-xl"></i>
+                                Create Barangay ID
                             </a>
                         </div>
                     </div>

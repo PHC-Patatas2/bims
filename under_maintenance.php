@@ -10,14 +10,16 @@ if ($conn->connect_error) {
     die('Database connection failed: ' . $conn->connect_error);
 }
 $user_id = $_SESSION['user_id'];
-$user_full_name = '';
-$stmt = $conn->prepare('SELECT full_name FROM users WHERE id = ?');
+$user_first_name = '';
+$user_last_name = '';
+$stmt = $conn->prepare('SELECT first_name, last_name FROM users WHERE id = ?');
 $stmt->bind_param('i', $user_id);
 $stmt->execute();
-$stmt->bind_result($user_full_name);
+$stmt->bind_result($user_first_name, $user_last_name);
 $stmt->fetch();
 $stmt->close();
-$system_title = 'Barangay Information Management System';
+$user_full_name = trim($user_first_name . ' ' . $user_last_name);
+$system_title = 'Resident Information and Certification Management System';
 $title_result = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key='system_title' LIMIT 1");
 if ($title_result && $title_row = $title_result->fetch_assoc()) {
     if (!empty($title_row['setting_value'])) {

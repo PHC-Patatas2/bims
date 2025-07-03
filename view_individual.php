@@ -19,7 +19,7 @@ $stmt_user->bind_result($user_full_name);
 $stmt_user->fetch();
 $stmt_user->close();
 
-$system_title = 'Barangay Information Management System';
+$system_title = 'Resident Information and Certification Management System';
 $title_result = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key='system_title' LIMIT 1");
 if ($title_result && $title_row = $title_result->fetch_assoc()) {
     if (!empty($title_row['setting_value'])) {

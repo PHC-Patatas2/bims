@@ -15,17 +15,21 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
-$user_role = $_SESSION['role'];
-$user_name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : ''; // Avoid undefined index warning
 
-// Fetch user's full name for navbar welcome
+$user_role = isset($_SESSION['role']) ? $_SESSION['role'] : '';
+$user_first_name = isset($_SESSION['first_name']) ? $_SESSION['first_name'] : '';
+$user_last_name = isset($_SESSION['last_name']) ? $_SESSION['last_name'] : '';
+$user_name = trim($user_first_name . ' ' . $user_last_name);
+
+// Fetch user's first and last name for navbar welcome
 $user_full_name = '';
-$stmt = $conn->prepare('SELECT full_name FROM users WHERE id = ?');
+$stmt = $conn->prepare('SELECT first_name, last_name FROM users WHERE id = ?');
 $stmt->bind_param('i', $user_id);
 $stmt->execute();
-$stmt->bind_result($user_full_name);
+$stmt->bind_result($user_first_name_db, $user_last_name_db);
 $stmt->fetch();
 $stmt->close();
+$user_full_name = trim($user_first_name_db . ' ' . $user_last_name_db);
 
 // Determine filter type from URL parameter, default to 'all_residents'
 $filter_type = isset($_GET['filter_type']) ? htmlspecialchars($_GET['filter_type']) : 'all_residents';
@@ -55,16 +59,16 @@ $page_title = isset($filter_type_map[$filter_type]) ? $filter_type_map[$filter_t
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $page_title; ?> - Barangay Information Management System</title>
+    <title><?php echo $page_title; ?> - Resident Information and Certification Management System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js" integrity="sha512-u3fPA7V/q_dR0APDDUuOzvKFBBHlAwKRj5lHZRt1gs3osuTRswblYIWkxVAqkSgM3/CaHXMwEcOuc_2Nqbuhmw==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/luxon/3.4.4/luxon.min.js" integrity="sha512-dUlS3qwHTnsCbUPNAfOBDWfs2LSunNUnrTJWzTkv2/5kZGcQP9GD23jTwMrSoI_8EDZ5T3gYJkO2taPl9iNmzg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha512-r22gChDnGvBylQ90+2e/ycr3RVr/flN6s84ocJUi7CHKV9yW3yuGaxR/FGNv_DbWIvOJo_s12QDkC/WbzHxOqg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" integrity="sha512-2/YdOMV+1Ys2sQ4YjPzDwOEeN1UeI1Hh+21s9oM6O3xY/eyWy0j+QzQy6/HjM2kGjLh2sDqJOI/1lZ2Iq/A+g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js" integrity="sha512-oU2D37pQ9zslO6/1aV12S2sO6sQo+2qHk3Q2GZ9JpP9Jc2aEw+Ew/gIeHkHjQpG9/4Jm/wXh2o+0pM4w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/luxon/3.4.4/luxon.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js"></script>
     <style>
         .sidebar-border { border-right: 1px solid #e5e7eb; }
         .dropdown-menu { display: none; position: absolute; right: 0; top: 100%; background: white; min-width: 180px; box-shadow: 0 4px 16px #0001; border-radius: 0.5rem; z-index: 50; }
@@ -171,7 +175,7 @@ $page_title = isset($filter_type_map[$filter_type]) ? $filter_type_map[$filter_t
         <div class="flex items-center gap-2">            <button id="menuBtn" class="h-8 w-8 mr-2 flex items-center justify-center text-blue-700 focus:outline-none">
                 <i class="fas fa-bars text-2xl"></i>
             </button>
-            <span class="font-bold text-lg text-blue-700">Barangay Information Management System</span>
+            <span class="font-bold text-lg text-blue-700">Resident Information and Certification Management System</span>
         </div>
         <div class="relative flex items-center gap-2">
             <span class="hidden sm:inline text-gray-700 font-medium">Welcome, <?php echo htmlspecialchars($user_full_name); ?></span>
@@ -198,24 +202,47 @@ $page_title = isset($filter_type_map[$filter_type]) ? $filter_type_map[$filter_t
                 <button id="addNewResidentBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg inline-flex items-center shadow hover:shadow-md transition-colors duration-150 ease-in-out">
                     <i class="fas fa-plus mr-2"></i> Add Resident
                 </button>
+                <button id="toggleAdvancedSearchBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg inline-flex items-center shadow hover:shadow-md transition-colors duration-150 ease-in-out">
+                    <i class="fas fa-search mr-2"></i> Advanced Search
+                </button>
                 <div class="relative">
-                    <button id="exportDataBtnDropdown" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg inline-flex items-center shadow hover:shadow-md transition-colors duration-150 ease-in-out">
+                    <button id="exportDataBtnDropdown" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-4 rounded-lg inline-flex items-center shadow hover:shadow-md transition-colors duration-150 ease-in-out">
                         <i class="fas fa-file-export mr-2"></i> Export <i class="fas fa-chevron-down ml-2 text-xs"></i>
                     </button>
-                    <div id="exportDropdownMenu" class="dropdown-menu absolute right-0 mt-2 py-1 w-48 bg-white rounded-md shadow-xl z-50">
-                        <a href="#" id="exportCsvBtn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Export Selected as CSV</a>
-                        <a href="#" id="exportXlsxBtn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Export Selected as XLSX</a>
-                        <a href="#" id="exportPdfBtn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Export Selected as PDF</a>
-                         <a href="#" id="exportAllCsvBtn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 border-t mt-1 pt-1">Export All (Filtered) as CSV</a>
-                        <a href="#" id="exportAllXlsxBtn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Export All (Filtered) as XLSX</a>
-                        <a href="#" id="exportAllPdfBtn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Export All (Filtered) as PDF</a>
+                    <div id="exportDropdownMenu" class="dropdown-menu absolute right-0 mt-2 py-1 w-56 bg-white rounded-md shadow-xl z-50">
+                        <div class="px-2 py-1">
+                            <div class="font-semibold text-gray-700 text-xs mb-1">Export Selected</div>
+                            <a href="#" id="exportXlsxBtn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Excel (.xlsx)</a>
+                            <a href="#" id="exportPdfBtn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">PDF (.pdf)</a>
+                        </div>
+                        <hr class="my-1">
+                        <div class="px-2 py-1">
+                            <div class="font-semibold text-gray-700 text-xs mb-1">Export All</div>
+                            <a href="#" id="exportAllXlsxBtn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Excel (.xlsx)</a>
+                            <a href="#" id="exportAllPdfBtn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">PDF (.pdf)</a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Advanced Search Section -->
-        <div id="advancedSearchContainer" class="mb-6 p-4 bg-gray-50 shadow rounded-lg border border-gray-200">
+        <!-- Advanced Search Section (hidden by default, toggled by button) -->
+        <div id="advancedSearchContainer" class="mb-6 p-4 bg-gray-50 shadow rounded-lg border border-gray-200" style="display:none;">
+        <script>
+        // Toggle Advanced Search visibility
+        const toggleAdvancedSearchBtn = document.getElementById('toggleAdvancedSearchBtn');
+        const advancedSearchContainer = document.getElementById('advancedSearchContainer');
+        if (toggleAdvancedSearchBtn && advancedSearchContainer) {
+            toggleAdvancedSearchBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (advancedSearchContainer.style.display === 'none' || advancedSearchContainer.style.display === '') {
+                    advancedSearchContainer.style.display = 'block';
+                } else {
+                    advancedSearchContainer.style.display = 'none';
+                }
+            });
+        }
+        </script>
             <h2 class="text-xl font-semibold text-gray-700 mb-3">Advanced Search</h2>
             <form id="advancedSearchForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="advanced-search-field">
@@ -514,19 +541,19 @@ $page_title = isset($filter_type_map[$filter_type]) ? $filter_type_map[$filter_t
                     <div class="grid grid-cols-2 gap-2 mt-1">
                         <div class="flex items-center">
                             <input id="is_voter" name="is_voter" type="checkbox" class="form-checkbox h-4 w-4 text-blue-600">
-                            <label for="is_voter" class="ml-2 block text-xs text-gray-900">Registered Voter?</label>
+                            <label for="is_voter" class="ml-2 block text-xs text-gray-900">Registered Voter</label>
                         </div>
                         <div class="flex items-center">
                             <input id="is_4ps_member" name="is_4ps_member" type="checkbox" class="form-checkbox h-4 w-4 text-blue-600">
-                            <label for="is_4ps_member" class="ml-2 block text-xs text-gray-900">4Ps Member?</label>
+                            <label for="is_4ps_member" class="ml-2 block text-xs text-gray-900">4Ps Member</label>
                         </div>
                         <div class="flex items-center">
                             <input id="is_pwd" name="is_pwd" type="checkbox" class="form-checkbox h-4 w-4 text-blue-600">
-                            <label for="is_pwd" class="ml-2 block text-xs text-gray-900">PWD?</label>
+                            <label for="is_pwd" class="ml-2 block text-xs text-gray-900">PWD</label>
                         </div>
                         <div class="flex items-center">
                             <input id="is_solo_parent" name="is_solo_parent" type="checkbox" class="form-checkbox h-4 w-4 text-blue-600">
-                            <label for="is_solo_parent" class="ml-2 block text-xs text-gray-900">Solo Parent?</label>
+                            <label for="is_solo_parent" class="ml-2 block text-xs text-gray-900">Solo Parent</label>
                         </div>
                     </div>
                 </div>
@@ -690,16 +717,13 @@ $page_title = isset($filter_type_map[$filter_type]) ? $filter_type_map[$filter_t
                     if(printSelectedBtn) printSelectedBtn.disabled = false;
                     if(deleteSelectedBtn) deleteSelectedBtn.disabled = false;
                     // Enable export selected buttons
-                    document.getElementById('exportCsvBtn').classList.remove('opacity-50', 'cursor-not-allowed');
                     document.getElementById('exportXlsxBtn').classList.remove('opacity-50', 'cursor-not-allowed');
                     document.getElementById('exportPdfBtn').classList.remove('opacity-50', 'cursor-not-allowed');
-
                 } else {
                     selectedActionsBar.style.display = 'none';
                     if(printSelectedBtn) printSelectedBtn.disabled = true;
                     if(deleteSelectedBtn) deleteSelectedBtn.disabled = true;
-                     // Disable export selected buttons
-                    document.getElementById('exportCsvBtn').classList.add('opacity-50', 'cursor-not-allowed');
+                    // Disable export selected buttons
                     document.getElementById('exportXlsxBtn').classList.add('opacity-50', 'cursor-not-allowed');
                     document.getElementById('exportPdfBtn').classList.add('opacity-50', 'cursor-not-allowed');
                 }
@@ -707,7 +731,6 @@ $page_title = isset($filter_type_map[$filter_type]) ? $filter_type_map[$filter_t
         });
 
         // Initialize export selected buttons as disabled
-        document.getElementById('exportCsvBtn').classList.add('opacity-50', 'cursor-not-allowed');
         document.getElementById('exportXlsxBtn').classList.add('opacity-50', 'cursor-not-allowed');
         document.getElementById('exportPdfBtn').classList.add('opacity-50', 'cursor-not-allowed');
 
@@ -831,10 +854,8 @@ $page_title = isset($filter_type_map[$filter_type]) ? $filter_type_map[$filter_t
             }
         }
 
-        setupExportButton('exportCsvBtn', 'csv', true);
         setupExportButton('exportXlsxBtn', 'xlsx', true);
         setupExportButton('exportPdfBtn', 'pdf', true);
-        setupExportButton('exportAllCsvBtn', 'csv', false);
         setupExportButton('exportAllXlsxBtn', 'xlsx', false);
         setupExportButton('exportAllPdfBtn', 'pdf', false);
 
@@ -974,6 +995,17 @@ $page_title = isset($filter_type_map[$filter_type]) ? $filter_type_map[$filter_t
                 document.getElementById('addResidentMessage').innerHTML = '<div class="bg-red-100 text-red-700 p-3 rounded mb-2">An error occurred. Please try again.</div>';
             });
         });
+
+        // Check for required libraries and warn if missing
+        if (typeof Tabulator === 'undefined') {
+            alert('Tabulator library is not loaded. Please check your script includes.');
+        }
+        if (typeof window.jspdf === 'undefined') {
+            alert('jsPDF library is not loaded. Please check your script includes.');
+        }
+        if (typeof XLSX === 'undefined') {
+            alert('SheetJS (XLSX) library is not loaded. Please check your script includes.');
+        }
 
         // Load PH locations and populate dropdowns
 let phLocations = null;

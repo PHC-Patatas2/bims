@@ -1,4 +1,4 @@
-BIMS (Barangay Information Management System)
+BIMS (Resident Information and Certification Management System)
 ==============================================
 
 **Requirements:**

@@ -13,7 +13,7 @@ if ($conn->connect_error) {
 }
 
 // Fetch system settings for header/footer or other info if needed
-$system_title = 'Barangay Information Management System';
+$system_title = 'Resident Information and Certification Management System';
 $barangay_name = 'Barangay Name'; // Default
 $municipality_name = 'Municipality'; // Default
 $province_name = 'Province'; // Default
