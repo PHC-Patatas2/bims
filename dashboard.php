@@ -59,6 +59,7 @@ $sql = "SELECT
     IFNULL(SUM(is_4ps), 0) AS total_4ps
 FROM individuals";
 $result = $conn->query($sql);
+
 if ($result && $row = $result->fetch_assoc()) {
     foreach ($stats as $key => $_) {
         if (isset($row[$key])) {
@@ -67,20 +68,29 @@ if ($result && $row = $result->fetch_assoc()) {
     }
 }
 
-// Use the actual ENUM values for the 3 valid puroks
-$purok_list = [
-    'Purok 1 (Pulongtingga)',
-    'Purok 2 (Looban)',
-    'Purok 3 (Proper)'
-];
+// Fetch purok list and stats from normalized purok table
+$purok_list = [];
 $purok_stats = [];
-$purok_in = "'" . implode("','", array_map(function($p) use ($conn) { return $conn->real_escape_string($p); }, $purok_list)) . "'";
-// Updated to use current_purok instead of purok
-$purok_query = "SELECT current_purok, COUNT(*) as total FROM individuals WHERE current_purok IN ($purok_in) GROUP BY current_purok ORDER BY FIELD(current_purok, $purok_in)";
-$purok_result = $conn->query($purok_query);
+$purok_result = $conn->query("SELECT id, name FROM purok ORDER BY id ASC");
 if ($purok_result) {
     while ($row = $purok_result->fetch_assoc()) {
-        $purok_stats[$row['current_purok']] = (int)$row['total'];
+        $purok_list[] = [
+            'id' => $row['id'],
+            'name' => $row['name']
+        ];
+        $purok_stats[$row['id']] = 0; // default to 0
+    }
+}
+if (!empty($purok_list)) {
+    // Get resident count per purok using purok_id
+    $purok_ids = array_column($purok_list, 'id');
+    $purok_id_in = implode(',', array_map('intval', $purok_ids));
+    $purok_query = "SELECT purok_id, COUNT(*) as total FROM individuals WHERE purok_id IN ($purok_id_in) GROUP BY purok_id";
+    $purok_result2 = $conn->query($purok_query);
+    if ($purok_result2) {
+        while ($row = $purok_result2->fetch_assoc()) {
+            $purok_stats[$row['purok_id']] = (int)$row['total'];
+        }
     }
 }
 
@@ -113,6 +123,29 @@ function stat_card_count($value) {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js" integrity="sha512-u3fPA7V/q_dR0APDDUuOzvKFBBHlAwKRj5lHZRt1gs3osuTRswblYIWkxVAqkSgM3/CaHXMwEcOuc_2Nqbuhmw==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js" integrity="sha512-oU2D37pQ9zslO6/1aV12S2sO6sQo+2qHk3Q2GZ9JpP9Jc2aEw+Ew/gIeHkHjQpG9/4Jm/wXh2o+0pM4w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style>
+        /* Custom thin scrollbar for sidepanel */
+        .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #2563eb #353535;
+            padding-right: 6px; /* Always reserve space for scrollbar */
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #2563eb;
+            border-radius: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #353535;
+        }
+        /* Always show scrollbar track to prevent layout shift */
+        .custom-scrollbar {
+            overflow-y: scroll;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            background: #353535;
+        }
         .stat-card { transition: transform 0.2s, box-shadow 0.2s; }
         .stat-card:hover { transform: translateY(-5px) scale(1.03); box-shadow: 0 10px 20px -5px #0002; }
         .stat-card .icon { transition: transform 0.3s; }
@@ -201,7 +234,7 @@ function stat_card_count($value) {
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
     <!-- Sidepanel -->
-    <div id="sidepanel" class="fixed top-0 left-0 h-full w-64 shadow-lg z-40 transform -translate-x-full transition-transform duration-300 ease-in-out sidebar-border" style="background-color: #454545;">
+    <div id="sidepanel" class="fixed top-0 left-0 h-full w-80 shadow-lg z-40 transform -translate-x-full transition-transform duration-300 ease-in-out sidebar-border overflow-y-auto custom-scrollbar" style="background-color: #454545;">
         <div class="flex flex-col items-center justify-center min-h-[90px] px-4 pt-3 pb-3 relative" style="border-bottom: 4px solid #FFD700;">
             <button id="closeSidepanel" class="absolute right-2 top-2 text-white hover:text-blue-400 focus:outline-none text-2xl md:hidden" aria-label="Close menu">
                 <i class="fas fa-times"></i>
@@ -218,26 +251,70 @@ function stat_card_count($value) {
             ?>
             <img src="<?php echo htmlspecialchars($barangay_logo); ?>" alt="Barangay Logo" class="w-28 h-28 object-cover rounded-full mb-1 border-2 border-white bg-white p-1" style="aspect-ratio:1/1;" onerror="this.onerror=null;this.src='img/logo.png';">
         </div>
-        <nav class="flex flex-col p-4 gap-2">
+        <nav class="flex flex-col p-4 gap-2 text-white">
             <?php
-            $pages = [
-                ['dashboard.php', 'fas fa-tachometer-alt', 'Dashboard'],
-                ['individuals.php', 'fas fa-users', 'Residents'],
-                ['reports.php', 'fas fa-chart-bar', 'Reports'],
-                ['certificate.php', 'fas fa-file-alt', 'Certificates'],
-            ];
+            // --- Sidepanel Navigation Refactored ---
             $current = basename($_SERVER['PHP_SELF']);
-            foreach ($pages as $page) {
-                $isActive = $current === $page[0];
-                // Active: blue fill, no border. Inactive: no fill, just white text.
-                $activeClass = $isActive 
-                    ? 'bg-blue-600 text-white font-bold shadow-md' 
-                    : 'text-white';
-                // Add blue background fill on hover for inactive options, no border
-                $hoverClass = 'hover:bg-blue-500 hover:text-white';
-                echo '<a href="' . $page[0] . '" class="py-2 px-3 rounded-lg flex items-center gap-2 ' . $activeClass . ' ' . $hoverClass . '"><i class="' . $page[1] . '"></i> ' . $page[2] . '</a>';
+            function navActive($pages) {
+                global $current;
+                return in_array($current, (array)$pages);
             }
+            function navLink($href, $icon, $label, $active, $extra = '') {
+                $classes = $active ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-white';
+                return '<a href="' . $href . '" class="py-2 px-3 rounded-lg flex items-center gap-2 ' . $classes . ' hover:bg-blue-500 hover:text-white ' . $extra . '"><i class="' . $icon . '"></i> ' . $label . '</a>';
+            }
+            echo navLink('dashboard.php', 'fas fa-tachometer-alt', 'Dashboard', navActive('dashboard.php'));
+
+            // People Management
+            $peopleActive = navActive(['individuals.php', 'households.php']);
+            $peopleId = 'peopleSubNav';
             ?>
+            <div class="mt-2">
+                <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $peopleActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $peopleId; ?>')">
+                    <i class="fas fa-users"></i> People Management
+                    <i class="fas fa-chevron-down ml-auto text-xs transition-transform duration-300 dropdown-arrow <?php echo $peopleActive ? 'rotate-180' : ''; ?>" data-arrow="<?php echo $peopleId; ?>"></i>
+                </button>
+                <div id="<?php echo $peopleId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $peopleActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
+                    <?php echo navLink('individuals.php', 'fas fa-user', 'Residents', navActive('individuals.php'), 'rounded'); ?>
+                    <?php echo navLink('households.php', 'fas fa-home', 'Households', navActive('households.php'), 'rounded'); ?>
+                </div>
+            </div>
+
+            <?php
+            // Barangay Documents
+            $docsActive = navActive(['certificate.php', 'reports.php', 'issued_documents.php']);
+            $docsId = 'docsSubNav';
+            ?>
+            <div class="mt-2">
+                <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $docsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $docsId; ?>')">
+                    <i class="fas fa-file-alt"></i> Barangay Documents
+                    <i class="fas fa-chevron-down ml-auto text-xs transition-transform duration-300 dropdown-arrow <?php echo $docsActive ? 'rotate-180' : ''; ?>" data-arrow="<?php echo $docsId; ?>"></i>
+                </button>
+                <div id="<?php echo $docsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $docsActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
+                    <?php echo navLink('certificate.php', 'fas fa-stamp', 'Issue Certificate', navActive('certificate.php'), 'rounded'); ?>
+                    <?php echo navLink('reports.php', 'fas fa-chart-bar', 'Generate Reports', navActive('reports.php'), 'rounded'); ?>
+                    <?php echo navLink('issued_documents.php', 'fas fa-history', 'Issued Documents Log', navActive('issued_documents.php'), 'rounded'); ?>
+                </div>
+            </div>
+
+            <?php
+            // System Settings
+            $settingsActive = navActive(['officials.php', 'users.php', 'settings.php', 'logs.php']);
+            $settingsId = 'settingsSubNav';
+            ?>
+            <div class="mt-2">
+                <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $settingsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $settingsId; ?>')">
+                    <i class="fas fa-cogs"></i> System Settings
+                    <i class="fas fa-chevron-down ml-auto text-xs transition-transform duration-300 dropdown-arrow <?php echo $settingsActive ? 'rotate-180' : ''; ?>" data-arrow="<?php echo $settingsId; ?>"></i>
+                </button>
+                <div id="<?php echo $settingsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $settingsActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
+                    <?php echo navLink('officials.php', 'fas fa-user-tie', 'Officials Management', navActive('officials.php'), 'rounded'); ?>
+                    <?php echo navLink('users.php', 'fas fa-users-cog', 'User Accounts', navActive('users.php'), 'rounded'); ?>
+                    <?php echo navLink('settings.php', 'fas fa-cog', 'General Settings', navActive('settings.php'), 'rounded'); ?>
+                    <?php echo navLink('logs.php', 'fas fa-clipboard-list', 'Logs', navActive('logs.php'), 'rounded'); ?>
+                </div>
+            </div>
+            
         </nav>
     </div>
     <!-- Overlay -->
@@ -263,203 +340,192 @@ function stat_card_count($value) {
     <!-- Main Content -->
     <div id="mainContent" class="flex-1 transition-all duration-300 ease-in-out p-2 md:px-0 md:pt-4 mt-16 flex flex-col items-center">
         <div class="w-full px-4 md:px-8">
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 mb-4">
-                <div class="stat-card bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-xl shadow-lg p-3 m-1 flex flex-col justify-between min-h-[110px]">
+            <?php
+            // A reusable function to generate perfectly styled stat cards.
+            function render_stat_card($title, $value, $icon_class, $color_theme, $link)
+            {
+                // Define color classes based on the theme
+                $colors = [
+                    'blue'    => ['bg' => 'bg-blue-100', 'text' => 'text-blue-600'],
+                    'teal'    => ['bg' => 'bg-teal-100', 'text' => 'text-teal-600'],
+                    'pink'    => ['bg' => 'bg-pink-100', 'text' => 'text-pink-600'],
+                    'indigo'  => ['bg' => 'bg-indigo-100', 'text' => 'text-indigo-600'],
+                    'orange'  => ['bg' => 'bg-orange-100', 'text' => 'text-orange-600'],
+                    'yellow'  => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-600'],
+                    'purple'  => ['bg' => 'bg-purple-100', 'text' => 'text-purple-600'],
+                    'red'     => ['bg' => 'bg-red-100', 'text' => 'text-red-600'],
+                    'green'   => ['bg' => 'bg-green-100', 'text' => 'text-green-600'],
+                ];
+                $color_classes = $colors[$color_theme] ?? $colors['blue']; // Default to blue if color not found
+
+                // The number part of the card
+                $count_html = '<div class="text-3xl font-bold text-gray-800">' . (int)$value . '</div>';
+                ?>
+                <div class="bg-white rounded-xl shadow-md p-4 flex flex-col justify-between min-h-[120px]">
                     <div class="flex justify-between items-start">
-                        <div>
-                            <?php echo stat_card_count($stats['total_residents']); ?>
-                            <div class="mb-2 text-base">Total Residents</div>
+                        <!-- Text content on the left -->
+                        <div class="flex flex-col">
+                            <?php echo $count_html; ?>
+                            <div class="text-base text-gray-600 font-medium mt-2"><?php echo htmlspecialchars($title); ?></div>
                         </div>
-                        <i class="fas fa-users icon text-6xl opacity-30"></i>
+                        <!-- Icon on the right -->
+                        <div class="flex items-center justify-center">
+                            <span class="inline-flex items-center justify-center w-14 h-14 rounded-full <?php echo $color_classes['bg']; ?>">
+                                <i class="<?php echo $icon_class; ?> text-3xl <?php echo $color_classes['text']; ?>"></i>
+                            </span>
+                        </div>
                     </div>
-                    <a href="individuals.php?filter_type=all_residents" class="mt-4 text-blue-100 hover:text-white text-sm font-medium flex items-center gap-1 self-end transition-colors">
-                        <span>View more info</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </a>
+                    <!-- "View more info" link at the bottom, aligned right -->
+                    <div class="flex justify-end mt-4">
+                        <a href="<?php echo $link; ?>" class="<?php echo $color_classes['text']; ?> hover:underline text-sm font-semibold flex items-center gap-1 transition-colors">
+                            <span>View more info</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
                 </div>
-                <div class="stat-card bg-gradient-to-br from-cyan-600 to-cyan-800 text-white rounded-xl shadow-lg p-3 m-1 flex flex-col justify-between min-h-[110px]">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <?php echo stat_card_count($stats['total_male']); ?>
-                            <div class="mb-2 text-base">Male Residents</div>
-                        </div>
-                        <i class="fas fa-mars icon text-6xl opacity-30"></i>
-                    </div>
-                    <a href="individuals.php?filter_type=male" class="mt-4 text-blue-100 hover:text-white text-sm font-medium flex items-center gap-1 self-end transition-colors">
-                        <span>View more info</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </a>
+            <?php
+            }
+
+            // Array holding all the data for our stat cards
+            $cards = [
+                ['title' => 'Total Population', 'value' => $stats['total_residents'], 'icon' => 'fas fa-users', 'color' => 'blue', 'link' => 'individuals.php'],
+                ['title' => 'Male Residents', 'value' => $stats['total_male'], 'icon' => 'fas fa-mars', 'color' => 'teal', 'link' => 'individuals.php?filter_type=male'],
+                ['title' => 'Female Residents', 'value' => $stats['total_female'], 'icon' => 'fas fa-venus', 'color' => 'pink', 'link' => 'individuals.php?filter_type=female'],
+                ['title' => 'Registered Voters', 'value' => $stats['total_voters'], 'icon' => 'fas fa-vote-yea', 'color' => 'indigo', 'link' => 'individuals.php?filter_type=voter'],
+                ['title' => '4Ps Beneficiaries', 'value' => $stats['total_4ps'], 'icon' => 'fas fa-hand-holding-heart', 'color' => 'orange', 'link' => 'individuals.php?filter_type=4ps'],
+                ['title' => 'Senior Citizens', 'value' => $stats['total_seniors'], 'icon' => 'fas fa-person-cane', 'color' => 'yellow', 'link' => 'individuals.php?filter_type=senior'],
+                ['title' => 'Registered PWDs', 'value' => $stats['total_pwd'], 'icon' => 'fas fa-wheelchair', 'color' => 'purple', 'link' => 'individuals.php?filter_type=pwd'],
+                ['title' => 'Solo Parents', 'value' => $stats['total_solo_parents'], 'icon' => 'fas fa-user-shield', 'color' => 'red', 'link' => 'individuals.php?filter_type=solo_parent'],
+                ['title' => 'Children & Youth', 'value' => $stats['total_minors'], 'icon' => 'fas fa-child', 'color' => 'green', 'link' => 'individuals.php?filter_type=minor'],
+            ];
+            ?>
+
+            <!-- Stat cards (3x3) on the left, Recent Activity on the right, both 520px height -->
+            <div class="w-full flex flex-row gap-6 mb-6 justify-end">
+                <!-- Stat Cards Grid -->
+                <div class="grid grid-cols-3 grid-rows-3 gap-4 flex-1" style="height: 520px;">
+                    <?php
+                    // Define the 9 cards in the desired order
+                    $stat_cards = [
+                        ['title' => 'Total Population', 'value' => $stats['total_residents'], 'icon' => 'fas fa-users', 'color' => 'blue', 'link' => 'individuals.php'],
+                        ['title' => 'Male Residents', 'value' => $stats['total_male'], 'icon' => 'fas fa-mars', 'color' => 'teal', 'link' => 'individuals.php?filter_type=male'],
+                        ['title' => 'Female Residents', 'value' => $stats['total_female'], 'icon' => 'fas fa-venus', 'color' => 'pink', 'link' => 'individuals.php?filter_type=female'],
+                        ['title' => 'Children & Youth', 'value' => $stats['total_minors'], 'icon' => 'fas fa-child', 'color' => 'green', 'link' => 'individuals.php?filter_type=minor'],
+                        ['title' => 'Registered Voters', 'value' => $stats['total_voters'], 'icon' => 'fas fa-vote-yea', 'color' => 'indigo', 'link' => 'individuals.php?filter_type=voter'],
+                        ['title' => 'Senior Citizens', 'value' => $stats['total_seniors'], 'icon' => 'fas fa-person-cane', 'color' => 'yellow', 'link' => 'individuals.php?filter_type=senior'],
+                        ['title' => 'Registered PWDs', 'value' => $stats['total_pwd'], 'icon' => 'fas fa-wheelchair', 'color' => 'purple', 'link' => 'individuals.php?filter_type=pwd'],
+                        ['title' => '4Ps Beneficiaries', 'value' => $stats['total_4ps'], 'icon' => 'fas fa-hand-holding-heart', 'color' => 'orange', 'link' => 'individuals.php?filter_type=4ps'],
+                        ['title' => 'Solo Parents', 'value' => $stats['total_solo_parents'], 'icon' => 'fas fa-user-shield', 'color' => 'red', 'link' => 'individuals.php?filter_type=solo_parent'],
+                    ];
+                    foreach ($stat_cards as $card) {
+                        render_stat_card($card['title'], $card['value'], $card['icon'], $card['color'], $card['link']);
+                    }
+                    ?>
                 </div>
-                <div class="stat-card bg-gradient-to-br from-pink-500 to-pink-700 text-white rounded-xl shadow-lg p-3 m-1 flex flex-col justify-between min-h-[110px]">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <?php echo stat_card_count($stats['total_female']); ?>
-                            <div class="mb-2 text-base">Female Residents</div>
-                        </div>
-                        <i class="fas fa-venus icon text-6xl opacity-30"></i>
+                <!-- Recent Activity -->
+                <div class="bg-white rounded-xl shadow p-4 border border-blue-200 transition relative overflow-hidden flex flex-col w-full max-w-xs" style="height: 520px;">
+                    <div class="absolute right-6 top-6 opacity-10 text-blue-400 text-7xl pointer-events-none select-none">
+                        <i class="fas fa-history"></i>
                     </div>
-                    <a href="individuals.php?filter_type=female" class="mt-4 text-blue-100 hover:text-white text-sm font-medium flex items-center gap-1 self-end transition-colors">
-                        <span>View more info</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-                <div class="stat-card bg-gradient-to-br from-indigo-500 to-indigo-700 text-white rounded-xl shadow-lg p-3 m-1 flex flex-col justify-between min-h-[110px]">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <?php echo stat_card_count($stats['total_voters']); ?>
-                            <div class="mb-2 text-base">Registered Voters</div>
-                        </div>
-                        <i class="fas fa-vote-yea icon text-6xl opacity-30"></i>
+                    <div class="flex items-center gap-3 mb-4 z-10 relative tracking-wide">
+                        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-100">
+                            <i class="fas fa-history text-blue-500 text-2xl"></i>
+                        </span>
+                        <h2 class="text-lg font-bold text-blue-900">Recent Activity</h2>
                     </div>
-                    <a href="individuals.php?filter_type=voter" class="mt-4 text-blue-100 hover:text-white text-sm font-medium flex items-center gap-1 self-end transition-colors">
-                        <span>View more info</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-                <div class="stat-card bg-gradient-to-br from-orange-500 to-orange-700 text-white rounded-xl shadow-lg p-3 m-1 flex flex-col justify-between min-h-[110px]">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <?php echo stat_card_count($stats['total_4ps']); ?>
-                            <div class="mb-2 text-base">4Ps Members</div>
-                        </div>
-                        <i class="fas fa-hand-holding-heart icon text-6xl opacity-30"></i>
+                    <div class="flex-1 overflow-y-auto z-10 relative">
+                        <!-- Example static activity list, replace with dynamic PHP if available -->
+                        <ul class="flex flex-col gap-2 text-gray-700 text-xs">
+                            <li class="recent-activity-item group flex flex-col" data-time="2 min ago">
+                                <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 shadow-sm border border-gray-200 relative overflow-hidden recent-activity-hover">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100"><i class="fas fa-user-plus text-green-600 text-xs"></i></span>
+                                    <span class="break-words flex-1"><strong class="font-semibold">Juan Dela Cruz</strong> was added as a new resident.</span>
+                                </div>
+                            </li>
+                            <li class="recent-activity-item group flex flex-col" data-time="10 min ago">
+                                <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 shadow-sm border border-gray-200 relative overflow-hidden recent-activity-hover">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100"><i class="fas fa-file-alt text-blue-600 text-xs"></i></span>
+                                    <span class="break-words flex-1">Barangay certificate issued to <strong class="font-semibold">Maria Santos</strong>.</span>
+                                </div>
+                            </li>
+                            <li class="recent-activity-item group flex flex-col" data-time="30 min ago">
+                                <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 shadow-sm border border-gray-200 relative overflow-hidden recent-activity-hover">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-100"><i class="fas fa-id-card text-yellow-600 text-xs"></i></span>
+                                    <span class="break-words flex-1">Barangay ID created for <strong class="font-semibold">Pedro Reyes</strong>.</span>
+                                </div>
+                            </li>
+                            <li class="recent-activity-item group flex flex-col" data-time="1 hour ago">
+                                <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 shadow-sm border border-gray-200 relative overflow-hidden recent-activity-hover">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100"><i class="fas fa-user-edit text-red-600 text-xs"></i></span>
+                                    <span class="break-words flex-1"><strong class="font-semibold">Ana Cruz</strong>'s information was updated.</span>
+                                </div>
+                            </li>
+                            <li class="recent-activity-item group flex flex-col" data-time="2 hours ago">
+                                <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 shadow-sm border border-gray-200 relative overflow-hidden recent-activity-hover">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-100"><i class="fas fa-users text-purple-600 text-xs"></i></span>
+                                    <span class="break-words flex-1">New household registered: <strong class="font-semibold">Reyes Family</strong>.</span>
+                                </div>
+                            </li>
+                        </ul>
                     </div>
-                    <a href="individuals.php?filter_type=4ps" class="mt-4 text-blue-100 hover:text-white text-sm font-medium flex items-center gap-1 self-end transition-colors">
-                        <span>View more info</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-                <div class="stat-card bg-gradient-to-br from-yellow-500 to-yellow-700 text-white rounded-xl shadow-lg p-3 m-1 flex flex-col justify-between min-h-[110px]">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <?php echo stat_card_count($stats['total_seniors']); ?>
-                            <div class="mb-2 text-base text-white">Senior Citizens</div>
-                        </div>
-                        <i class="fas fa-person-cane icon text-6xl opacity-30"></i>
+                    <!-- See more button at the bottom -->
+                    <div class="flex justify-center mt-3">
+                        <a href="#" class="inline-flex items-center gap-1 px-3 py-1 rounded text-blue-600 hover:bg-blue-50 hover:underline text-xs font-semibold transition">
+                            <span>See more</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
                     </div>
-                    <a href="individuals.php?filter_type=senior" class="mt-4 text-blue-100 hover:text-white text-sm font-medium flex items-center gap-1 self-end transition-colors">
-                        <span>View more info</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-                <div class="stat-card bg-gradient-to-br from-purple-500 to-purple-700 text-white rounded-xl shadow-lg p-3 m-1 flex flex-col justify-between min-h-[110px]">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <?php echo stat_card_count($stats['total_pwd']); ?>
-                            <div class="mb-2 text-base">PWDs</div>
-                        </div>
-                        <i class="fas fa-wheelchair icon text-6xl opacity-30"></i>
-                    </div>
-                    <a href="individuals.php?filter_type=pwd" class="mt-4 text-blue-100 hover:text-white text-sm font-medium flex items-center gap-1 self-end transition-colors">
-                        <span>View more info</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-                <div class="stat-card bg-gradient-to-br from-red-600 to-red-800 text-white rounded-xl shadow-lg p-3 m-1 flex flex-col justify-between min-h-[110px]">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <?php echo stat_card_count($stats['total_solo_parents']); ?>
-                            <div class="mb-2 text-base">Solo Parents</div>
-                        </div>
-                        <i class="fas fa-user-shield icon text-6xl opacity-30"></i>
-                    </div>
-                    <a href="individuals.php?filter_type=solo_parent" class="mt-4 text-red-100 hover:text-white text-sm font-medium flex items-center gap-1 self-end transition-colors">
-                        <span>View more info</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-                <div class="stat-card bg-gradient-to-br from-emerald-600 to-emerald-800 text-white rounded-xl shadow-lg p-3 m-1 flex flex-col justify-between min-h-[110px]">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <?php echo stat_card_count($stats['total_minors']); ?>
-                            <div class="mb-2 text-base">Minors</div>
-                        </div>
-                        <i class="fas fa-child icon text-6xl opacity-30"></i>
-                    </div>
-                    <a href="individuals.php?filter_type=minor" class="mt-4 text-emerald-100 hover:text-white text-sm font-medium flex items-center gap-1 self-end transition-colors">
-                        <span>View more info</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </a>
                 </div>
             </div>
-            <!-- Two columns/containers row: merged left (c1+c2) and right (c3) -->
-            <div class="w-full mb-6 flex flex-row gap-8">
-                <!-- Number of Individuals per Purok (left) -->
-                <div class="bg-blue-200/60 rounded-xl shadow p-4 basis-0 grow-[2] min-h-[180px] flex flex-col border border-blue-300 transition relative overflow-hidden">
-                    <div class="absolute right-6 top-6 opacity-10 text-blue-400 text-8xl pointer-events-none select-none">
-                        <i class="fas fa-map-marker-alt"></i>
+            </div>
+            <!-- Below: Number of Individuals per Purok and Quick Actions -->
+            <div class="w-full flex flex-row gap-6 mb-6 px-4 md:px-8">
+                <!-- Number of Individuals per Purok -->
+                <div class="bg-white rounded-xl shadow p-4 border border-blue-200 flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100">
+                            <i class="fas fa-map-marker-alt text-blue-500 text-lg"></i>
+                        </span>
+                        <h2 class="text-base font-bold text-blue-900">Number of Individuals per Purok</h2>
                     </div>
-                    <h2 class="text-xl font-bold mb-6 text-blue-900 flex items-center gap-3 z-10 relative tracking-wide">
-                        <i class="fas fa-chart-bar text-blue-500 text-2xl"></i>
-                        Number of Individuals per Purok
-                    </h2>
-                    <div class="flex flex-col gap-4 text-base z-10 relative flex-1">
-                        <?php foreach ($purok_list as $i => $purok): ?>
-                            <?php 
-                                $count = isset($purok_stats[$purok]) ? $purok_stats[$purok] : '-';
-                                // Assign a unique color
-                                if ($i === 0) { // Purok 1
-                                    $border = 'border-red-500';
-                                    $bg = 'bg-red-100/80';
-                                    $icon = 'text-red-600';
-                                } elseif ($i === 1) { // Purok 2
-                                    $border = 'border-green-500';
-                                    $bg = 'bg-green-100/80';
-                                    $icon = 'text-green-600';
-                                } else { // Purok 3
-                                    $border = 'border-yellow-500';
-                                    $bg = 'bg-yellow-100/80';
-                                    $icon = 'text-yellow-600';
-                                }
-                            ?>
-                            <div class="flex justify-between items-center px-6 py-4 rounded-xl shadow border-l-8 <?php echo $border; ?> <?php echo $bg; ?> hover:scale-[1.025] hover:shadow-md transition-transform duration-200">
-                                <span class="flex items-center gap-3 text-blue-900 font-semibold text-lg">
-                                    <i class="fas fa-map-pin <?php echo $icon; ?> text-xl"></i>
-                                    <?php echo ucwords(strtolower(htmlspecialchars($purok))); ?>
-                                </span>
-                                <span class="font-extrabold text-3xl text-blue-900 bg-white/80 px-7 py-2 rounded-lg shadow border border-blue-200">
-                                    <?php echo $count; ?>
-                                </span>
+                    <div class="flex flex-col gap-2">
+                        <?php foreach ($purok_list as $purok): ?>
+                            <div class="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                                <span class="font-medium text-gray-700"><?php echo htmlspecialchars($purok['name']); ?></span>
+                                <span class="text-xl font-bold text-blue-700"><?php echo isset($purok_stats[$purok['id']]) ? $purok_stats[$purok['id']] : 0; ?></span>
                             </div>
                         <?php endforeach; ?>
-                        <div class="flex-1"></div>
                     </div>
                 </div>
-                <!-- Quick Actions (right) -->
-                <div class="bg-blue-200/60 rounded-xl shadow p-4 basis-0 grow-[2] min-h-[180px] flex flex-col border border-blue-300 transition relative overflow-hidden">
-                    <div class="absolute right-4 top-4 opacity-10 text-blue-400 text-7xl pointer-events-none select-none">
-                        <i class="fas fa-bolt"></i>
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-xl shadow p-4 border border-blue-200 w-full max-w-xs flex flex-col min-w-[260px]">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
+                            <i class="fas fa-bolt text-green-500 text-lg"></i>
+                        </span>
+                        <h2 class="text-base font-bold text-green-900">Quick Actions</h2>
                     </div>
-                    <h2 class="text-lg font-semibold mb-4 text-blue-900 flex items-center gap-2">
-                        <i class="fas fa-bolt text-blue-500"></i>
-                        Quick Actions
-                    </h2>
-                    <div class="flex flex-row gap-3 mt-2 w-full">
-                        <div class="flex flex-col gap-3 flex-1">
-                            <!-- Quick Actions for Barangay Resident Info System -->
-                            <a href="certificate.php" class="flex items-center gap-2 px-4 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow transition-all w-full justify-center ring-2 ring-transparent hover:ring-indigo-300 focus:ring-4 focus:ring-indigo-400 h-16 text-lg">
-                                <i class="fas fa-file-alt text-xl"></i>
-                                Print Barangay Certificate
-                            </a>
-                            <a href="reports.php" class="flex items-center gap-2 px-4 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow transition-all w-full justify-center ring-2 ring-transparent hover:ring-blue-300 focus:ring-4 focus:ring-blue-400 h-16 text-lg">
-                                <i class="fas fa-chart-pie text-xl"></i>
-                                Generate Demographic Reports
-                            </a>
-                            <a href="export_excel.php" class="flex items-center gap-2 px-4 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold shadow transition-all w-full justify-center ring-2 ring-transparent hover:ring-green-300 focus:ring-4 focus:ring-green-400 h-16 text-lg">
-                                <i class="fas fa-file-excel text-xl"></i>
-                                Export Resident List (Excel)
-                            </a>
-                            <a href="create_barangay_id.php" class="flex items-center gap-2 px-4 py-3 rounded-lg bg-yellow-600 hover:bg-yellow-700 text-white font-semibold shadow transition-all w-full justify-center ring-2 ring-transparent hover:ring-yellow-300 focus:ring-4 focus:ring-yellow-400 h-16 text-lg">
-                                <i class="fas fa-id-card text-xl"></i>
-                                Create Barangay ID
-                            </a>
-                        </div>
+                    <div class="flex flex-col gap-2 mt-2">
+                        <a href="certificate.php" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold transition">
+                            <i class="fas fa-file-alt"></i> Print Barangay Certificate
+                        </a>
+                        <a href="reports.php" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-50 hover:bg-green-100 text-green-700 font-semibold transition">
+                            <i class="fas fa-chart-bar"></i> Generate Demographic Reports
+                        </a>
+                        <a href="print_individuals.php?export=excel" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-semibold transition">
+                            <i class="fas fa-file-excel"></i> Export Resident List (Excel)
+                        </a>
+                        <a href="certificate.php?type=barangay_id" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold transition">
+                            <i class="fas fa-id-card"></i> Create Barangay ID
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     <!-- Modal Overlay and Card Modal -->
+    <!-- Floating tooltip for recent activity time -->
+    <div id="recent-activity-tooltip" style="display:none;position:fixed;z-index:9999;pointer-events:none;" class="bg-blue-100 text-blue-700 text-[10px] px-2 py-0.5 rounded shadow whitespace-nowrap transition-opacity duration-100 opacity-0"></div>
     <div id="cardModalOverlay" class="fixed inset-0 bg-black bg-opacity-40 z-50 hidden"></div>
     <div id="cardModal" class="fixed left-1/2 top-1/2 z-50 bg-white rounded-xl shadow-2xl p-6 transform -translate-x-1/2 -translate-y-1/2 hidden modal-flat" style="width:auto;max-width:none;min-width:unset;">
         <div class="flex items-center justify-between mb-4">
@@ -477,26 +543,99 @@ function stat_card_count($value) {
     </div>
     <!-- Scripts -->
     <script>
+        // Floating tooltip for recent activity time
+        (function() {
+            const tooltip = document.getElementById('recent-activity-tooltip');
+            let active = false;
+            document.querySelectorAll('.recent-activity-item .recent-activity-hover').forEach(function(item) {
+                item.addEventListener('mouseenter', function(e) {
+                    const li = item.closest('.recent-activity-item');
+                    if (li && li.dataset.time) {
+                        tooltip.textContent = li.dataset.time;
+                        tooltip.style.display = 'block';
+                        tooltip.style.opacity = '1';
+                        active = true;
+                    }
+                });
+                item.addEventListener('mousemove', function(e) {
+                    if (active) {
+                        // Offset tooltip so it doesn't cover the activity
+                        const offsetX = 18;
+                        const offsetY = 8;
+                        tooltip.style.left = (e.clientX + offsetX) + 'px';
+                        tooltip.style.top = (e.clientY + offsetY) + 'px';
+                    }
+                });
+                item.addEventListener('mouseleave', function() {
+                    tooltip.style.display = 'none';
+                    tooltip.style.opacity = '0';
+                    active = false;
+                });
+            });
+        })();
         // Sidepanel toggle
         const menuBtn = document.getElementById('menuBtn');
         const sidepanel = document.getElementById('sidepanel');
         const sidepanelOverlay = document.getElementById('sidepanelOverlay');
         const closeSidepanel = document.getElementById('closeSidepanel');
 
-        menuBtn.addEventListener('click', () => {
+
+        function openSidepanel() {
             sidepanel.classList.remove('-translate-x-full');
             sidepanelOverlay.classList.remove('hidden');
-        });
-
-        closeSidepanel.addEventListener('click', () => {
+            document.body.classList.add('overflow-hidden');
+        }
+        function closeSidepanelFn() {
             sidepanel.classList.add('-translate-x-full');
             sidepanelOverlay.classList.add('hidden');
-        });
+            document.body.classList.remove('overflow-hidden');
+        }
+        menuBtn.addEventListener('click', openSidepanel);
+        closeSidepanel.addEventListener('click', closeSidepanelFn);
+        sidepanelOverlay.addEventListener('click', closeSidepanelFn);
 
-        sidepanelOverlay.addEventListener('click', () => {
-            sidepanel.classList.add('-translate-x-full');
-            sidepanelOverlay.classList.add('hidden');
-        });
+        // Dropdown logic for sidepanel (only one open at a time)
+        function toggleDropdown(id) {
+            const dropdowns = ['peopleSubNav', 'docsSubNav', 'settingsSubNav'];
+            dropdowns.forEach(function(dropId) {
+                const el = document.getElementById(dropId);
+                const arrow = document.querySelector('.dropdown-arrow[data-arrow="' + dropId + '"]');
+                if (el) {
+                    if (dropId === id) {
+                        if (el.classList.contains('dropdown-open')) {
+                            el.classList.remove('dropdown-open');
+                            el.classList.add('dropdown-closed');
+                            if (arrow) arrow.classList.remove('rotate-180');
+                        } else {
+                            el.classList.remove('dropdown-closed');
+                            el.classList.add('dropdown-open');
+                            if (arrow) arrow.classList.add('rotate-180');
+                        }
+                    } else {
+                        el.classList.remove('dropdown-open');
+                        el.classList.add('dropdown-closed');
+                        if (arrow) arrow.classList.remove('rotate-180');
+                    }
+                }
+            });
+        }
+        // Dropdown open/close effect styles
+        const style = document.createElement('style');
+        style.innerHTML = `
+        .dropdown-open {
+            max-height: 500px;
+            opacity: 1;
+            pointer-events: auto;
+            overflow: hidden;
+        }
+        .dropdown-closed {
+            max-height: 0;
+            opacity: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        `;
+        document.head.appendChild(style);
 
         // User dropdown
         const userDropdownBtn = document.getElementById('userDropdownBtn');

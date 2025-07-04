@@ -65,6 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_check']) && is
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
     <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-8 flex flex-col items-center">
         <img src="<?php echo htmlspecialchars($logo_path); ?>" alt="Barangay Logo" class="w-24 h-24 mb-4 rounded-full border-2 border-blue-500 object-cover">
+        <div class="text-lg font-bold text-gray-700 mb-1 text-center tracking-wide" style="letter-spacing:0.5px;">Sucol, Calumpit, Bulacan</div>
         <h1 class="text-2xl font-bold text-blue-700 mb-6 text-center"><?php echo htmlspecialchars($system_title); ?></h1>
         <?php if ($error): ?>
             <div id="errorBox" class="w-full bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4 text-center animate-pulse">
@@ -79,10 +80,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_check']) && is
         <?php endif; ?>
         <form method="post" class="w-full flex flex-col gap-4">
             <div>
-                <input type="text" id="username" name="username" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" required autofocus autocomplete="username" placeholder="Username or Email">
+                <input type="text" id="username" name="username" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200 focus:shadow-lg hover:shadow-md hover:border-blue-400" required autofocus autocomplete="username" placeholder="Username or Email">
             </div>
             <div>
-                <input type="password" id="password" name="password" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" required autocomplete="current-password" placeholder="Password">
+                <input type="password" id="password" name="password" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200 focus:shadow-lg hover:shadow-md hover:border-blue-400" required autocomplete="current-password" placeholder="Password">
             </div>
             <div class="flex items-center mt-2 justify-between">
                 <div class="flex items-center">
@@ -94,8 +95,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_check']) && is
             <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded transition mt-4">Login</button>
         </form>
     <!-- Forgot Password Modal -->
-    <div id="forgotPasswordModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 relative">
+    <div id="forgotPasswordModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden transition-opacity duration-300">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 relative transform transition-all duration-300 scale-95 opacity-0" id="forgotPasswordModalContent">
             <button id="closeForgotPasswordModal" class="absolute top-2 right-2 text-gray-400 hover:text-red-600 text-xl focus:outline-none" aria-label="Close">
                 <i class="fas fa-times"></i>
             </button>
@@ -132,22 +133,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_check']) && is
             forgotPasswordLink.addEventListener('click', function(e) {
                 e.preventDefault();
                 forgotPasswordModal.classList.remove('hidden');
+                // Animate modal fade/scale in
+                setTimeout(function() {
+                    forgotPasswordModal.classList.add('opacity-100');
+                    var modalContent = document.getElementById('forgotPasswordModalContent');
+                    if (modalContent) {
+                        modalContent.classList.remove('scale-95', 'opacity-0');
+                        modalContent.classList.add('scale-100', 'opacity-100');
+                    }
+                }, 10);
             });
         }
         if (closeForgotPasswordModal && forgotPasswordModal) {
             closeForgotPasswordModal.addEventListener('click', function() {
-                forgotPasswordModal.classList.add('hidden');
-                forgotPasswordForm.reset();
-                forgotPasswordMessage.textContent = '';
+                // Animate modal fade/scale out
+                forgotPasswordModal.classList.remove('opacity-100');
+                var modalContent = document.getElementById('forgotPasswordModalContent');
+                if (modalContent) {
+                    modalContent.classList.remove('scale-100', 'opacity-100');
+                    modalContent.classList.add('scale-95', 'opacity-0');
+                }
+                setTimeout(function() {
+                    forgotPasswordModal.classList.add('hidden');
+                    forgotPasswordForm.reset();
+                    forgotPasswordMessage.textContent = '';
+                }, 250);
             });
         }
         // Optional: Close modal when clicking outside the modal content
         if (forgotPasswordModal) {
             forgotPasswordModal.addEventListener('click', function(e) {
                 if (e.target === forgotPasswordModal) {
-                    forgotPasswordModal.classList.add('hidden');
-                    forgotPasswordForm.reset();
-                    forgotPasswordMessage.textContent = '';
+                    // Animate modal fade/scale out
+                    forgotPasswordModal.classList.remove('opacity-100');
+                    var modalContent = document.getElementById('forgotPasswordModalContent');
+                    if (modalContent) {
+                        modalContent.classList.remove('scale-100', 'opacity-100');
+                        modalContent.classList.add('scale-95', 'opacity-0');
+                    }
+                    setTimeout(function() {
+                        forgotPasswordModal.classList.add('hidden');
+                        forgotPasswordForm.reset();
+                        forgotPasswordMessage.textContent = '';
+                    }, 250);
                 }
             });
         }
@@ -184,13 +212,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['forgot_check']) && is
         const closeForgotPasswordSuccess = document.getElementById('closeForgotPasswordSuccess');
         if (closeForgotPasswordSuccess) {
             closeForgotPasswordSuccess.addEventListener('click', function() {
-                forgotPasswordModal.classList.add('hidden');
-                forgotPasswordForm.reset();
-                forgotPasswordForm.classList.remove('hidden');
-                document.getElementById('forgotPasswordSuccess').classList.add('hidden');
-                forgotPasswordMessage.textContent = '';
+                // Animate modal fade/scale out
+                forgotPasswordModal.classList.remove('opacity-100');
+                var modalContent = document.getElementById('forgotPasswordModalContent');
+                if (modalContent) {
+                    modalContent.classList.remove('scale-100', 'opacity-100');
+                    modalContent.classList.add('scale-95', 'opacity-0');
+                }
+                setTimeout(function() {
+                    forgotPasswordModal.classList.add('hidden');
+                    forgotPasswordForm.reset();
+                    forgotPasswordForm.classList.remove('hidden');
+                    document.getElementById('forgotPasswordSuccess').classList.add('hidden');
+                    forgotPasswordMessage.textContent = '';
+                }, 250);
             });
         }
     </script>
+    <style>
+        /* Smooth modal fade/scale effect */
+        #forgotPasswordModal.opacity-100 { opacity: 1; }
+        #forgotPasswordModal { opacity: 0; transition: opacity 0.3s; }
+        #forgotPasswordModalContent { transition: transform 0.3s, opacity 0.3s; }
+        #forgotPasswordModalContent.scale-100 { transform: scale(1); opacity: 1; }
+        #forgotPasswordModalContent.scale-95 { transform: scale(0.95); opacity: 0; }
+        input[type="text"], input[type="password"] {
+            transition: box-shadow 0.2s, border-color 0.2s;
+        }
+    </style>
 </body>
 </html>
