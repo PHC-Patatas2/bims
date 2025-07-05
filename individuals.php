@@ -59,9 +59,162 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         .sidebar-border { border-right: 1px solid #e5e7eb; }
         .dropdown-menu { display: none; position: absolute; right: 0; top: 100%; background: white; min-width: 180px; box-shadow: 0 4px 16px #0001; border-radius: 0.5rem; z-index: 50; }
         .dropdown-menu.show { display: block; }
+        /* --- Tabulator cell centering fix (revised) --- */
+        .tabulator .tabulator-cell.tab-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center !important;
+            vertical-align: middle !important;
+            height: 100%;
+        }
+        .tabulator .tabulator-header .tabulator-col {
+            text-align: center !important;
+        }
+        .tabulator .tabulator-cell {
+            text-align: center !important;
+            vertical-align: middle !important;
+        }
+
+        /* Custom style for select dropdown options */
+        select {
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            color: #22223b;
+            border-radius: 0.375rem;
+            transition: border-color 0.2s;
+        }
+        select:focus {
+            border-color: #2563eb;
+            outline: none;
+            box-shadow: 0 0 0 2px #2563eb33;
+        }
+        select option {
+            background: #f1f5f9;
+            color: #22223b;
+            font-size: 0.97em;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
+    <!-- Add Resident Modal -->
+    <div id="addResidentModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white shadow-lg w-full max-w-md mx-4 p-4 relative scale-95 transition-transform duration-300 border border-gray-300" style="border-radius:0; box-shadow:0 8px 32px 0 rgba(60,60,60,0.10); font-size:0.92rem;">
+            <button id="closeAddResidentModal" class="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl focus:outline-none" title="Close">
+                <i class="fas fa-times"></i>
+            </button>
+            <h2 class="text-lg font-bold mb-3 text-blue-700 text-center w-full">Add New Resident</h2>
+            <form id="addResidentForm" class="space-y-3">
+                <hr class="mb-2 border-gray-300">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-semibold mb-1">First Name <span class="text-red-500">*</span></label>
+                        <input type="text" name="first_name" required class="w-full border rounded px-2 py-1.5 text-sm focus:ring focus:ring-blue-200" placeholder="e.g., Juan">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Middle Name</label>
+                        <input type="text" name="middle_name" class="w-full border rounded px-2 py-1.5 text-sm focus:ring focus:ring-blue-200" placeholder="(optional)">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Last Name <span class="text-red-500">*</span></label>
+                        <input type="text" name="last_name" required class="w-full border rounded px-2 py-1.5 text-sm focus:ring focus:ring-blue-200" placeholder="e.g., Dela Cruz">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Suffix</label>
+                        <input type="text" name="suffix" class="w-full border rounded px-2 py-1.5 text-sm focus:ring focus:ring-blue-200" placeholder="e.g., III, Jr., Sr., II">
+                    </div>
+                </div>
+                <div class="col-span-1 md:col-span-2"><hr class="my-2 border-gray-300"></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-semibold mb-1">Gender <span class="text-red-500">*</span></label>
+                        <select name="gender" required class="w-full border rounded px-2 py-1.5 text-sm">
+                            <option value="">Select...</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Birthdate <span class="text-red-500">*</span></label>
+                        <input type="date" name="birthdate" required class="w-full border rounded px-2 py-1.5 text-sm">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Civil Status <span class="text-red-500">*</span></label>
+                        <select name="civil_status" required class="w-full border rounded px-2 py-1.5 text-sm">
+                            <option value="">Select...</option>
+                            <option value="Single">Single</option>
+                            <option value="Married">Married</option>
+                            <option value="Widowed">Widowed</option>
+                            <option value="Separated">Separated</option>
+                            <option value="Divorced">Divorced</option>
+                            <option value="Annulled">Annulled</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Blood Type</label>
+                        <select name="blood_type" class="w-full border rounded px-2 py-1.5 text-sm">
+                            <option value="">Select...</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                            <option value="Unknown">Unknown</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Religion <span class="text-red-500">*</span></label>
+                        <select name="religion" required class="w-full border rounded px-2 py-1.5 text-sm">
+                            <option value="">Select...</option>
+                            <option value="Roman Catholic">Roman Catholic</option>
+                            <option value="Iglesia ni Cristo">Iglesia ni Cristo</option>
+                            <option value="Evangelical (Born Again)">Evangelical (Born Again)</option>
+                            <option value="Seventh-day Adventist">Seventh-day Adventist</option>
+                            <option value="Jehovah’s Witnesses">Jehovah’s Witnesses</option>
+                            <option value="Baptist">Baptist</option>
+                            <option value="United Church of Christ in the Philippines (UCCP)">United Church of Christ in the Philippines (UCCP)</option>
+                            <option value="Islam (Muslim)">Islam (Muslim)</option>
+                            <option value="Aglipayan / Philippine Independent Church">Aglipayan / Philippine Independent Church</option>
+                            <option value="Pentecostal">Pentecostal</option>
+                            <option value="Methodist">Methodist</option>
+                            <option value="Lutheran">Lutheran</option>
+                            <option value="Orthodox Christian">Orthodox Christian</option>
+                            <option value="Church of Jesus Christ of Latter-day Saints (Mormon)">Church of Jesus Christ of Latter-day Saints (Mormon)</option>
+                            <option value="Buddhist">Buddhist</option>
+                            <option value="Hindu">Hindu</option>
+                            <option value="Judaism (Jewish)">Judaism (Jewish)</option>
+                            <option value="No Religion / Atheist / Agnostic">No Religion / Atheist / Agnostic</option>
+                            <option value="Others">Others</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Residing Purok <span class="text-red-500">*</span></label>
+                        <select name="purok_id" id="purokSelect" required class="w-full border rounded px-2 py-1.5 text-sm">
+                            <option value="">Loading...</option>
+                        </select>
+                    </div>
+                </div>
+                <hr class="my-2 border-gray-300">
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-1">
+                    <label class="inline-flex items-center gap-1 text-xs"><input type="checkbox" name="is_pwd" value="1" class="accent-blue-600 scale-90">PWD</label>
+                    <label class="inline-flex items-center gap-1 text-xs"><input type="checkbox" name="is_voter" value="1" class="accent-blue-600 scale-90">Voter</label>
+                    <label class="inline-flex items-center gap-1 text-xs"><input type="checkbox" name="is_4ps" value="1" class="accent-blue-600 scale-90">4Ps</label>
+                    <label class="inline-flex items-center gap-1 text-xs"><input type="checkbox" name="is_pregnant" value="1" class="accent-blue-600 scale-90">Pregnant</label>
+                    <label class="inline-flex items-center gap-1 text-xs"><input type="checkbox" name="is_solo_parent" value="1" class="accent-blue-600 scale-90">Solo Parent</label>
+                </div>
+                <div class="col-span-1 md:col-span-2"><hr class="my-2 border-gray-300"></div>
+                <div class="mt-4"></div>
+                <div class="flex justify-end gap-2 mt-2">
+                    <button type="button" id="cancelAddResident" class="px-3 py-1.5 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold text-sm">Cancel</button>
+                    <button type="submit" class="px-4 py-1.5 rounded bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm">Save Resident</button>
+                </div>
+                <div id="addResidentMsg" class="mt-2 text-center text-sm"></div>
+            </form>
+        </div>
+    </div>
     <!-- Sidepanel -->
     <div id="sidepanel" class="fixed top-0 left-0 h-full w-80 shadow-lg z-40 transform -translate-x-full transition-transform duration-300 ease-in-out sidebar-border overflow-y-auto custom-scrollbar" style="background-color: #454545;">
         <div class="flex flex-col items-center justify-center min-h-[90px] px-4 pt-3 pb-3 relative" style="border-bottom: 4px solid #FFD700;">
@@ -255,35 +408,280 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             </div>
         </div>
         <!-- Residents Table -->
-        <div id="residents-table" class="bg-white rounded-lg shadow overflow-x-auto"></div>
+        <div id="residents-table" class="bg-white rounded-lg shadow overflow-x-auto w-full"></div>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js" crossorigin="anonymous"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator.min.css" crossorigin="anonymous" />
         <script>
         document.addEventListener('DOMContentLoaded', function() {
             var table = new Tabulator("#residents-table", {
-                ajaxURL: "fetch_individuals.php", // You need to create this PHP endpoint
+                ajaxURL: "fetch_individuals.php",
                 ajaxConfig: "GET",
-                layout: "fitColumns",
+                layout: "fitColumns", // ensures columns fill the table equally
                 height: 500,
+                responsiveLayout: true,
                 pagination: "local",
                 paginationSize: 10,
+                columnDefaults: {
+                    resizable: false,
+                },
                 columns: [
-                    {title: "First Name", field: "first_name", headerSort: false},
-                    {title: "Middle Name", field: "middle_name", headerSort: false},
-                    {title: "Last Name", field: "last_name", headerSort: false},
-                    {title: "Suffix", field: "suffix", headerSort: false},
-                    {title: "Gender", field: "gender", headerSort: false},
-                    {title: "Birthdate", field: "birthdate", headerSort: false},
+                    {title: "First Name", field: "first_name", headerSort: false, hozAlign: "center", vertAlign: "middle", cssClass: "tab-center"},
+                    {title: "Middle Name", field: "middle_name", headerSort: false, hozAlign: "center", vertAlign: "middle", cssClass: "tab-center"},
+                    {title: "Last Name", field: "last_name", headerSort: false, hozAlign: "center", vertAlign: "middle", cssClass: "tab-center"},
+                    {title: "Suffix", field: "suffix", headerSort: false, hozAlign: "center", vertAlign: "middle", cssClass: "tab-center", width: 60},
+                    {title: "Gender", field: "gender", headerSort: false, hozAlign: "center", vertAlign: "middle", cssClass: "tab-center", width: 80},
+                    {title: "Birthdate", field: "birthdate", headerSort: false, hozAlign: "center", vertAlign: "middle", cssClass: "tab-center", width: 110},
+                    {title: "Residing Purok", field: "purok", headerSort: false, hozAlign: "center", vertAlign: "middle", cssClass: "tab-center", width: 140,
+                        formatter: function(cell) {
+                            // Only show the word 'Purok' and the number, hide anything in parentheses
+                            var value = cell.getValue() || '';
+                            // Remove anything in parentheses and trim
+                            value = value.replace(/\s*\([^)]*\)/g, '').trim();
+                            return value;
+                        }
+                    },
                     {title: "Action", field: "action", headerSort: false, formatter: function(cell, formatterParams, onRendered) {
-                        return `<a href="#" class="text-blue-600 hover:underline mr-2">View</a><a href="#" class="text-green-600 hover:underline mr-2">Edit</a><a href="#" class="text-red-600 hover:underline">Delete</a>`;
-                    }, hozAlign: "center", width: 150}
+                        return `
+                            <div style=\"width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; margin: 0; padding: 0;\">
+                                <a href=\"#\" title=\"View\" class=\"text-blue-600 hover:text-blue-800 p-2 rounded-full transition m-0\"><i class=\"fas fa-eye\"></i></a>
+                                <span class=\"w-px h-5 bg-gray-300 mx-1 m-0\"></span>
+                                <a href=\"#\" title=\"Edit\" class=\"text-green-600 hover:text-green-800 p-2 rounded-full transition m-0\"><i class=\"fas fa-pen\"></i></a>
+                                <span class=\"w-px h-5 bg-gray-300 mx-1 m-0\"></span>
+                                <a href=\"#\" title=\"Delete\" class=\"text-red-600 hover:text-red-800 p-2 rounded-full transition m-0\"><i class=\"fas fa-trash\"></i></a>
+                            </div>
+                        `;
+                    }, hozAlign: "center", vertAlign: "middle", cssClass: "tab-center action-bg-gray", width: 180, frozen: true, resizable: false}
                 ],
-                // Disable built-in search and filter UI
                 headerFilterPlaceholder: "",
                 tooltips: false,
+                // removed renderComplete for More button
+                placeholder: function(){
+                    return `
+                        <div class=\"flex flex-col items-center justify-center h-96 w-full text-center text-gray-500\">
+                            <i class='fas fa-users text-6xl mb-4 text-blue-400'></i>
+                            <div class=\"text-2xl font-semibold mb-2\">No Residents Found</div>
+                            <div class=\"mb-4\">Get started by <a href=\"#\" id=\"add-resident-link-empty\" class=\"text-blue-600 hover:underline font-semibold\">adding the first resident</a> to the system.</div>
+                        </div>
+                    `;
+                },
+                rowFormatter: function(row) {
+                    // Add center alignment to all cells
+                    row.getElement().querySelectorAll('.tabulator-cell.tab-center').forEach(function(cell) {
+                        cell.style.textAlign = 'center';
+                        cell.style.verticalAlign = 'middle';
+                    });
+                }
             });
         });
         </script>
     </div>
+    <script>
+        // Add event listener for the placeholder link to open the Add Resident modal
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.id === 'add-resident-link-empty') {
+                e.preventDefault();
+                // Trigger the same action as the main Add New Resident button
+                var btn = document.getElementById('add-resident-btn');
+                if (btn) btn.click();
+            }
+        });
+    </script>
+    <script>
+// Modal open/close logic
+function openAddResidentModal() {
+    const modal = document.getElementById('addResidentModal');
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.classList.add('opacity-100');
+        modal.classList.remove('opacity-0');
+        const inner = modal.querySelector('div.bg-white');
+        if(inner) inner.classList.add('scale-100');
+        if(inner) inner.classList.remove('scale-95');
+    }, 10);
+}
+function closeAddResidentModal() {
+    const modal = document.getElementById('addResidentModal');
+    modal.classList.remove('opacity-100');
+    modal.classList.add('opacity-0');
+    const inner = modal.querySelector('div.bg-white');
+    if(inner) inner.classList.remove('scale-100');
+    if(inner) inner.classList.add('scale-95');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        document.getElementById('addResidentForm').reset();
+        document.getElementById('addResidentMsg').textContent = '';
+    }, 300);
+}
+document.getElementById('add-resident-btn').addEventListener('click', function(e) {
+    e.preventDefault();
+    openAddResidentModal();
+});
+document.getElementById('closeAddResidentModal').addEventListener('click', closeAddResidentModal);
+document.getElementById('cancelAddResident').addEventListener('click', closeAddResidentModal);
+// Also open modal from empty state link
+if(document.getElementById('add-resident-link-empty')) {
+    document.getElementById('add-resident-link-empty').addEventListener('click', function(e) {
+        e.preventDefault();
+        openAddResidentModal();
+    });
+}
+// Load purok options via AJAX
+function loadPurokOptions() {
+    var purokSelect = document.getElementById('purokSelect');
+    purokSelect.innerHTML = '<option value="">Loading...</option>';
+    fetch('fetch_puroks.php')
+        .then(res => res.json())
+        .then(data => {
+            purokSelect.innerHTML = '<option value="">Select...</option>';
+            data.forEach(function(purok) {
+                purokSelect.innerHTML += `<option value="${purok.id}">${purok.name}</option>`;
+            });
+        })
+        .catch(() => {
+            purokSelect.innerHTML = '<option value="">Error loading puroks</option>';
+        });
+}
+document.getElementById('add-resident-btn').addEventListener('click', loadPurokOptions);
+// Also load puroks when opening from empty state
+if(document.getElementById('add-resident-link-empty')) {
+    document.getElementById('add-resident-link-empty').addEventListener('click', loadPurokOptions);
+}
+// AJAX submit
+const addResidentForm = document.getElementById('addResidentForm');
+addResidentForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(addResidentForm);
+    fetch('add_individual.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        const msg = document.getElementById('addResidentMsg');
+        if(data.success) {
+            msg.textContent = 'Resident added successfully!';
+            msg.className = 'mt-2 text-center text-green-600 text-sm';
+            setTimeout(() => { closeAddResidentModal(); location.reload(); }, 1200);
+        } else {
+            msg.textContent = data.error || 'Failed to add resident.';
+            msg.className = 'mt-2 text-center text-red-600 text-sm';
+        }
+    })
+    .catch(() => {
+        const msg = document.getElementById('addResidentMsg');
+        msg.textContent = 'Failed to add resident.';
+        msg.className = 'mt-2 text-center text-red-600 text-sm';
+    });
+});
+</script>
+<script>
+// View Resident logic
+// This must be after Tabulator and modal logic
+
+document.addEventListener('click', function(e) {
+    var target = e.target;
+    // If the click is on the eye icon or its parent anchor
+    if (target.classList.contains('fa-eye') && target.closest('a')) {
+        target = target.closest('a');
+    }
+    if (target && target.matches('a[title="View"]')) {
+        e.preventDefault();
+        // Find the row's data-id (Tabulator row data)
+        var rowElem = target.closest('.tabulator-row');
+        if (!rowElem) return;
+        var rowIndex = Array.from(rowElem.parentNode.children).indexOf(rowElem);
+        var table = Tabulator.findTable('#residents-table')[0];
+        if (!table) return;
+        var row = table.getRows()[rowIndex];
+        if (!row) return;
+        var data = row.getData();
+        // Fetch full resident data from backend (in case not all fields are present)
+        var residentId = data.resident_id || data.id;
+        if (!residentId) return;
+        fetch('fetch_individual.php?id=' + encodeURIComponent(residentId))
+            .then(res => res.json())
+            .then(resp => {
+                if (!resp || !resp.success || !resp.resident) {
+                    alert('Failed to load resident data.');
+                    return;
+                }
+                var d = resp.resident;
+                var form = document.getElementById('addResidentForm');
+                // Set values
+                form.first_name.value = d.first_name || '';
+                form.middle_name.value = d.middle_name || '';
+                form.last_name.value = d.last_name || '';
+                form.suffix.value = d.suffix || '';
+                form.gender.value = d.gender || '';
+                form.birthdate.value = d.birthdate || '';
+                form.civil_status.value = d.civil_status || '';
+                form.blood_type.value = d.blood_type || '';
+                form.religion.value = d.religion || '';
+                // Purok (wait for options to load)
+                var purokSelect = document.getElementById('purokSelect');
+                function setPurok() {
+                    purokSelect.value = d.purok_id || '';
+                }
+                if (purokSelect.options.length > 1) {
+                    setPurok();
+                } else {
+                    fetch('fetch_puroks.php').then(res => res.json()).then(puroks => {
+                        purokSelect.innerHTML = '<option value="">Select...</option>';
+                        puroks.forEach(function(purok) {
+                            purokSelect.innerHTML += `<option value="${purok.id}">${purok.name}</option>`;
+                        });
+                        setPurok();
+                    });
+                }
+                // Checkboxes
+                form.is_pwd.checked = !!parseInt(d.is_pwd);
+                form.is_voter.checked = !!parseInt(d.is_voter);
+                form.is_4ps.checked = !!parseInt(d.is_4ps);
+                form.is_pregnant.checked = !!parseInt(d.is_pregnant);
+                form.is_solo_parent.checked = !!parseInt(d.is_solo_parent);
+                // Disable all fields
+                Array.from(form.elements).forEach(function(el) {
+                    el.disabled = true;
+                });
+                // Show modal
+                openAddResidentModal();
+                // Hide Save, show only Close
+                document.getElementById('cancelAddResident').style.display = 'none';
+                var saveBtn = form.querySelector('button[type="submit"]');
+                if (saveBtn) saveBtn.style.display = 'none';
+                // Add a Close button if not present
+                var closeBtn = form.querySelector('.view-close-btn');
+                if (!closeBtn) {
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.textContent = 'Close';
+                    btn.className = 'view-close-btn px-4 py-1.5 rounded bg-gray-400 hover:bg-gray-500 text-white font-bold text-sm ml-2';
+                    btn.onclick = function() { closeAddResidentModal(); };
+                    form.querySelector('.flex.justify-end').appendChild(btn);
+                } else {
+                    closeBtn.style.display = '';
+                }
+            })
+            .catch(() => { alert('Failed to load resident data.'); });
+    }
+});
+// Restore form on modal close
+function restoreAddResidentForm() {
+    var form = document.getElementById('addResidentForm');
+    Array.from(form.elements).forEach(function(el) {
+        el.disabled = false;
+    });
+    document.getElementById('cancelAddResident').style.display = '';
+    var saveBtn = form.querySelector('button[type="submit"]');
+    if (saveBtn) saveBtn.style.display = '';
+    var closeBtn = form.querySelector('.view-close-btn');
+    if (closeBtn) closeBtn.style.display = 'none';
+}
+var closeAddResidentModalOrig = closeAddResidentModal;
+closeAddResidentModal = function() {
+    restoreAddResidentForm();
+    closeAddResidentModalOrig();
+}
+</script>
 </body>
 </html>

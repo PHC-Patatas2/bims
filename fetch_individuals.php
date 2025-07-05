@@ -8,7 +8,7 @@ if ($conn->connect_error) {
     echo json_encode(["error" => "Database connection failed."]);
     exit();
 }
-$sql = "SELECT first_name, middle_name, last_name, suffix, gender, birthdate FROM individuals";
+$sql = "SELECT i.first_name, i.middle_name, i.last_name, i.suffix, i.gender, i.birthdate, p.name AS purok FROM individuals i LEFT JOIN purok p ON i.purok_id = p.id";
 $result = $conn->query($sql);
 $data = [];
 if ($result) {
@@ -20,6 +20,7 @@ if ($result) {
             "suffix" => $row["suffix"],
             "gender" => $row["gender"],
             "birthdate" => $row["birthdate"],
+            "purok" => $row["purok"]
         ];
     }
 }
