@@ -1,5 +1,5 @@
 <?php
-// reports.php
+// officials.php
 session_start();
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
@@ -8,6 +8,7 @@ if (!isset($_SESSION['user_id'])) {
 require_once 'config.php';
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) {
+    error_log('Database connection failed: ' . $conn->connect_error);
     include 'error_page.php';
     exit();
 }
@@ -34,9 +35,12 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generate Reports - <?php echo htmlspecialchars($system_title); ?></title>
+    <title>Officials Management - <?php echo htmlspecialchars($system_title); ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style>
         .custom-scrollbar { scrollbar-width: thin; scrollbar-color: #2563eb #353535; padding-right: 6px; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
@@ -44,12 +48,14 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         .custom-scrollbar::-webkit-scrollbar-track { background: #353535; }
         .custom-scrollbar { overflow-y: scroll; }
         .custom-scrollbar::-webkit-scrollbar { background: #353535; }
-        .sidebar-border { border-right: 1px solid #e5e7eb; }
+        .stat-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .stat-card:hover { transform: translateY(-5px) scale(1.03); box-shadow: 0 10px 20px -5px #0002; }
         .dropdown-menu { display: none; position: absolute; right: 0; top: 100%; background: white; min-width: 180px; box-shadow: 0 4px 16px #0001; border-radius: 0.5rem; z-index: 50; }
         .dropdown-menu.show { display: block; }
+        .sidebar-border { border-right: 1px solid #e5e7eb; }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 </head>
-
 <body class="bg-gray-100 min-h-screen flex flex-col">
     <!-- Sidepanel -->
     <div id="sidepanel" class="fixed top-0 left-0 h-full w-80 shadow-lg z-40 transform -translate-x-full transition-transform duration-300 ease-in-out sidebar-border overflow-y-auto custom-scrollbar" style="background-color: #454545;">
@@ -151,16 +157,15 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             </div>
         </div>
     </nav>
-    <!-- Main Content -->
     <div class="flex-1 transition-all duration-300 ease-in-out p-2 md:px-0 md:pt-4 mt-16 flex flex-col items-center">
         <div class="w-full px-4 md:px-8">
             <div class="flex items-center mb-4">
-                <h1 class="text-2xl font-bold">Generate Reports</h1>
+                <h1 class="text-2xl font-bold">Officials Management</h1>
             </div>
             <div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-                <i class="fas fa-chart-bar text-5xl mb-4 text-blue-400"></i>
-                <div class="text-xl font-semibold mb-2">This is a placeholder for the Generate Reports page.</div>
-                <div class="mb-4">You can implement reporting features here.</div>
+                <i class="fas fa-user-tie text-5xl mb-4 text-blue-400"></i>
+                <div class="text-xl font-semibold mb-2">This is a placeholder for the Officials Management page.</div>
+                <div class="mb-4">You can implement officials management features here.</div>
             </div>
         </div>
     </div>

@@ -483,7 +483,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 }
             });
 
-            // SEARCH BAR FUNCTIONALITY
+            // SEARCH BAR FUNCTIONALITY: Search all relevant fields
             var searchInput = document.getElementById('resident-search');
             if (searchInput) {
                 searchInput.addEventListener('input', function() {
@@ -495,7 +495,12 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                             [
                                 {field: "first_name", type: "like", value: val},
                                 {field: "middle_name", type: "like", value: val},
-                                {field: "last_name", type: "like", value: val}
+                                {field: "last_name", type: "like", value: val},
+                                {field: "suffix", type: "like", value: val},
+                                {field: "gender", type: "like", value: val},
+                                {field: "birthdate", type: "like", value: val},
+                                {field: "civil_status", type: "like", value: val},
+                                {field: "purok_id", type: "like", value: val}
                             ]
                         ]);
                     }
