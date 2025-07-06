@@ -167,27 +167,8 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     </div>
                     <div>
                         <label class="block font-semibold mb-1">Religion <span class="text-red-500">*</span></label>
-                        <select name="religion" required class="w-full border rounded px-2 py-1.5 text-sm">
-                            <option value="">Select...</option>
-                            <option value="Roman Catholic">Roman Catholic</option>
-                            <option value="Iglesia ni Cristo">Iglesia ni Cristo</option>
-                            <option value="Evangelical (Born Again)">Evangelical (Born Again)</option>
-                            <option value="Seventh-day Adventist">Seventh-day Adventist</option>
-                            <option value="Jehovah’s Witnesses">Jehovah’s Witnesses</option>
-                            <option value="Baptist">Baptist</option>
-                            <option value="United Church of Christ in the Philippines (UCCP)">United Church of Christ in the Philippines (UCCP)</option>
-                            <option value="Islam (Muslim)">Islam (Muslim)</option>
-                            <option value="Aglipayan / Philippine Independent Church">Aglipayan / Philippine Independent Church</option>
-                            <option value="Pentecostal">Pentecostal</option>
-                            <option value="Methodist">Methodist</option>
-                            <option value="Lutheran">Lutheran</option>
-                            <option value="Orthodox Christian">Orthodox Christian</option>
-                            <option value="Church of Jesus Christ of Latter-day Saints (Mormon)">Church of Jesus Christ of Latter-day Saints (Mormon)</option>
-                            <option value="Buddhist">Buddhist</option>
-                            <option value="Hindu">Hindu</option>
-                            <option value="Judaism (Jewish)">Judaism (Jewish)</option>
-                            <option value="No Religion / Atheist / Agnostic">No Religion / Atheist / Agnostic</option>
-                            <option value="Others">Others</option>
+                        <select name="religion" id="religionSelect" required class="w-full border rounded px-2 py-1.5 text-sm">
+                            <option value="">Loading...</option>
                         </select>
                     </div>
                     <div>
@@ -234,6 +215,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         </div>
         <nav class="flex flex-col p-4 gap-2 text-white">
             <?php
+            // --- Sidepanel Navigation Refactored ---
             $current = basename($_SERVER['PHP_SELF']);
             function navActive($pages) {
                 global $current;
@@ -244,51 +226,53 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 return '<a href="' . $href . '" class="py-2 px-3 rounded-lg flex items-center gap-2 ' . $classes . ' hover:bg-blue-500 hover:text-white ' . $extra . '"><i class="' . $icon . '"></i> ' . $label . '</a>';
             }
             echo navLink('dashboard.php', 'fas fa-tachometer-alt', 'Dashboard', navActive('dashboard.php'));
-            $peopleActive = navActive(['individuals.php', 'households.php']);
+
+            // People Management
+            $peopleActive = navActive(['individuals.php']);
             $peopleId = 'peopleSubNav';
             ?>
             <div class="mt-2">
                 <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $peopleActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $peopleId; ?>')">
-                    <i class="fas fa-users"></i> People Management <i class="fas fa-chevron-down ml-auto"></i>
+                    <i class="fas fa-users"></i> People Management
+                    <i class="fas fa-chevron-down ml-auto text-xs transition-transform duration-300 dropdown-arrow <?php echo $peopleActive ? 'rotate-180' : ''; ?>" data-arrow="<?php echo $peopleId; ?>"></i>
                 </button>
                 <div id="<?php echo $peopleId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $peopleActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
-                    <?php
-                    echo navLink('individuals.php', 'fas fa-user', 'Individuals', navActive('individuals.php'));
-                    echo navLink('households.php', 'fas fa-home', 'Households', navActive('households.php'));
-                    ?>
+                    <?php echo navLink('individuals.php', 'fas fa-user', 'Residents', navActive('individuals.php'), 'rounded'); ?>
                 </div>
             </div>
+
             <?php
+            // Barangay Documents
             $docsActive = navActive(['certificate.php', 'reports.php', 'issued_documents.php']);
             $docsId = 'docsSubNav';
             ?>
             <div class="mt-2">
                 <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $docsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $docsId; ?>')">
-                    <i class="fas fa-file-alt"></i> Barangay Documents <i class="fas fa-chevron-down ml-auto"></i>
+                    <i class="fas fa-file-alt"></i> Barangay Documents
+                    <i class="fas fa-chevron-down ml-auto text-xs transition-transform duration-300 dropdown-arrow <?php echo $docsActive ? 'rotate-180' : ''; ?>" data-arrow="<?php echo $docsId; ?>"></i>
                 </button>
                 <div id="<?php echo $docsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $docsActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
-                    <?php
-                    echo navLink('certificate.php', 'fas fa-certificate', 'Certificates', navActive('certificate.php'));
-                    echo navLink('reports.php', 'fas fa-chart-bar', 'Reports', navActive('reports.php'));
-                    echo navLink('issued_documents.php', 'fas fa-file-signature', 'Issued Documents', navActive('issued_documents.php'));
-                    ?>
+                    <?php echo navLink('certificate.php', 'fas fa-stamp', 'Issue Certificate', navActive('certificate.php'), 'rounded'); ?>
+                    <?php echo navLink('reports.php', 'fas fa-chart-bar', 'Generate Reports', navActive('reports.php'), 'rounded'); ?>
+                    <?php echo navLink('issued_documents.php', 'fas fa-history', 'Issued Documents Log', navActive('issued_documents.php'), 'rounded'); ?>
                 </div>
             </div>
+
             <?php
+            // System Settings
             $settingsActive = navActive(['officials.php', 'users.php', 'settings.php', 'logs.php']);
             $settingsId = 'settingsSubNav';
             ?>
             <div class="mt-2">
                 <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $settingsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $settingsId; ?>')">
-                    <i class="fas fa-cogs"></i> System Settings <i class="fas fa-chevron-down ml-auto"></i>
+                    <i class="fas fa-cogs"></i> System Settings
+                    <i class="fas fa-chevron-down ml-auto text-xs transition-transform duration-300 dropdown-arrow <?php echo $settingsActive ? 'rotate-180' : ''; ?>" data-arrow="<?php echo $settingsId; ?>"></i>
                 </button>
                 <div id="<?php echo $settingsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $settingsActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
-                    <?php
-                    echo navLink('officials.php', 'fas fa-user-tie', 'Officials', navActive('officials.php'));
-                    echo navLink('users.php', 'fas fa-users-cog', 'Users', navActive('users.php'));
-                    echo navLink('settings.php', 'fas fa-sliders-h', 'Settings', navActive('settings.php'));
-                    echo navLink('logs.php', 'fas fa-clipboard-list', 'Logs', navActive('logs.php'));
-                    ?>
+                    <?php echo navLink('officials.php', 'fas fa-user-tie', 'Officials Management', navActive('officials.php'), 'rounded'); ?>
+                    <?php echo navLink('users.php', 'fas fa-users-cog', 'User Accounts', navActive('users.php'), 'rounded'); ?>
+                    <?php echo navLink('settings.php', 'fas fa-cog', 'General Settings', navActive('settings.php'), 'rounded'); ?>
+                    <?php echo navLink('logs.php', 'fas fa-clipboard-list', 'Logs', navActive('logs.php'), 'rounded'); ?>
                 </div>
             </div>
         </nav>
@@ -394,7 +378,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             </div>
             <div class="flex items-center gap-2">
                 <div class="relative">
-                    <input type="text" placeholder="Search by name..." class="rounded-lg border border-gray-300 outline outline-2 outline-gray-300 pl-10 pr-4 py-2 focus:border-blue-500 focus:ring-blue-500 focus:outline-gray-400">
+                    <input type="text" id="resident-search" placeholder="Search for ..." class="rounded-lg border border-gray-300 outline outline-2 outline-gray-300 pl-10 pr-4 py-2 focus:border-blue-500 focus:ring-blue-500 focus:outline-gray-400">
                     <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                 </div>
                 <a href="#" id="advanced-filter-btn" class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-700 font-semibold shadow-sm transition-all hover:bg-gray-50">
@@ -413,14 +397,24 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator.min.css" crossorigin="anonymous" />
         <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Calculate row height and table height so that all rows fit exactly without scroll
+            var rowHeight = 38; // px, compact rows
+            var pageSize = 10; // number of rows per page
+            // Set table height to fit exactly 10 rows plus header and footer (pagination)
+            // Fine-tuned header/footer for a perfectly compact, balanced fit
+            var headerHeight = 31.0; // very very slightly increased again
+            var footerHeight = 37.7; // very very slightly increased again
+            var tableHeight = (rowHeight * pageSize) + headerHeight + footerHeight;
+
             var table = new Tabulator("#residents-table", {
                 ajaxURL: "fetch_individuals.php",
                 ajaxConfig: "GET",
                 layout: "fitColumns", // ensures columns fill the table equally
-                height: 500,
+                height: tableHeight, // fit 10 rows + header + pagination controls
                 responsiveLayout: true,
                 pagination: "local",
-                paginationSize: 10,
+                paginationSize: pageSize,
+                rowHeight: rowHeight,
                 columnDefaults: {
                     resizable: false,
                 },
@@ -441,13 +435,16 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                         }
                     },
                     {title: "Action", field: "action", headerSort: false, formatter: function(cell, formatterParams, onRendered) {
+                        // Add data attributes for resident info for modal
+                        var row = cell.getRow().getData();
                         return `
                             <div style=\"width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; margin: 0; padding: 0;\">
-                                <a href=\"#\" title=\"View\" class=\"text-blue-600 hover:text-blue-800 p-2 rounded-full transition m-0\"><i class=\"fas fa-eye\"></i></a>
+                                <a href=\"#\" title=\"View\" class=\"text-blue-600 hover:text-blue-800 p-2 rounded-full transition m-0 view-resident-btn\" 
+                                    data-resident='${JSON.stringify(row).replace(/'/g, "&#39;")}'><i class=\"fas fa-eye\"></i></a>
                                 <span class=\"w-px h-5 bg-gray-300 mx-1 m-0\"></span>
                                 <a href=\"#\" title=\"Edit\" class=\"text-green-600 hover:text-green-800 p-2 rounded-full transition m-0\"><i class=\"fas fa-pen\"></i></a>
                                 <span class=\"w-px h-5 bg-gray-300 mx-1 m-0\"></span>
-                                <a href=\"#\" title=\"Delete\" class=\"text-red-600 hover:text-red-800 p-2 rounded-full transition m-0\"><i class=\"fas fa-trash\"></i></a>
+                                <a href=\"#\" title=\"Delete\" class=\"text-red-600 hover:text-red-800 p-2 rounded-full transition m-0 delete-resident-btn\"><i class=\"fas fa-trash\"></i></a>
                             </div>
                         `;
                     }, hozAlign: "center", vertAlign: "middle", cssClass: "tab-center action-bg-gray", width: 180, frozen: true, resizable: false}
@@ -469,9 +466,41 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     row.getElement().querySelectorAll('.tabulator-cell.tab-center').forEach(function(cell) {
                         cell.style.textAlign = 'center';
                         cell.style.verticalAlign = 'middle';
+                        cell.style.height = rowHeight + 'px';
+                        cell.style.minHeight = rowHeight + 'px';
+                        cell.style.maxHeight = rowHeight + 'px';
+                        cell.style.paddingTop = '0px';
+                        cell.style.paddingBottom = '0px';
+                    });
+                },
+                renderComplete: function() {
+                    // Force all rows to have consistent height after render (pagination, etc)
+                    document.querySelectorAll('#residents-table .tabulator-row').forEach(function(row) {
+                        row.style.height = rowHeight + 'px';
+                        row.style.minHeight = rowHeight + 'px';
+                        row.style.maxHeight = rowHeight + 'px';
                     });
                 }
             });
+
+            // SEARCH BAR FUNCTIONALITY
+            var searchInput = document.getElementById('resident-search');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    var val = this.value.trim();
+                    if (val === '') {
+                        table.clearFilter();
+                    } else {
+                        table.setFilter([
+                            [
+                                {field: "first_name", type: "like", value: val},
+                                {field: "middle_name", type: "like", value: val},
+                                {field: "last_name", type: "like", value: val}
+                            ]
+                        ]);
+                    }
+                });
+            }
         });
         </script>
     </div>
@@ -526,6 +555,23 @@ if(document.getElementById('add-resident-link-empty')) {
     });
 }
 // Load purok options via AJAX
+// Load religion options via AJAX
+function loadReligionOptions() {
+    var religionSelect = document.getElementById('religionSelect');
+    religionSelect.innerHTML = '<option value="">Loading...</option>';
+    fetch('fetch_religions.php')
+        .then(res => res.json())
+        .then(data => {
+            religionSelect.innerHTML = '<option value="">Select...</option>';
+            data.forEach(function(religion) {
+                religionSelect.innerHTML += `<option value="${religion}">${religion}</option>`;
+            });
+        })
+        .catch(() => {
+            religionSelect.innerHTML = '<option value="">Error loading religions</option>';
+        });
+}
+
 function loadPurokOptions() {
     var purokSelect = document.getElementById('purokSelect');
     purokSelect.innerHTML = '<option value="">Loading...</option>';
@@ -543,6 +589,11 @@ function loadPurokOptions() {
 }
 document.getElementById('add-resident-btn').addEventListener('click', loadPurokOptions);
 // Also load puroks when opening from empty state
+// Load religions when opening modal
+document.getElementById('add-resident-btn').addEventListener('click', loadReligionOptions);
+if(document.getElementById('add-resident-link-empty')) {
+    document.getElementById('add-resident-link-empty').addEventListener('click', loadReligionOptions);
+}
 if(document.getElementById('add-resident-link-empty')) {
     document.getElementById('add-resident-link-empty').addEventListener('click', loadPurokOptions);
 }
@@ -574,114 +625,325 @@ addResidentForm.addEventListener('submit', function(e) {
     });
 });
 </script>
-<script>
-// View Resident logic
-// This must be after Tabulator and modal logic
 
-document.addEventListener('click', function(e) {
-    var target = e.target;
-    // If the click is on the eye icon or its parent anchor
-    if (target.classList.contains('fa-eye') && target.closest('a')) {
-        target = target.closest('a');
+<!-- View Resident Modal -->
+<div id="viewResidentModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-white shadow-lg w-full max-w-md mx-4 p-4 relative scale-95 transition-transform duration-300 border border-gray-300 view-modal-style" style="border-radius:0; box-shadow:0 8px 32px 0 rgba(60,60,60,0.10); font-size:0.92rem;">
+        <button id="closeViewResidentModal" class="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl focus:outline-none" title="Close">
+            <i class="fas fa-times"></i>
+        </button>
+        <h2 class="text-lg font-bold mb-3 text-blue-700 text-center w-full">Resident Information</h2>
+        <form class="space-y-3 pointer-events-none select-none" id="viewResidentForm">
+            <hr class="mb-2 border-gray-300">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div>
+                    <label class="block font-semibold mb-1">First Name</label>
+                    <input type="text" name="first_name" readonly class="w-full border rounded px-2 py-1.5 text-sm bg-gray-100" id="view_first_name">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Middle Name</label>
+                    <input type="text" name="middle_name" readonly class="w-full border rounded px-2 py-1.5 text-sm bg-gray-100" id="view_middle_name">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Last Name</label>
+                    <input type="text" name="last_name" readonly class="w-full border rounded px-2 py-1.5 text-sm bg-gray-100" id="view_last_name">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Suffix</label>
+                    <input type="text" name="suffix" readonly class="w-full border rounded px-2 py-1.5 text-sm bg-gray-100" id="view_suffix">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Gender</label>
+                    <input type="text" name="gender" readonly class="w-full border rounded px-2 py-1.5 text-sm bg-gray-100" id="view_gender">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Birthdate</label>
+                    <input type="text" name="birthdate" readonly class="w-full border rounded px-2 py-1.5 text-sm bg-gray-100" id="view_birthdate">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Civil Status</label>
+                    <input type="text" name="civil_status" readonly class="w-full border rounded px-2 py-1.5 text-sm bg-gray-100" id="view_civil_status">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Blood Type</label>
+                    <input type="text" name="blood_type" readonly class="w-full border rounded px-2 py-1.5 text-sm bg-gray-100" id="view_blood_type">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Religion</label>
+                    <input type="text" name="religion" readonly class="w-full border rounded px-2 py-1.5 text-sm bg-gray-100" id="view_religion">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Residing Purok</label>
+                    <input type="text" name="purok" readonly class="w-full border rounded px-2 py-1.5 text-sm bg-gray-100" id="view_purok">
+                </div>
+                <!-- Removed Purok ID and Created At fields -->
+            </div>
+            <hr class="my-2 border-gray-300">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-1">
+                <label class="inline-flex items-center gap-1 text-xs"><input type="checkbox" id="view_is_pwd" disabled class="accent-blue-600 scale-90">PWD</label>
+                <label class="inline-flex items-center gap-1 text-xs"><input type="checkbox" id="view_is_voter" disabled class="accent-blue-600 scale-90">Voter</label>
+                <label class="inline-flex items-center gap-1 text-xs"><input type="checkbox" id="view_is_4ps" disabled class="accent-blue-600 scale-90">4Ps</label>
+                <label class="inline-flex items-center gap-1 text-xs"><input type="checkbox" id="view_is_pregnant" disabled class="accent-blue-600 scale-90">Pregnant</label>
+                <label class="inline-flex items-center gap-1 text-xs"><input type="checkbox" id="view_is_solo_parent" disabled class="accent-blue-600 scale-90">Solo Parent</label>
+            </div>
+        </form>
+    </div>
+</div>
+<style>
+    .view-modal-style input[readonly], .view-modal-style select[disabled], .view-modal-style textarea[readonly] {
+        background-color: #f3f4f6 !important;
+        color: #22223b !important;
+        border-color: #cbd5e1 !important;
+        cursor: default !important;
+        pointer-events: none;
     }
-    if (target && target.matches('a[title="View"]')) {
+    .view-modal-style label {
+        color: #1e293b;
+    }
+</style>
+<script>
+// View Resident Modal logic
+function openViewResidentModal() {
+    const modal = document.getElementById('viewResidentModal');
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.classList.add('opacity-100');
+        modal.classList.remove('opacity-0');
+        const inner = modal.querySelector('div.bg-white');
+        if(inner) inner.classList.add('scale-100');
+        if(inner) inner.classList.remove('scale-95');
+    }, 10);
+}
+function closeViewResidentModal() {
+    const modal = document.getElementById('viewResidentModal');
+    modal.classList.remove('opacity-100');
+    modal.classList.add('opacity-0');
+    const inner = modal.querySelector('div.bg-white');
+    if(inner) inner.classList.remove('scale-100');
+    if(inner) inner.classList.add('scale-95');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        // Optionally clear fields
+    }, 300);
+}
+document.getElementById('closeViewResidentModal').addEventListener('click', closeViewResidentModal);
+
+// Delegate click for all view buttons
+document.addEventListener('click', function(e) {
+    if(e.target.closest('.view-resident-btn')) {
         e.preventDefault();
-        // Find the row's data-id (Tabulator row data)
-        var rowElem = target.closest('.tabulator-row');
-        if (!rowElem) return;
-        var rowIndex = Array.from(rowElem.parentNode.children).indexOf(rowElem);
-        var table = Tabulator.findTable('#residents-table')[0];
-        if (!table) return;
-        var row = table.getRows()[rowIndex];
-        if (!row) return;
-        var data = row.getData();
-        // Fetch full resident data from backend (in case not all fields are present)
-        var residentId = data.resident_id || data.id;
-        if (!residentId) return;
-        fetch('fetch_individual.php?id=' + encodeURIComponent(residentId))
+        var btn = e.target.closest('.view-resident-btn');
+        var data = btn.getAttribute('data-resident');
+        var residentId = null;
+        if(data) {
+            try {
+                var row = JSON.parse(data.replace(/&#39;/g, "'"));
+                residentId = row.id || row.ID || row.resident_id || row.individual_id;
+            } catch(err) {
+                residentId = null;
+            }
+        }
+        if(!residentId) {
+            alert('Resident ID not found.');
+            return;
+        }
+        // Fetch full resident details from backend
+        fetch('fetch_individual_detail.php?id=' + encodeURIComponent(residentId))
             .then(res => res.json())
-            .then(resp => {
-                if (!resp || !resp.success || !resp.resident) {
-                    alert('Failed to load resident data.');
-                    return;
-                }
-                var d = resp.resident;
-                var form = document.getElementById('addResidentForm');
-                // Set values
-                form.first_name.value = d.first_name || '';
-                form.middle_name.value = d.middle_name || '';
-                form.last_name.value = d.last_name || '';
-                form.suffix.value = d.suffix || '';
-                form.gender.value = d.gender || '';
-                form.birthdate.value = d.birthdate || '';
-                form.civil_status.value = d.civil_status || '';
-                form.blood_type.value = d.blood_type || '';
-                form.religion.value = d.religion || '';
-                // Purok (wait for options to load)
-                var purokSelect = document.getElementById('purokSelect');
-                function setPurok() {
-                    purokSelect.value = d.purok_id || '';
-                }
-                if (purokSelect.options.length > 1) {
-                    setPurok();
+            .then(data => {
+                if(data && (data.success || data.first_name)) {
+                    var resident = data.resident || data;
+                    document.getElementById('view_first_name').value = resident.first_name || '';
+                    document.getElementById('view_middle_name').value = resident.middle_name || '';
+                    document.getElementById('view_last_name').value = resident.last_name || '';
+                    document.getElementById('view_suffix').value = resident.suffix || '';
+                    document.getElementById('view_gender').value = resident.gender || '';
+                    document.getElementById('view_birthdate').value = resident.birthdate || '';
+                    document.getElementById('view_civil_status').value = resident.civil_status || '';
+                    document.getElementById('view_blood_type').value = resident.blood_type || '';
+                    document.getElementById('view_religion').value = resident.religion || '';
+                    // Format Residing Purok as 'Purok X'
+                    let purokValue = resident.purok || resident.purok_id || '';
+                    if (purokValue) {
+                        // Remove any parentheses and trim
+                        purokValue = purokValue.toString().replace(/\s*\([^)]*\)/g, '').trim();
+                        // Extract number if only number is present
+                        let match = purokValue.match(/(\d+)/);
+                        if (match) {
+                            purokValue = 'Purok ' + match[1];
+                        } else if (!/^Purok/i.test(purokValue)) {
+                            purokValue = 'Purok ' + purokValue;
+                        }
+                    }
+                    document.getElementById('view_purok').value = purokValue;
+                    document.getElementById('view_is_pwd').checked = !!(resident.is_pwd == 1 || resident.is_pwd === true || resident.is_pwd === '1');
+                    document.getElementById('view_is_voter').checked = !!(resident.is_voter == 1 || resident.is_voter === true || resident.is_voter === '1');
+                    document.getElementById('view_is_4ps').checked = !!(resident.is_4ps == 1 || resident.is_4ps === true || resident.is_4ps === '1');
+                    document.getElementById('view_is_pregnant').checked = !!(resident.is_pregnant == 1 || resident.is_pregnant === true || resident.is_pregnant === '1');
+                    document.getElementById('view_is_solo_parent').checked = !!(resident.is_solo_parent == 1 || resident.is_solo_parent === true || resident.is_solo_parent === '1');
+                    openViewResidentModal();
                 } else {
-                    fetch('fetch_puroks.php').then(res => res.json()).then(puroks => {
-                        purokSelect.innerHTML = '<option value="">Select...</option>';
-                        puroks.forEach(function(purok) {
-                            purokSelect.innerHTML += `<option value="${purok.id}">${purok.name}</option>`;
-                        });
-                        setPurok();
-                    });
-                }
-                // Checkboxes
-                form.is_pwd.checked = !!parseInt(d.is_pwd);
-                form.is_voter.checked = !!parseInt(d.is_voter);
-                form.is_4ps.checked = !!parseInt(d.is_4ps);
-                form.is_pregnant.checked = !!parseInt(d.is_pregnant);
-                form.is_solo_parent.checked = !!parseInt(d.is_solo_parent);
-                // Disable all fields
-                Array.from(form.elements).forEach(function(el) {
-                    el.disabled = true;
-                });
-                // Show modal
-                openAddResidentModal();
-                // Hide Save, show only Close
-                document.getElementById('cancelAddResident').style.display = 'none';
-                var saveBtn = form.querySelector('button[type="submit"]');
-                if (saveBtn) saveBtn.style.display = 'none';
-                // Add a Close button if not present
-                var closeBtn = form.querySelector('.view-close-btn');
-                if (!closeBtn) {
-                    var btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.textContent = 'Close';
-                    btn.className = 'view-close-btn px-4 py-1.5 rounded bg-gray-400 hover:bg-gray-500 text-white font-bold text-sm ml-2';
-                    btn.onclick = function() { closeAddResidentModal(); };
-                    form.querySelector('.flex.justify-end').appendChild(btn);
-                } else {
-                    closeBtn.style.display = '';
+                    alert('Failed to load resident info.');
                 }
             })
-            .catch(() => { alert('Failed to load resident data.'); });
+            .catch(() => {
+                alert('Failed to load resident info.');
+            });
     }
 });
-// Restore form on modal close
-function restoreAddResidentForm() {
-    var form = document.getElementById('addResidentForm');
-    Array.from(form.elements).forEach(function(el) {
-        el.disabled = false;
+</script>
+
+<!-- Delete Resident Modal -->
+<div id="deleteResidentModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-white shadow-lg w-full max-w-sm mx-4 p-6 relative scale-95 transition-transform duration-300 border border-gray-300 delete-modal-style" style="border-radius:0.75rem; box-shadow:0 8px 32px 0 rgba(60,60,60,0.13); font-size:0.97rem;">
+        <button id="closeDeleteResidentModal" class="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl focus:outline-none" title="Close" style="transition: color 0.2s;">
+            <i class="fas fa-times"></i>
+        </button>
+        <h2 class="text-lg font-bold mb-4 text-red-700 text-center w-full">Delete Resident</h2>
+        <div class="mb-6 text-center text-gray-700 text-base">Are you sure you want to <span class="font-semibold text-red-600">delete</span> this resident?<br>This action <span class="font-semibold">cannot be undone</span>.</div>
+        <div class="flex justify-center gap-4 mt-2">
+            <button type="button" id="cancelDeleteResident" class="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold text-sm shadow-sm transition">Cancel</button>
+            <button type="button" id="confirmDeleteResident" class="px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-sm transition">Delete</button>
+        </div>
+        <div id="deleteResidentMsg" class="mt-4 text-center text-sm"></div>
+    </div>
+</div>
+<style>
+.delete-modal-style {
+    border-radius: 0.75rem !important;
+    box-shadow: 0 8px 32px 0 rgba(60,60,60,0.13) !important;
+    font-size: 0.97rem !important;
+    padding-top: 2.5rem !important;
+    padding-bottom: 2.5rem !important;
+}
+#deleteResidentModal .bg-white {
+    animation: modalPopIn 0.25s cubic-bezier(.4,2,.6,1) 1;
+}
+@keyframes modalPopIn {
+    0% { transform: scale(0.95); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+#deleteResidentModal button:focus {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+#deleteResidentModal .text-red-700 {
+    color: #b91c1c !important;
+}
+#deleteResidentModal .text-red-600 {
+    color: #dc2626 !important;
+}
+#deleteResidentModal .bg-red-600 {
+    background-color: #dc2626 !important;
+}
+#deleteResidentModal .bg-red-700:hover {
+    background-color: #b91c1c !important;
+}
+</style>
+<script>
+// Delete Resident Modal logic
+let deleteResidentId = null;
+let deleteCountdownTimer = null;
+function openDeleteResidentModal(residentId) {
+    deleteResidentId = residentId;
+    const modal = document.getElementById('deleteResidentModal');
+    const deleteBtn = document.getElementById('confirmDeleteResident');
+    deleteBtn.disabled = true;
+    let countdown = 3;
+    deleteBtn.textContent = `Delete (${countdown})`;
+    deleteBtn.classList.add('opacity-60', 'cursor-not-allowed');
+    deleteCountdownTimer = setInterval(() => {
+        countdown--;
+        if (countdown > 0) {
+            deleteBtn.textContent = `Delete (${countdown})`;
+        } else {
+            clearInterval(deleteCountdownTimer);
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.disabled = false;
+            deleteBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+        }
+    }, 1000);
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.classList.add('opacity-100');
+        modal.classList.remove('opacity-0');
+        const inner = modal.querySelector('div.bg-white');
+        if(inner) inner.classList.add('scale-100');
+        if(inner) inner.classList.remove('scale-95');
+    }, 10);
+}
+function closeDeleteResidentModal() {
+    const modal = document.getElementById('deleteResidentModal');
+    modal.classList.remove('opacity-100');
+    modal.classList.add('opacity-0');
+    const inner = modal.querySelector('div.bg-white');
+    if(inner) inner.classList.remove('scale-100');
+    if(inner) inner.classList.add('scale-95');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        document.getElementById('deleteResidentMsg').textContent = '';
+        deleteResidentId = null;
+        const deleteBtn = document.getElementById('confirmDeleteResident');
+        deleteBtn.disabled = false;
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+        if(deleteCountdownTimer) clearInterval(deleteCountdownTimer);
+    }, 300);
+}
+document.getElementById('closeDeleteResidentModal').addEventListener('click', closeDeleteResidentModal);
+document.getElementById('cancelDeleteResident').addEventListener('click', closeDeleteResidentModal);
+document.getElementById('confirmDeleteResident').addEventListener('click', function() {
+    if(!deleteResidentId || this.disabled) return;
+    const msg = document.getElementById('deleteResidentMsg');
+    msg.textContent = 'Deleting...';
+    msg.className = 'mt-2 text-center text-gray-600 text-sm';
+    fetch('delete_individual.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'id=' + encodeURIComponent(deleteResidentId)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success) {
+            msg.textContent = 'Resident deleted successfully!';
+            msg.className = 'mt-2 text-center text-green-600 text-sm';
+            setTimeout(() => { closeDeleteResidentModal(); location.reload(); }, 1200);
+        } else {
+            msg.textContent = data.error || 'Failed to delete resident.';
+            msg.className = 'mt-2 text-center text-red-600 text-sm';
+        }
+    })
+    .catch(() => {
+        msg.textContent = 'Failed to delete resident.';
+        msg.className = 'mt-2 text-center text-red-600 text-sm';
     });
-    document.getElementById('cancelAddResident').style.display = '';
-    var saveBtn = form.querySelector('button[type="submit"]');
-    if (saveBtn) saveBtn.style.display = '';
-    var closeBtn = form.querySelector('.view-close-btn');
-    if (closeBtn) closeBtn.style.display = 'none';
-}
-var closeAddResidentModalOrig = closeAddResidentModal;
-closeAddResidentModal = function() {
-    restoreAddResidentForm();
-    closeAddResidentModalOrig();
-}
+});
+// Delegate click for all delete buttons
+// This works for dynamically generated rows
+// It finds the resident id from the data-resident attribute of the view button in the same row
+// and opens the modal
+//
+document.addEventListener('click', function(e) {
+    if(e.target.closest('.delete-resident-btn')) {
+        e.preventDefault();
+        var btn = e.target.closest('.delete-resident-btn');
+        var data = btn.closest('div').querySelector('.view-resident-btn')?.getAttribute('data-resident');
+        var residentId = null;
+        if(data) {
+            try {
+                var row = JSON.parse(data.replace(/&#39;/g, "'"));
+                residentId = row.id || row.ID || row.resident_id || row.individual_id;
+            } catch(err) {
+                residentId = null;
+            }
+        }
+        if(!residentId) {
+            alert('Resident ID not found.');
+            return;
+        }
+        openDeleteResidentModal(residentId);
+    }
+});
 </script>
 </body>
 </html>

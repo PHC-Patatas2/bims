@@ -266,7 +266,7 @@ function stat_card_count($value) {
             echo navLink('dashboard.php', 'fas fa-tachometer-alt', 'Dashboard', navActive('dashboard.php'));
 
             // People Management
-            $peopleActive = navActive(['individuals.php', 'households.php']);
+            $peopleActive = navActive(['individuals.php']);
             $peopleId = 'peopleSubNav';
             ?>
             <div class="mt-2">
@@ -276,7 +276,6 @@ function stat_card_count($value) {
                 </button>
                 <div id="<?php echo $peopleId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $peopleActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
                     <?php echo navLink('individuals.php', 'fas fa-user', 'Residents', navActive('individuals.php'), 'rounded'); ?>
-                    <?php echo navLink('households.php', 'fas fa-home', 'Households', navActive('households.php'), 'rounded'); ?>
                 </div>
             </div>
 

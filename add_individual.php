@@ -49,8 +49,9 @@ if (!$stmt) {
     $conn->close();
     exit();
 }
+// Corrected: 9 strings (first_name, middle_name, last_name, suffix, gender, birthdate, civil_status, blood_type, religion), 6 ints (is_pwd, is_voter, is_4ps, is_pregnant, is_solo_parent, purok_id)
 $stmt->bind_param(
-    'ssssssssiiiiiii',
+    'sssssssssiiiiii',
     $first_name,
     $middle_name,
     $last_name,
@@ -71,6 +72,7 @@ if ($stmt->execute()) {
     echo json_encode(['success' => true]);
 } else {
     $errorMsg = 'Failed to add resident.';
+    $errorMsg .= ' SQL Error: ' . $stmt->error . ' | Religion: ' . $religion;
     if ($stmt->errno === 1452) { // Foreign key constraint
         $errorMsg = 'Invalid Purok or related data. Please check your input.';
     } elseif ($stmt->errno === 1062) { // Duplicate entry
