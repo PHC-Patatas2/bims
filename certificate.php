@@ -140,6 +140,11 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             background: #e5e7eb;
             transform: translateY(-2px);
         }
+        .form-radio {
+            accent-color: #667eea;
+            width: 1rem;
+            height: 1rem;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 </head>
@@ -182,11 +187,11 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             ?>
             <div class="mt-2">
                 <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $peopleActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $peopleId; ?>')">
-                    <i class="fas fa-users"></i> People Management
-                    <i class="fas fa-chevron-down ml-auto group-hover:rotate-180 transition-transform duration-300"></i>
+                    <i class="fas fa-users"></i> People Management <i class="fas fa-chevron-down ml-auto"></i>
                 </button>
-                <div id="<?php echo $peopleId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $peopleActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
-                    <?php echo navLink('individuals.php', 'fas fa-user', 'Individuals', navActive('individuals.php')); ?>
+                <div id="<?php echo $peopleId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out dropdown-closed">
+                    <?php echo navLink('individuals.php', 'fas fa-user', 'Individuals', navActive('individuals.php'));
+                    ?>
                 </div>
             </div>
 
@@ -197,31 +202,34 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             ?>
             <div class="mt-2">
                 <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $docsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $docsId; ?>')">
-                    <i class="fas fa-file-alt"></i> Barangay Documents
-                    <i class="fas fa-chevron-down ml-auto group-hover:rotate-180 transition-transform duration-300"></i>
+                    <i class="fas fa-file-alt"></i> Barangay Documents <i class="fas fa-chevron-down ml-auto"></i>
                 </button>
-                <div id="<?php echo $docsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $docsActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
-                    <?php echo navLink('certificate.php', 'fas fa-certificate', 'Generate Certificate', navActive('certificate.php')); ?>
-                    <?php echo navLink('reports.php', 'fas fa-chart-line', 'Reports', navActive('reports.php')); ?>
-                    <?php echo navLink('issued_documents.php', 'fas fa-history', 'Issued Documents', navActive('issued_documents.php')); ?>
+                <div id="<?php echo $docsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out dropdown-closed">
+                    <?php echo navLink('certificate.php', 'fas fa-stamp', 'Issue Certificate', navActive('certificate.php'));
+                    ?>
+                    <?php echo navLink('reports.php', 'fas fa-chart-bar', 'Reports', navActive('reports.php'));
+                    ?>
+                    <?php echo navLink('issued_documents.php', 'fas fa-history', 'Issued Documents', navActive('issued_documents.php'));
+                    ?>
                 </div>
             </div>
 
             <?php
             // System Settings
-            $settingsActive = navActive(['officials.php', 'users.php', 'settings.php', 'logs.php']);
+            $settingsActive = navActive(['officials.php', 'settings.php', 'logs.php']);
             $settingsId = 'settingsSubNav';
             ?>
             <div class="mt-2">
                 <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $settingsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $settingsId; ?>')">
-                    <i class="fas fa-cog"></i> System Settings
-                    <i class="fas fa-chevron-down ml-auto group-hover:rotate-180 transition-transform duration-300"></i>
+                    <i class="fas fa-cogs"></i> System Settings <i class="fas fa-chevron-down ml-auto"></i>
                 </button>
-                <div id="<?php echo $settingsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $settingsActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
-                    <?php echo navLink('officials.php', 'fas fa-user-tie', 'Barangay Officials', navActive('officials.php')); ?>
-                    <?php echo navLink('users.php', 'fas fa-users-cog', 'User Management', navActive('users.php')); ?>
-                    <?php echo navLink('settings.php', 'fas fa-tools', 'System Settings', navActive('settings.php')); ?>
-                    <?php echo navLink('logs.php', 'fas fa-clipboard-list', 'Activity Logs', navActive('logs.php')); ?>
+                <div id="<?php echo $settingsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out dropdown-closed">
+                    <?php echo navLink('officials.php', 'fas fa-user-tie', 'Officials', navActive('officials.php'));
+                    ?>
+                    <?php echo navLink('settings.php', 'fas fa-cog', 'General Settings', navActive('settings.php'));
+                    ?>
+                    <?php echo navLink('logs.php', 'fas fa-clipboard-list', 'Logs', navActive('logs.php'));
+                    ?>
                 </div>
             </div>
         </nav>
@@ -380,15 +388,123 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             <form id="certificateForm" class="p-6">
                 <input type="hidden" id="certificateType" name="certificate_type">
                 
-                <!-- Resident Selection -->
-                <div class="form-group">
-                    <label class="form-label" for="residentSelect">
-                        <i class="fas fa-user mr-2"></i>Select Resident
-                    </label>
-                    <select class="form-input form-select" id="residentSelect" name="resident_id" required>
-                        <option value="">Choose a resident...</option>
-                        <!-- Options will be loaded dynamically -->
-                    </select>
+                <!-- Resident Selection Options -->
+                <div class="mb-6">
+                    <div class="flex items-center gap-4 mb-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="resident_option" value="existing" checked class="form-radio">
+                            <span class="text-sm font-medium">Select Existing Resident</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="resident_option" value="new" class="form-radio">
+                            <span class="text-sm font-medium">New Resident (Not Registered)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Existing Resident Selection -->
+                <div id="existingResidentSection">
+                    <div class="form-group">
+                        <label class="form-label" for="residentSelect">
+                            <i class="fas fa-user mr-2"></i>Select Resident
+                        </label>
+                        <select class="form-input form-select" id="residentSelect" name="resident_id">
+                            <option value="">Choose a resident...</option>
+                            <!-- Options will be loaded dynamically -->
+                        </select>
+                    </div>
+                    
+                    <div class="text-center my-4">
+                        <button type="button" id="registerNewResidentBtn" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                            <i class="fas fa-plus mr-1"></i>Resident not on the list? Register them now
+                        </button>
+                    </div>
+                </div>
+
+                <!-- New Resident Form -->
+                <div id="newResidentSection" style="display: none;">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <p class="text-sm text-blue-700">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Enter the resident information manually. This will generate the certificate without registering them in the system.
+                        </p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label" for="newFirstName">
+                                First Name <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" class="form-input" id="newFirstName" name="first_name" placeholder="Enter first name">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="newMiddleName">
+                                Middle Name
+                            </label>
+                            <input type="text" class="form-input" id="newMiddleName" name="middle_name" placeholder="Enter middle name">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="newLastName">
+                                Last Name <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" class="form-input" id="newLastName" name="last_name" placeholder="Enter last name">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="newSuffix">
+                                Suffix
+                            </label>
+                            <select class="form-input form-select" id="newSuffix" name="suffix">
+                                <option value="">None</option>
+                                <option value="Jr.">Jr.</option>
+                                <option value="Sr.">Sr.</option>
+                                <option value="II">II</option>
+                                <option value="III">III</option>
+                                <option value="IV">IV</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="newBirthdate">
+                                Birthdate
+                            </label>
+                            <input type="date" class="form-input" id="newBirthdate" name="birthdate">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="newGender">
+                                Gender
+                            </label>
+                            <select class="form-input form-select" id="newGender" name="gender">
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="newCivilStatus">
+                                Civil Status
+                            </label>
+                            <select class="form-input form-select" id="newCivilStatus" name="civil_status">
+                                <option value="">Select Civil Status</option>
+                                <option value="Single">Single</option>
+                                <option value="Married">Married</option>
+                                <option value="Divorced">Divorced</option>
+                                <option value="Widowed">Widowed</option>
+                                <option value="Separated">Separated</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="newPurok">
+                                Purok/Address
+                            </label>
+                            <input type="text" class="form-input" id="newPurok" name="purok" placeholder="Enter purok or address">
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Purpose -->
@@ -417,6 +533,20 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
 
     <!-- Scripts -->
     <script>
+        // Global variables
+        let preSelectedResidentId = null;
+
+        // Check URL parameters for pre-selected resident
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            preSelectedResidentId = urlParams.get('resident_id');
+            
+            if (preSelectedResidentId) {
+                // If coming from individuals page, show certificate selection
+                showCertificateSelectionForResident(preSelectedResidentId);
+            }
+        });
+
         // Sidepanel toggle
         const menuBtn = document.getElementById('menuBtn');
         const sidepanel = document.getElementById('sidepanel');
@@ -489,7 +619,15 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         const certificateModal = document.getElementById('certificateModal');
         const closeCertificateModalBtn = document.getElementById('closeCertificateModal');
 
-        function openCertificateModal(type) {
+        function showCertificateSelectionForResident(residentId) {
+            // Show a certificate type selection modal first
+            if (confirm('Select a certificate type for this resident. Click OK to continue to certificate selection.')) {
+                // For now, just open the clearance modal with the resident pre-selected
+                openCertificateModal('clearance', residentId);
+            }
+        }
+
+        function openCertificateModal(type, residentId = null) {
             const titles = {
                 'clearance': 'Generate Barangay Clearance',
                 'first_time_job_seeker': 'Generate Certificate of First Time Job Seeker',
@@ -505,7 +643,22 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             loadAdditionalFields(type);
             
             // Load residents
-            loadResidents();
+            loadResidents(() => {
+                // Auto-select resident if provided
+                if (residentId || preSelectedResidentId) {
+                    const selectResidentId = residentId || preSelectedResidentId;
+                    const residentSelect = document.getElementById('residentSelect');
+                    residentSelect.value = selectResidentId;
+                    
+                    // Clear the URL parameter after using it
+                    if (preSelectedResidentId) {
+                        const url = new URL(window.location);
+                        url.searchParams.delete('resident_id');
+                        window.history.replaceState({}, document.title, url.toString());
+                        preSelectedResidentId = null;
+                    }
+                }
+            });
             
             certificateModal.classList.remove('hidden');
             certificateModal.style.display = 'flex';
@@ -515,6 +668,10 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             certificateModal.classList.add('hidden');
             certificateModal.style.display = 'none';
             document.getElementById('certificateForm').reset();
+            
+            // Reset to existing resident option
+            document.querySelector('input[name="resident_option"][value="existing"]').checked = true;
+            toggleResidentSections();
         }
 
         closeCertificateModalBtn.addEventListener('click', closeCertificateModal);
@@ -523,6 +680,51 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         certificateModal.addEventListener('click', (e) => {
             if (e.target === certificateModal) {
                 closeCertificateModal();
+            }
+        });
+
+        // Handle resident option toggle
+        document.addEventListener('change', function(e) {
+            if (e.target.name === 'resident_option') {
+                toggleResidentSections();
+            }
+        });
+
+        function toggleResidentSections() {
+            const existingSection = document.getElementById('existingResidentSection');
+            const newSection = document.getElementById('newResidentSection');
+            const selectedOption = document.querySelector('input[name="resident_option"]:checked').value;
+            
+            if (selectedOption === 'existing') {
+                existingSection.style.display = 'block';
+                newSection.style.display = 'none';
+                
+                // Make existing resident fields required
+                document.getElementById('residentSelect').required = true;
+                
+                // Remove required from new resident fields
+                document.getElementById('newFirstName').required = false;
+                document.getElementById('newLastName').required = false;
+            } else {
+                existingSection.style.display = 'none';
+                newSection.style.display = 'block';
+                
+                // Remove required from existing resident field
+                document.getElementById('residentSelect').required = false;
+                
+                // Make new resident fields required
+                document.getElementById('newFirstName').required = true;
+                document.getElementById('newLastName').required = true;
+            }
+        }
+
+        // Register new resident button
+        document.addEventListener('click', function(e) {
+            if (e.target.id === 'registerNewResidentBtn') {
+                e.preventDefault();
+                // Switch to new resident option
+                document.querySelector('input[name="resident_option"][value="new"]').checked = true;
+                toggleResidentSections();
             }
         });
 
@@ -537,13 +739,13 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                             <label class="form-label" for="age">
                                 <i class="fas fa-calendar mr-2"></i>Age
                             </label>
-                            <input type="number" class="form-input" id="age" name="age" placeholder="Enter age" min="15" max="30" required>
+                            <input type="number" class="form-input" id="age" name="age" placeholder="Enter age" min="15" max="30">
                         </div>
                         <div class="form-group">
                             <label class="form-label" for="educationalAttainment">
                                 <i class="fas fa-graduation-cap mr-2"></i>Educational Attainment
                             </label>
-                            <select class="form-input form-select" id="educationalAttainment" name="educational_attainment" required>
+                            <select class="form-input form-select" id="educationalAttainment" name="educational_attainment">
                                 <option value="">Select educational attainment</option>
                                 <option value="Elementary Graduate">Elementary Graduate</option>
                                 <option value="High School Graduate">High School Graduate</option>
@@ -553,18 +755,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                                 <option value="Post Graduate">Post Graduate</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label" for="parentGuardianName">
-                                <i class="fas fa-user-friends mr-2"></i>Parent/Guardian Name
-                            </label>
-                            <input type="text" class="form-input" id="parentGuardianName" name="parent_guardian_name" placeholder="Enter parent/guardian name" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="parentGuardianAddress">
-                                <i class="fas fa-map-marker-alt mr-2"></i>Parent/Guardian Address
-                            </label>
-                            <textarea class="form-input" id="parentGuardianAddress" name="parent_guardian_address" rows="2" placeholder="Enter parent/guardian address" required></textarea>
-                        </div>
                     `;
                     break;
                 case 'indigency':
@@ -573,7 +763,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                             <label class="form-label" for="familyIncome">
                                 <i class="fas fa-money-bill-wave mr-2"></i>Monthly Family Income
                             </label>
-                            <select class="form-input form-select" id="familyIncome" name="family_income" required>
+                            <select class="form-input form-select" id="familyIncome" name="family_income">
                                 <option value="">Select income range</option>
                                 <option value="Below ₱5,000">Below ₱5,000</option>
                                 <option value="₱5,000 - ₱10,000">₱5,000 - ₱10,000</option>
@@ -586,13 +776,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                             <label class="form-label" for="familyMembers">
                                 <i class="fas fa-users mr-2"></i>Number of Family Members
                             </label>
-                            <input type="number" class="form-input" id="familyMembers" name="family_members" placeholder="Enter number of family members" min="1" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="reasonForIndigency">
-                                <i class="fas fa-comment mr-2"></i>Reason for Indigency Certificate
-                            </label>
-                            <textarea class="form-input" id="reasonForIndigency" name="reason_for_indigency" rows="3" placeholder="Enter reason for requesting indigency certificate" required></textarea>
+                            <input type="number" class="form-input" id="familyMembers" name="family_members" placeholder="Enter number of family members" min="1">
                         </div>
                     `;
                     break;
@@ -602,13 +786,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                             <label class="form-label" for="yearsOfResidency">
                                 <i class="fas fa-clock mr-2"></i>Years of Residency
                             </label>
-                            <input type="number" class="form-input" id="yearsOfResidency" name="years_of_residency" placeholder="Enter number of years as resident" min="0" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="residentSince">
-                                <i class="fas fa-calendar-alt mr-2"></i>Resident Since
-                            </label>
-                            <input type="date" class="form-input" id="residentSince" name="resident_since" required>
+                            <input type="number" class="form-input" id="yearsOfResidency" name="years_of_residency" placeholder="Enter number of years as resident" min="0">
                         </div>
                     `;
                     break;
@@ -618,62 +796,15 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                             <label class="form-label" for="emergencyContact">
                                 <i class="fas fa-phone mr-2"></i>Emergency Contact Name
                             </label>
-                            <input type="text" class="form-input" id="emergencyContact" name="emergency_contact" placeholder="Enter emergency contact name" required>
+                            <input type="text" class="form-input" id="emergencyContact" name="emergency_contact" placeholder="Enter emergency contact name">
                         </div>
                         <div class="form-group">
                             <label class="form-label" for="emergencyContactNumber">
                                 <i class="fas fa-phone-alt mr-2"></i>Emergency Contact Number
                             </label>
-                            <input type="tel" class="form-input" id="emergencyContactNumber" name="emergency_contact_number" placeholder="Enter emergency contact number" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="relationship">
-                                <i class="fas fa-heart mr-2"></i>Relationship to Emergency Contact
-                            </label>
-                            <select class="form-input form-select" id="relationship" name="relationship" required>
-                                <option value="">Select relationship</option>
-                                <option value="Parent">Parent</option>
-                                <option value="Spouse">Spouse</option>
-                                <option value="Sibling">Sibling</option>
-                                <option value="Child">Child</option>
-                                <option value="Relative">Relative</option>
-                                <option value="Friend">Friend</option>
-                                <option value="Guardian">Guardian</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="bloodType">
-                                <i class="fas fa-tint mr-2"></i>Blood Type (Optional)
-                            </label>
-                            <select class="form-input form-select" id="bloodType" name="blood_type">
-                                <option value="">Select blood type</option>
-                                <option value="A+">A+</option>
-                                <option value="A-">A-</option>
-                                <option value="B+">B+</option>
-                                <option value="B-">B-</option>
-                                <option value="AB+">AB+</option>
-                                <option value="AB-">AB-</option>
-                                <option value="O+">O+</option>
-                                <option value="O-">O-</option>
-                                <option value="Unknown">Unknown</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="validUntil">
-                                <i class="fas fa-calendar-check mr-2"></i>Valid Until
-                            </label>
-                            <input type="date" class="form-input" id="validUntil" name="valid_until" required>
+                            <input type="tel" class="form-input" id="emergencyContactNumber" name="emergency_contact_number" placeholder="Enter emergency contact number">
                         </div>
                     `;
-                    // Set default expiration date to 3 years from now
-                    const defaultExpiryDate = new Date();
-                    defaultExpiryDate.setFullYear(defaultExpiryDate.getFullYear() + 3);
-                    setTimeout(() => {
-                        const validUntilInput = document.getElementById('validUntil');
-                        if (validUntilInput) {
-                            validUntilInput.value = defaultExpiryDate.toISOString().split('T')[0];
-                        }
-                    }, 100);
                     break;
                 // For clearance, no additional fields needed
                 case 'clearance':
@@ -683,30 +814,51 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             }
         }
 
-        function loadResidents() {
-            // This would typically load from the database
+        function loadResidents(callback = null) {
             const residentSelect = document.getElementById('residentSelect');
-            residentSelect.innerHTML = '<option value="">Choose a resident...</option>';
+            residentSelect.innerHTML = '<option value="">Loading residents...</option>';
             
-            // Placeholder for now - in real implementation, this would be an AJAX call
             fetch('fetch_individuals.php')
                 .then(response => response.json())
                 .then(data => {
+                    residentSelect.innerHTML = '<option value="">Choose a resident...</option>';
                     data.forEach(resident => {
                         const option = document.createElement('option');
                         option.value = resident.id;
-                        option.textContent = `${resident.first_name} ${resident.middle_name || ''} ${resident.last_name}`.trim();
+                        option.textContent = `${resident.first_name} ${resident.middle_name || ''} ${resident.last_name} ${resident.suffix || ''}`.trim();
                         residentSelect.appendChild(option);
                     });
+                    
+                    if (callback) callback();
                 })
                 .catch(error => {
                     console.error('Error loading residents:', error);
+                    residentSelect.innerHTML = '<option value="">Error loading residents</option>';
                 });
         }
 
         // Form submission
         document.getElementById('certificateForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            
+            // Validate form based on selected option
+            const selectedOption = document.querySelector('input[name="resident_option"]:checked').value;
+            
+            if (selectedOption === 'existing') {
+                const residentId = document.getElementById('residentSelect').value;
+                if (!residentId) {
+                    showNotification('Please select a resident or switch to manual entry.', 'error');
+                    return;
+                }
+            } else {
+                const firstName = document.getElementById('newFirstName').value.trim();
+                const lastName = document.getElementById('newLastName').value.trim();
+                
+                if (!firstName || !lastName) {
+                    showNotification('Please enter at least the first name and last name.', 'error');
+                    return;
+                }
+            }
             
             // Collect form data
             const formData = new FormData(this);
@@ -717,7 +869,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
             submitBtn.disabled = true;
             
-            // Submit to backend (placeholder)
+            // Submit to backend
             fetch('generate_certificate.php', {
                 method: 'POST',
                 body: formData
@@ -726,16 +878,20 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             .then(data => {
                 if (data.success) {
                     // Handle successful generation
-                    alert('Certificate generated successfully!');
+                    showNotification('Certificate generated successfully!', 'success');
                     closeCertificateModal();
-                    // Optionally refresh the recent certificates table
+                    
+                    // Download the certificate
+                    if (data.download_url) {
+                        window.open(data.download_url, '_blank');
+                    }
                 } else {
-                    alert('Error generating certificate: ' + data.message);
+                    showNotification('Error generating certificate: ' + (data.error || data.message || 'Unknown error'), 'error');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred while generating the certificate.');
+                showNotification('An error occurred while generating the certificate.', 'error');
             })
             .finally(() => {
                 // Restore button state
@@ -743,6 +899,47 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 submitBtn.disabled = false;
             });
         });
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-20 right-4 p-4 rounded-xl shadow-xl z-50 transform translate-x-full transition-all duration-300 ${
+                type === 'success' ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' : 
+                type === 'error' ? 'bg-gradient-to-r from-red-500 to-red-600 text-white' : 
+                'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+            }`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-white bg-opacity-20 flex items-center justify-center mr-3">
+                        <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-medium">${message}</div>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-3 text-white hover:text-gray-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Trigger animation
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 10);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        if (notification.parentElement) {
+                            notification.remove();
+                        }
+                    }, 300);
+                }
+            }, 5000);
+        }
     </script>
 </body>
 </html>

@@ -29,6 +29,15 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         $system_title = $title_row['setting_value'];
     }
 }
+
+// Fetch officials from barangay_officials table early to use in header
+$officials = [];
+$officials_result = $conn->query("SELECT id, first_name, middle_initial, last_name, suffix, position FROM barangay_officials ORDER BY FIELD(position, 'Punong Barangay', 'Barangay Secretary', 'Barangay Treasurer', 'Sangguniang Barangay Member'), id ASC");
+if ($officials_result) {
+    while ($row = $officials_result->fetch_assoc()) {
+        $officials[] = $row;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -53,6 +62,225 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         .dropdown-menu { display: none; position: absolute; right: 0; top: 100%; background: white; min-width: 180px; box-shadow: 0 4px 16px #0001; border-radius: 0.5rem; z-index: 50; }
         .dropdown-menu.show { display: block; }
         .sidebar-border { border-right: 1px solid #e5e7eb; }
+        
+        /* Enhanced Official Card Styles */
+        .official-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .official-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .official-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .official-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px -12px rgba(59, 130, 246, 0.25), 0 8px 16px -4px rgba(0, 0, 0, 0.1);
+            border-color: #3b82f6;
+        }
+        
+        .official-avatar {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .official-avatar::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: rotate(45deg) translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+        
+        .official-card:hover .official-avatar::after {
+            transform: rotate(45deg) translateX(100%);
+        }
+        
+        .position-badge {
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+            border: 1px solid #cbd5e1;
+            color: #475569;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: inline-block;
+            margin-top: 0.25rem;
+        }
+        
+        .action-btn {
+            transition: all 0.2s ease;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .btn-edit {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-edit:hover {
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+        }
+        
+        .btn-delete {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+        
+        .btn-delete:hover {
+            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+        }
+        
+        /* Enhanced Add Button */
+        .btn-add-official {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-add-official::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-add-official:hover::before {
+            left: 100%;
+        }
+        
+        .btn-add-official:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+        
+        /* Page Header Enhancement */
+        .page-header {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8, #3b82f6);
+        }
+        
+        /* Modal Enhancements */
+        .modal-enhanced {
+            backdrop-filter: blur(8px);
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 1.5rem;
+            border-bottom: 1px solid #1d4ed8;
+        }
+        
+        .form-input {
+            transition: all 0.2s ease;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+        }
+        
+        .form-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+        
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Empty State Enhancement */
+        .empty-state {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border: 2px dashed #cbd5e1;
+            border-radius: 1rem;
+            padding: 3rem;
+            text-align: center;
+            color: #64748b;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            color: #94a3b8;
+            margin-bottom: 1rem;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 </head>
@@ -93,7 +321,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $peopleActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $peopleId; ?>')">
                     <i class="fas fa-users"></i> People Management <i class="fas fa-chevron-down ml-auto"></i>
                 </button>
-                <div id="<?php echo $peopleId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $peopleActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
+                <div id="<?php echo $peopleId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out dropdown-closed">
                     <?php echo navLink('individuals.php', 'fas fa-user', 'Individuals', navActive('individuals.php'));
                     ?>
                 </div>
@@ -106,7 +334,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $docsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $docsId; ?>')">
                     <i class="fas fa-file-alt"></i> Barangay Documents <i class="fas fa-chevron-down ml-auto"></i>
                 </button>
-                <div id="<?php echo $docsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $docsActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
+                <div id="<?php echo $docsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out dropdown-closed">
                     <?php echo navLink('certificate.php', 'fas fa-stamp', 'Issue Certificate', navActive('certificate.php'));
                     ?>
                     <?php echo navLink('reports.php', 'fas fa-chart-bar', 'Reports', navActive('reports.php'));
@@ -123,7 +351,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $settingsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $settingsId; ?>')">
                     <i class="fas fa-cogs"></i> System Settings <i class="fas fa-chevron-down ml-auto"></i>
                 </button>
-                <div id="<?php echo $settingsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $settingsActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
+                <div id="<?php echo $settingsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out dropdown-closed">
                     <?php echo navLink('officials.php', 'fas fa-user-tie', 'Officials', navActive('officials.php'));
                     ?>
                     <?php echo navLink('settings.php', 'fas fa-cog', 'General Settings', navActive('settings.php'));
@@ -158,27 +386,32 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
     <div class="flex-1 transition-all duration-300 ease-in-out p-2 md:px-0 md:pt-4 mt-16 flex flex-col items-center">
         <div class="w-full px-4 md:px-8">
             <!-- Header with Add Button -->
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h1 class="text-2xl font-bold text-gray-900">Officials Management</h1>
-                    <p class="text-gray-600">Manage barangay officials and their positions</p>
+            <div class="page-header fade-in">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">Officials Management</h1>
+                        <p class="text-gray-600 text-lg">Manage barangay officials and their positions</p>
+                        <div class="mt-4 flex items-center gap-4">
+                            <div class="flex items-center gap-2 text-sm text-gray-500">
+                                <i class="fas fa-users"></i>
+                                <span><?php echo count($officials); ?> Officials</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-sm text-gray-500">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Active Administration</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="openOfficialModal()" class="btn-add-official text-white px-6 py-3 rounded-lg font-medium shadow-lg relative overflow-hidden">
+                        <i class="fas fa-plus mr-2"></i>Add Official
+                    </button>
                 </div>
-                <button onclick="openOfficialModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                    <i class="fas fa-plus mr-2"></i>Add Official
-                </button>
             </div>
 
             <!-- Officials Grid (Cards) -->
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6" id="officialsGrid">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 mb-6" id="officialsGrid">
                 <?php
-                // Fetch officials from barangay_officials table (using your actual structure)
-                $officials = [];
-                $officials_result = $conn->query("SELECT id, first_name, middle_initial, last_name, suffix, position FROM barangay_officials ORDER BY FIELD(position, 'Punong Barangay', 'Barangay Secretary', 'Barangay Treasurer', 'Sangguniang Barangay Member'), id ASC");
-                if ($officials_result) {
-                    while ($row = $officials_result->fetch_assoc()) {
-                        $officials[] = $row;
-                    }
-                }
+                // Officials are already fetched above, just loop through them
                 foreach ($officials as $official) {
                     // Build full name
                     $full_name = htmlspecialchars($official['first_name']);
@@ -193,92 +426,95 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     elseif (stripos($official['position'], 'Kagawad') !== false || stripos($official['position'], 'Sangguniang Barangay Member') !== false) $icon = 'fa-user-friends';
                     // Card
                 ?>
-                <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 flex flex-col justify-between">
-                    <div class="flex items-center mb-4">
-                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mr-4">
-                            <i class="fas <?php echo $icon; ?> text-blue-600 text-2xl"></i>
+                <div class="official-card rounded-xl shadow-lg p-6 flex flex-col justify-between slide-up">
+                    <div class="flex items-start mb-6">
+                        <div class="official-avatar w-16 h-16 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                            <i class="fas <?php echo $icon; ?> text-white text-2xl"></i>
                         </div>
                         <div class="flex-1">
-                            <h3 class="text-lg font-semibold text-gray-900"><?php echo $full_name; ?></h3>
-                            <p class="text-sm text-gray-600"><?php echo htmlspecialchars($official['position']); ?></p>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2"><?php echo $full_name; ?></h3>
+                            <span class="position-badge"><?php echo htmlspecialchars($official['position']); ?></span>
                         </div>
                     </div>
-                    <div class="flex justify-end gap-2 mt-2">
-                        <button onclick="editOfficial(<?php echo (int)$official['id']; ?>)" class="text-blue-600 hover:text-blue-800 p-2" title="Edit">
+                    <div class="flex justify-end gap-3 mt-4 pt-4 border-t border-gray-100">
+                        <button onclick="editOfficial(<?php echo (int)$official['id']; ?>)" class="action-btn btn-edit" title="Edit Official">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button onclick="deleteOfficial(<?php echo (int)$official['id']; ?>)" class="text-red-600 hover:text-red-800 p-2" title="Delete">
+                        <button onclick="deleteOfficial(<?php echo (int)$official['id']; ?>)" class="action-btn btn-delete" title="Delete Official">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
                 </div>
                 <?php } ?>
                 <?php if (empty($officials)) { ?>
-                    <div class="col-span-full text-center text-gray-500 py-12">No officials found.</div>
+                    <div class="col-span-full empty-state">
+                        <i class="fas fa-user-friends"></i>
+                        <h3 class="text-xl font-semibold mb-2">No Officials Found</h3>
+                        <p class="text-gray-500 mb-4">Start by adding your first barangay official</p>
+                        <button onclick="openOfficialModal()" class="btn-add-official text-white px-6 py-2 rounded-lg font-medium relative overflow-hidden">
+                            <i class="fas fa-plus mr-2"></i>Add First Official
+                        </button>
+                    </div>
                 <?php } ?>
             </div>
 
             <!-- Officials Table removed as requested -->
 
             <!-- Add/Edit Official Modal -->
-            <div id="officialModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+            <div id="officialModal" class="modal-enhanced fixed inset-0 bg-black bg-opacity-50 hidden z-50">
                 <div class="flex items-center justify-center min-h-screen p-4">
-                    <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
-                        <div class="flex items-center justify-between p-6 border-b">
-                            <h3 class="text-lg font-semibold" id="modalTitle">Add Official</h3>
-                            <button onclick="closeOfficialModal()" class="text-gray-400 hover:text-gray-600">
-                                <i class="fas fa-times"></i>
+                    <div class="modal-content max-w-md w-full">
+                        <div class="modal-header">
+                            <h3 class="text-xl font-bold" id="modalTitle">Add Official</h3>
+                            <button onclick="closeOfficialModal()" class="text-white hover:text-gray-200 transition-colors">
+                                <i class="fas fa-times text-xl"></i>
                             </button>
                         </div>
-                        <form id="officialForm" class="p-6">
+                        <form id="officialForm" class="p-6 space-y-6">
                             <input type="hidden" id="officialId">
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                                <input type="text" id="officialName" required 
-                                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">First Name *</label>
+                                    <input type="text" id="firstName" required 
+                                           class="form-input w-full" placeholder="Enter first name">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Middle Initial</label>
+                                    <input type="text" id="middleInitial" maxlength="5"
+                                           class="form-input w-full" placeholder="M.I.">
+                                </div>
                             </div>
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Position</label>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Last Name *</label>
+                                    <input type="text" id="lastName" required 
+                                           class="form-input w-full" placeholder="Enter last name">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Suffix</label>
+                                    <input type="text" id="suffix" maxlength="20"
+                                           class="form-input w-full" placeholder="Jr., Sr., III">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Position *</label>
                                 <select id="officialPosition" required 
-                                        class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                        class="form-input w-full">
                                     <option value="">Select Position</option>
-                                    <option value="Barangay Captain">Barangay Captain</option>
-                                    <option value="Barangay Kagawad">Barangay Kagawad</option>
+                                    <option value="Punong Barangay">Punong Barangay</option>
                                     <option value="Barangay Secretary">Barangay Secretary</option>
                                     <option value="Barangay Treasurer">Barangay Treasurer</option>
+                                    <option value="Sangguniang Barangay Member">Sangguniang Barangay Member</option>
                                     <option value="SK Chairman">SK Chairman</option>
                                     <option value="SK Kagawad">SK Kagawad</option>
                                 </select>
                             </div>
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Term Start</label>
-                                <input type="date" id="termStart" required 
-                                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                            </div>
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Term End</label>
-                                <input type="date" id="termEnd" required 
-                                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                            </div>
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Contact Number</label>
-                                <input type="tel" id="contactNumber" 
-                                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                            </div>
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                                <select id="officialStatus" 
-                                        class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                    <option value="Active">Active</option>
-                                    <option value="Inactive">Inactive</option>
-                                </select>
-                            </div>
                         </form>
-                        <div class="flex justify-end gap-3 p-6 border-t">
-                            <button onclick="closeOfficialModal()" type="button" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <div class="flex justify-end gap-3 p-6 border-t border-gray-100 bg-gray-50">
+                            <button onclick="closeOfficialModal()" type="button" class="px-6 py-2 text-gray-600 border-2 border-gray-300 rounded-lg hover:bg-gray-100 transition-colors font-medium">
                                 Cancel
                             </button>
-                            <button onclick="saveOfficial()" type="button" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            <button onclick="saveOfficial()" type="button" class="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg font-medium">
                                 Save Official
                             </button>
                         </div>
@@ -287,27 +523,53 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             </div>
 
             <!-- Delete Confirmation Modal -->
-            <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+            <div id="deleteModal" class="modal-enhanced fixed inset-0 bg-black bg-opacity-50 hidden z-50">
                 <div class="flex items-center justify-center min-h-screen p-4">
-                    <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                    <div class="modal-content max-w-md w-full">
                         <div class="p-6">
-                            <div class="flex items-center mb-4">
-                                <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
-                                    <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                            <div class="flex items-center mb-6">
+                                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mr-4">
+                                    <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
                                 </div>
                                 <div>
-                                    <h3 class="text-lg font-semibold text-gray-900">Confirm Delete</h3>
-                                    <p class="text-sm text-gray-600">Are you sure you want to delete this official?</p>
+                                    <h3 class="text-xl font-bold text-gray-900">Confirm Delete</h3>
+                                    <p class="text-gray-600 mt-1">This action cannot be undone.</p>
                                 </div>
                             </div>
-                            <p class="text-gray-700 mb-6" id="deleteOfficialName"></p>
+                            <div class="bg-gray-50 p-4 rounded-lg mb-6">
+                                <p class="text-gray-700 font-medium" id="deleteOfficialName"></p>
+                            </div>
                         </div>
-                        <div class="flex justify-end gap-3 p-6 border-t">
-                            <button onclick="closeDeleteModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <div class="flex justify-end gap-3 p-6 border-t border-gray-100 bg-gray-50">
+                            <button onclick="closeDeleteModal()" class="px-6 py-2 text-gray-600 border-2 border-gray-300 rounded-lg hover:bg-gray-100 transition-colors font-medium">
                                 Cancel
                             </button>
-                            <button onclick="confirmDelete()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                                Delete
+                            <button onclick="confirmDelete()" class="px-6 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all shadow-lg font-medium">
+                                Delete Official
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error/Success Modal -->
+            <div id="messageModal" class="modal-enhanced fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+                <div class="flex items-center justify-center min-h-screen p-4">
+                    <div class="modal-content max-w-md w-full">
+                        <div class="p-6">
+                            <div class="flex items-center mb-4">
+                                <div id="messageIcon" class="w-16 h-16 rounded-full flex items-center justify-center mr-4">
+                                    <i id="messageIconClass" class="text-2xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 id="messageTitle" class="text-xl font-bold text-gray-900"></h3>
+                                    <p id="messageText" class="text-gray-600 mt-1"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex justify-end p-6 border-t border-gray-100 bg-gray-50">
+                            <button onclick="closeMessageModal()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                                OK
                             </button>
                         </div>
                     </div>
@@ -351,7 +613,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             });
         }
 
-        // Fill officials from PHP (database)
         let officials = [
             <?php
             $officials_result = $conn->query("SELECT id, first_name, middle_initial, last_name, suffix, position FROM barangay_officials ORDER BY FIELD(position, 'Punong Barangay', 'Barangay Secretary', 'Barangay Treasurer', 'Sangguniang Barangay Member'), id ASC");
@@ -374,85 +635,69 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             ?>
         ];
 
-        let officialsTable;
         let editingOfficialId = null;
         let deletingOfficialId = null;
 
-        // Initialize Tabulator table
-        function initializeTable() {
-            officialsTable = new Tabulator("#officialsTable", {
-                data: officials,
-                layout: "fitColumns",
-                pagination: "local",
-                paginationSize: 10,
-                paginationSizeSelector: [5, 10, 20],
-                movableColumns: true,
-                resizableColumns: true,
-                columns: [
-                    {title: "Name", field: "name", width: 200, sorter: "string"},
-                    {title: "Position", field: "position", width: 180, sorter: "string"},
-                    {title: "Term Start", field: "term_start", width: 120, sorter: "date", 
-                     formatter: function(cell) {
-                         return new Date(cell.getValue()).toLocaleDateString();
-                     }
-                    },
-                    {title: "Term End", field: "term_end", width: 120, sorter: "date", 
-                     formatter: function(cell) {
-                         return new Date(cell.getValue()).toLocaleDateString();
-                     }
-                    },
-                    {title: "Contact", field: "contact_number", width: 150, sorter: "string"},
-                    {title: "Status", field: "status", width: 100, sorter: "string",
-                     formatter: function(cell) {
-                         const status = cell.getValue();
-                         const color = status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-                         return `<span class="px-2 py-1 rounded-full text-xs ${color}">${status}</span>`;
-                     }
-                    },
-                    {title: "Actions", formatter: function(cell) {
-                        const id = cell.getRow().getData().id;
-                        return `
-                            <button onclick="editOfficial(${id})" class="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600 mr-1">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="deleteOfficial(${id})" class="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        `;
-                     }, width: 120, hozAlign: "center", headerSort: false}
-                ]
-            });
-        }
+        // Remove the Tabulator table initialization since we're only using the grid view
 
         // Render officials grid
         function renderOfficialsGrid() {
             const grid = document.getElementById('officialsGrid');
             grid.innerHTML = '';
 
-            officials.forEach(official => {
+            officials.forEach((official, index) => {
                 const card = document.createElement('div');
-                card.className = 'bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6';
+                card.className = 'official-card rounded-xl shadow-lg p-6 slide-up';
+                card.style.animationDelay = `${index * 0.1}s`;
+                
+                // Determine icon based on position
+                let icon = 'fa-user';
+                if (official.position.toLowerCase().includes('captain') || official.position.toLowerCase().includes('punong')) {
+                    icon = 'fa-user-tie';
+                } else if (official.position.toLowerCase().includes('secretary')) {
+                    icon = 'fa-user-pen';
+                } else if (official.position.toLowerCase().includes('treasurer')) {
+                    icon = 'fa-coins';
+                } else if (official.position.toLowerCase().includes('kagawad')) {
+                    icon = 'fa-user-friends';
+                }
+                
                 card.innerHTML = `
-                    <div class="flex items-center mb-4">
-                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mr-4">
-                            <i class="fas fa-user text-blue-600 text-xl"></i>
+                    <div class="flex items-start mb-6">
+                        <div class="official-avatar w-16 h-16 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                            <i class="fas ${icon} text-white text-2xl"></i>
                         </div>
                         <div class="flex-1">
-                            <h3 class="text-lg font-semibold text-gray-900">${official.name}</h3>
-                            <p class="text-sm text-gray-600">${official.position}</p>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">${official.name}</h3>
+                            <span class="position-badge">${official.position}</span>
                         </div>
                     </div>
-                    <div class="flex justify-end gap-2">
-                        <button onclick="editOfficial(${official.id})" class="text-blue-600 hover:text-blue-800 p-2">
+                    <div class="flex justify-end gap-3 mt-4 pt-4 border-t border-gray-100">
+                        <button onclick="editOfficial(${official.id})" class="action-btn btn-edit" title="Edit Official">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button onclick="deleteOfficial(${official.id})" class="text-red-600 hover:text-red-800 p-2">
+                        <button onclick="deleteOfficial(${official.id})" class="action-btn btn-delete" title="Delete Official">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
                 `;
                 grid.appendChild(card);
             });
+
+            // Add empty state if no officials
+            if (officials.length === 0) {
+                const emptyState = document.createElement('div');
+                emptyState.className = 'col-span-full empty-state';
+                emptyState.innerHTML = `
+                    <i class="fas fa-user-friends"></i>
+                    <h3 class="text-xl font-semibold mb-2">No Officials Found</h3>
+                    <p class="text-gray-500 mb-4">Start by adding your first barangay official</p>
+                    <button onclick="openOfficialModal()" class="btn-add-official text-white px-6 py-2 rounded-lg font-medium relative overflow-hidden">
+                        <i class="fas fa-plus mr-2"></i>Add First Official
+                    </button>
+                `;
+                grid.appendChild(emptyState);
+            }
         }
 
         // Modal functions
@@ -468,12 +713,37 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 const official = officials.find(o => o.id === id);
                 if (official) {
                     document.getElementById('officialId').value = official.id;
-                    document.getElementById('officialName').value = official.name;
+                    // Parse the full name back to separate fields
+                    const nameParts = official.name.split(' ');
+                    let firstName = '';
+                    let middleInitial = '';
+                    let lastName = '';
+                    let suffix = '';
+                    
+                    if (nameParts.length >= 2) {
+                        firstName = nameParts[0];
+                        // Check if last part contains comma (suffix)
+                        const lastPart = nameParts[nameParts.length - 1];
+                        if (lastPart.includes(',')) {
+                            const parts = lastPart.split(',');
+                            lastName = nameParts.slice(1, -1).join(' ') + ' ' + parts[0];
+                            suffix = parts[1].trim();
+                        } else {
+                            // Check for middle initial (ends with .)
+                            if (nameParts.length === 3 && nameParts[1].endsWith('.')) {
+                                middleInitial = nameParts[1];
+                                lastName = nameParts[2];
+                            } else {
+                                lastName = nameParts.slice(1).join(' ');
+                            }
+                        }
+                    }
+                    
+                    document.getElementById('firstName').value = firstName;
+                    document.getElementById('middleInitial').value = middleInitial;
+                    document.getElementById('lastName').value = lastName;
+                    document.getElementById('suffix').value = suffix;
                     document.getElementById('officialPosition').value = official.position;
-                    document.getElementById('termStart').value = official.term_start;
-                    document.getElementById('termEnd').value = official.term_end;
-                    document.getElementById('contactNumber').value = official.contact_number;
-                    document.getElementById('officialStatus').value = official.status;
                 }
             } else {
                 // Add mode
@@ -491,51 +761,122 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         }
 
         function saveOfficial() {
-            const name = document.getElementById('officialName').value;
+            const firstName = document.getElementById('firstName').value.trim();
+            const middleInitial = document.getElementById('middleInitial').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const suffix = document.getElementById('suffix').value.trim();
             const position = document.getElementById('officialPosition').value;
-            const termStart = document.getElementById('termStart').value;
-            const termEnd = document.getElementById('termEnd').value;
-            const contactNumber = document.getElementById('contactNumber').value;
-            const status = document.getElementById('officialStatus').value;
 
-            if (!name || !position || !termStart || !termEnd) {
-                alert('Please fill in all required fields');
+            if (!firstName || !lastName || !position) {
+                showNotification('Please fill in all required fields (First Name, Last Name, and Position)', 'error');
                 return;
             }
 
-            if (editingOfficialId) {
-                // Update existing official
-                const index = officials.findIndex(o => o.id === editingOfficialId);
-                if (index !== -1) {
-                    officials[index] = {
-                        ...officials[index],
-                        name,
-                        position,
-                        term_start: termStart,
-                        term_end: termEnd,
-                        contact_number: contactNumber,
-                        status
-                    };
+            // Build full name for display
+            let fullName = firstName;
+            if (middleInitial) {
+                fullName += ' ' + middleInitial;
+                if (!middleInitial.endsWith('.')) {
+                    fullName += '.';
                 }
-            } else {
-                // Add new official
-                const newId = Math.max(...officials.map(o => o.id)) + 1;
-                officials.push({
-                    id: newId,
-                    name,
-                    position,
-                    term_start: termStart,
-                    term_end: termEnd,
-                    contact_number: contactNumber,
-                    status
-                });
+            }
+            fullName += ' ' + lastName;
+            if (suffix) {
+                fullName += ', ' + suffix;
             }
 
-            // Refresh displays
-            renderOfficialsGrid();
-            officialsTable.setData(officials);
-            closeOfficialModal();
-            showNotification(editingOfficialId ? 'Official updated successfully!' : 'Official added successfully!', 'success');
+            // Prepare data for server
+            const officialData = {
+                first_name: firstName,
+                middle_initial: middleInitial || null,
+                last_name: lastName,
+                suffix: suffix || null,
+                position: position
+            };
+
+            if (editingOfficialId) {
+                // Update existing official
+                officialData.id = editingOfficialId;
+                
+                fetch('update_official.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(officialData)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Update local data
+                        const index = officials.findIndex(o => o.id === editingOfficialId);
+                        if (index !== -1) {
+                            officials[index] = {
+                                ...officials[index],
+                                name: data.official.name,
+                                position: data.official.position
+                            };
+                        }
+                        
+                        renderOfficialsGrid();
+                        closeOfficialModal();
+                        showNotification(data.message, 'success');
+                    } else {
+                        showNotification(data.message || 'Failed to update official', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Network error occurred', 'error');
+                });
+                
+            } else {
+                // Add new official
+                fetch('add_official.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(officialData)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Add to local data
+                        officials.push({
+                            id: data.official.id,
+                            name: data.official.name,
+                            position: data.official.position
+                        });
+                        
+                        renderOfficialsGrid();
+                        closeOfficialModal();
+                        showNotification(data.message, 'success');
+                        
+                        // Update header count
+                        const countElement = document.querySelector('.page-header .text-sm span');
+                        if (countElement) {
+                            countElement.textContent = `${officials.length} Officials`;
+                        }
+                    } else {
+                        showNotification(data.message || 'Failed to add official', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Network error occurred', 'error');
+                });
+            }
         }
 
         function editOfficial(id) {
@@ -558,38 +899,79 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
 
         function confirmDelete() {
             if (deletingOfficialId) {
-                officials = officials.filter(o => o.id !== deletingOfficialId);
-                renderOfficialsGrid();
-                officialsTable.setData(officials);
-                closeDeleteModal();
-                showNotification('Official deleted successfully!', 'success');
+                fetch('delete_official.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ id: deletingOfficialId })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Remove from local data
+                        officials = officials.filter(o => o.id !== deletingOfficialId);
+                        
+                        renderOfficialsGrid();
+                        closeDeleteModal();
+                        showNotification(data.message, 'success');
+                        
+                        // Update header count
+                        const countElement = document.querySelector('.page-header .text-sm span');
+                        if (countElement) {
+                            countElement.textContent = `${officials.length} Officials`;
+                        }
+                    } else {
+                        showNotification(data.message || 'Failed to delete official', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Network error occurred', 'error');
+                });
             }
         }
 
         function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
-            notification.className = `fixed top-20 right-4 p-4 rounded-lg shadow-lg z-50 ${
-                type === 'success' ? 'bg-green-500 text-white' : 
-                type === 'error' ? 'bg-red-500 text-white' : 
-                'bg-blue-500 text-white'
+            notification.className = `fixed top-20 right-4 p-4 rounded-xl shadow-xl z-50 transform translate-x-full transition-all duration-300 ${
+                type === 'success' ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' : 
+                type === 'error' ? 'bg-gradient-to-r from-red-500 to-red-600 text-white' : 
+                'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
             }`;
             notification.innerHTML = `
                 <div class="flex items-center">
-                    <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation' : 'info'} mr-2"></i>
-                    ${message}
+                    <div class="w-8 h-8 rounded-full bg-white bg-opacity-20 flex items-center justify-center mr-3">
+                        <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                    </div>
+                    <span class="font-medium">${message}</span>
                 </div>
             `;
             document.body.appendChild(notification);
 
+            // Slide in
             setTimeout(() => {
-                notification.style.opacity = '0';
-                setTimeout(() => document.body.removeChild(notification), 300);
+                notification.classList.remove('translate-x-full');
+            }, 100);
+
+            // Slide out and remove
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
             }, 3000);
         }
 
         // Initialize everything when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            initializeTable();
             renderOfficialsGrid();
         });
         // Dropdown open/close effect styles

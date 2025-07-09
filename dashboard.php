@@ -299,7 +299,7 @@ function stat_card_count($value) {
             <div class="mt-2">
                 <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $peopleActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $peopleId; ?>')">
                     <i class="fas fa-users"></i> People Management
-                    <i class="fas fa-chevron-down ml-auto text-xs transition-transform duration-300 dropdown-arrow <?php echo $peopleActive ? 'rotate-180' : ''; ?>" data-arrow="<?php echo $peopleId; ?>"></i>
+                    <i class="fas fa-chevron-down ml-auto text-xs"></i>
                 </button>
                 <div id="<?php echo $peopleId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $peopleActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
                     <?php echo navLink('individuals.php', 'fas fa-user', 'Residents', navActive('individuals.php'), 'rounded'); ?>
@@ -314,7 +314,7 @@ function stat_card_count($value) {
             <div class="mt-2">
                 <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $docsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $docsId; ?>')">
                     <i class="fas fa-file-alt"></i> Barangay Documents
-                    <i class="fas fa-chevron-down ml-auto text-xs transition-transform duration-300 dropdown-arrow <?php echo $docsActive ? 'rotate-180' : ''; ?>" data-arrow="<?php echo $docsId; ?>"></i>
+                    <i class="fas fa-chevron-down ml-auto text-xs"></i>
                 </button>
                 <div id="<?php echo $docsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $docsActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
                     <?php echo navLink('certificate.php', 'fas fa-stamp', 'Issue Certificate', navActive('certificate.php'), 'rounded'); ?>
@@ -331,7 +331,7 @@ function stat_card_count($value) {
             <div class="mt-2">
                 <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $settingsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $settingsId; ?>')">
                     <i class="fas fa-cogs"></i> System Settings
-                    <i class="fas fa-chevron-down ml-auto text-xs transition-transform duration-300 dropdown-arrow <?php echo $settingsActive ? 'rotate-180' : ''; ?>" data-arrow="<?php echo $settingsId; ?>"></i>
+                    <i class="fas fa-chevron-down ml-auto text-xs"></i>
                 </button>
                 <div id="<?php echo $settingsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $settingsActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
                     <?php echo navLink('officials.php', 'fas fa-user-tie', 'Officials Management', navActive('officials.php'), 'rounded'); ?>
@@ -664,22 +664,18 @@ function stat_card_count($value) {
             const dropdowns = ['peopleSubNav', 'docsSubNav', 'settingsSubNav'];
             dropdowns.forEach(function(dropId) {
                 const el = document.getElementById(dropId);
-                const arrow = document.querySelector('.dropdown-arrow[data-arrow="' + dropId + '"]');
                 if (el) {
                     if (dropId === id) {
                         if (el.classList.contains('dropdown-open')) {
                             el.classList.remove('dropdown-open');
                             el.classList.add('dropdown-closed');
-                            if (arrow) arrow.classList.remove('rotate-180');
                         } else {
                             el.classList.remove('dropdown-closed');
                             el.classList.add('dropdown-open');
-                            if (arrow) arrow.classList.add('rotate-180');
                         }
                     } else {
                         el.classList.remove('dropdown-open');
                         el.classList.add('dropdown-closed');
-                        if (arrow) arrow.classList.remove('rotate-180');
                     }
                 }
             });

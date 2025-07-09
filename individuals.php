@@ -641,41 +641,61 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         <div class="modal-overlay absolute inset-0" onclick="closeMoreOptionsModal()"></div>
         <div class="modal-container w-full max-w-md mx-4 relative scale-95 transition-transform duration-300">
             <div class="bg-white rounded-xl shadow-xl overflow-hidden">
-                <div class="modal-header bg-gray-600 text-white p-4 flex items-center justify-between">
-                    <h3 class="text-lg font-bold">More Options</h3>
+                <div class="modal-header bg-blue-600 text-white p-4 flex items-center justify-between">
+                    <h3 class="text-lg font-bold">Generate Certificate</h3>
                     <button id="closeMoreOptionsModal" class="text-white hover:text-gray-200 focus:outline-none" onclick="closeMoreOptionsModal()">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
                 <div class="p-6">
                     <div class="space-y-3">
-                        <button id="printCertificateBtn" class="w-full flex items-center gap-3 px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
+                        <button onclick="generateCertificate('clearance')" class="w-full flex items-center gap-3 px-4 py-3 text-left bg-gray-50 hover:bg-blue-50 rounded-lg transition-colors">
                             <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-print"></i>
+                                <i class="fas fa-certificate"></i>
                             </div>
                             <div>
-                                <div class="font-medium text-gray-900">Print Certificate</div>
-                                <div class="text-sm text-gray-500">Generate and print resident certificate</div>
+                                <div class="font-medium text-gray-900">Barangay Clearance</div>
+                                <div class="text-sm text-gray-500">Generate general clearance certificate</div>
                             </div>
                         </button>
                         
-                        <button id="exportDataBtn" class="w-full flex items-center gap-3 px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
+                        <button onclick="generateCertificate('residency')" class="w-full flex items-center gap-3 px-4 py-3 text-left bg-gray-50 hover:bg-green-50 rounded-lg transition-colors">
                             <div class="w-10 h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-download"></i>
+                                <i class="fas fa-home"></i>
                             </div>
                             <div>
-                                <div class="font-medium text-gray-900">Export Data</div>
-                                <div class="text-sm text-gray-500">Download resident information</div>
+                                <div class="font-medium text-gray-900">Certificate of Residency</div>
+                                <div class="text-sm text-gray-500">Proof of residence in the barangay</div>
                             </div>
                         </button>
                         
-                        <button id="duplicateBtn" class="w-full flex items-center gap-3 px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
-                            <div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-copy"></i>
+                        <button onclick="generateCertificate('indigency')" class="w-full flex items-center gap-3 px-4 py-3 text-left bg-gray-50 hover:bg-yellow-50 rounded-lg transition-colors">
+                            <div class="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-hand-holding-heart"></i>
                             </div>
                             <div>
-                                <div class="font-medium text-gray-900">Duplicate</div>
-                                <div class="text-sm text-gray-500">Create a copy of this resident</div>
+                                <div class="font-medium text-gray-900">Certificate of Indigency</div>
+                                <div class="text-sm text-gray-500">Financial status certification</div>
+                            </div>
+                        </button>
+                        
+                        <button onclick="generateCertificate('first_time_job_seeker')" class="w-full flex items-center gap-3 px-4 py-3 text-left bg-gray-50 hover:bg-purple-50 rounded-lg transition-colors">
+                            <div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-user-graduate"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium text-gray-900">First Time Job Seeker</div>
+                                <div class="text-sm text-gray-500">Certificate for first-time job seekers</div>
+                            </div>
+                        </button>
+                        
+                        <button onclick="generateCertificate('barangay_id')" class="w-full flex items-center gap-3 px-4 py-3 text-left bg-gray-50 hover:bg-indigo-50 rounded-lg transition-colors">
+                            <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-id-card"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium text-gray-900">Barangay ID</div>
+                                <div class="text-sm text-gray-500">Official barangay identification</div>
                             </div>
                         </button>
                     </div>
@@ -756,7 +776,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
     }
     </style>
     <!-- Sidepanel -->
-    <div id="sidepanel" class="fixed top-0 left-0 h-full w-80 shadow-lg z-40 transform -translate-x-full transition-transform duration-300 ease-in-out sidebar-border overflow-hidden" style="background-color: #454545;">
+    <div id="sidepanel" class="fixed top-0 left-0 h-full shadow-lg z-40 transform -translate-x-full transition-transform duration-300 ease-in-out sidebar-border overflow-hidden" style="background-color: #454545; width: 20rem !important;">
         <div class="flex flex-col items-center justify-center min-h-[90px] px-4 pt-3 pb-3 relative" style="border-bottom: 4px solid #FFD700;">
             <button id="closeSidepanel" class="absolute right-2 top-2 text-white hover:text-blue-400 focus:outline-none text-2xl md:hidden" aria-label="Close menu">
                 <i class="fas fa-times"></i>
@@ -793,11 +813,10 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             ?>
             <div class="mt-2">
                 <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $peopleActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $peopleId; ?>')">
-                    <i class="fas fa-users"></i> People Management
-                    <i class="fas fa-chevron-down ml-auto text-xs transition-transform duration-300 dropdown-arrow <?php echo $peopleActive ? 'rotate-180' : ''; ?>" data-arrow="<?php echo $peopleId; ?>"></i>
+                    <i class="fas fa-users"></i> People Management <i class="fas fa-chevron-down ml-auto"></i>
                 </button>
                 <div id="<?php echo $peopleId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $peopleActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
-                    <?php echo navLink('individuals.php', 'fas fa-user', 'Residents', navActive('individuals.php'), 'rounded'); ?>
+                    <?php echo navLink('individuals.php', 'fas fa-user', 'Individuals', navActive('individuals.php')); ?>
                 </div>
             </div>
 
@@ -808,13 +827,15 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             ?>
             <div class="mt-2">
                 <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $docsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $docsId; ?>')">
-                    <i class="fas fa-file-alt"></i> Barangay Documents
-                    <i class="fas fa-chevron-down ml-auto text-xs transition-transform duration-300 dropdown-arrow <?php echo $docsActive ? 'rotate-180' : ''; ?>" data-arrow="<?php echo $docsId; ?>"></i>
+                    <i class="fas fa-file-alt"></i> Barangay Documents <i class="fas fa-chevron-down ml-auto"></i>
                 </button>
-                <div id="<?php echo $docsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $docsActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
-                    <?php echo navLink('certificate.php', 'fas fa-stamp', 'Issue Certificate', navActive('certificate.php'), 'rounded'); ?>
-                    <?php echo navLink('reports.php', 'fas fa-chart-bar', 'Generate Reports', navActive('reports.php'), 'rounded'); ?>
-                    <?php echo navLink('issued_documents.php', 'fas fa-history', 'Issued Documents Log', navActive('issued_documents.php'), 'rounded'); ?>
+                <div id="<?php echo $docsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out dropdown-closed">
+                    <?php echo navLink('certificate.php', 'fas fa-stamp', 'Issue Certificate', navActive('certificate.php'));
+                    ?>
+                    <?php echo navLink('reports.php', 'fas fa-chart-bar', 'Reports', navActive('reports.php'));
+                    ?>
+                    <?php echo navLink('issued_documents.php', 'fas fa-history', 'Issued Documents', navActive('issued_documents.php'));
+                    ?>
                 </div>
             </div>
 
@@ -825,13 +846,15 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             ?>
             <div class="mt-2">
                 <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $settingsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $settingsId; ?>')">
-                    <i class="fas fa-cogs"></i> System Settings
-                    <i class="fas fa-chevron-down ml-auto text-xs transition-transform duration-300 dropdown-arrow <?php echo $settingsActive ? 'rotate-180' : ''; ?>" data-arrow="<?php echo $settingsId; ?>"></i>
+                    <i class="fas fa-cogs"></i> System Settings <i class="fas fa-chevron-down ml-auto"></i>
                 </button>
-                <div id="<?php echo $settingsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $settingsActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
-                    <?php echo navLink('officials.php', 'fas fa-user-tie', 'Officials Management', navActive('officials.php'), 'rounded'); ?>
-                    <?php echo navLink('settings.php', 'fas fa-cog', 'General Settings', navActive('settings.php'), 'rounded'); ?>
-                    <?php echo navLink('logs.php', 'fas fa-clipboard-list', 'Logs', navActive('logs.php'), 'rounded'); ?>
+                <div id="<?php echo $settingsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out dropdown-closed">
+                    <?php echo navLink('officials.php', 'fas fa-user-tie', 'Officials', navActive('officials.php'));
+                    ?>
+                    <?php echo navLink('settings.php', 'fas fa-cog', 'General Settings', navActive('settings.php'));
+                    ?>
+                    <?php echo navLink('logs.php', 'fas fa-clipboard-list', 'Logs', navActive('logs.php'));
+                    ?>
                 </div>
             </div>
             
@@ -1447,48 +1470,119 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         
         // More Options Modal event handlers
         document.addEventListener('DOMContentLoaded', function() {
-            // Print Certificate button
-            document.getElementById('printCertificateBtn').addEventListener('click', function() {
-                if (currentResidentId) {
-                    handlePrintCertificate(currentResidentId);
-                    closeMoreOptionsModal();
-                }
-            });
-            
-            // Export Data button
-            document.getElementById('exportDataBtn').addEventListener('click', function() {
-                if (currentResidentId) {
-                    handleExportData(currentResidentId);
-                    closeMoreOptionsModal();
-                }
-            });
-            
-            // Duplicate button
-            document.getElementById('duplicateBtn').addEventListener('click', function() {
-                if (currentResidentId) {
-                    handleDuplicate(currentResidentId);
-                    closeMoreOptionsModal();
-                }
-            });
+            // No need for individual button handlers since we're using onclick attributes
         });
         
-        // Action handlers
-        function handlePrintCertificate(residentId) {
-            console.log('Print certificate for resident:', residentId);
-            // TODO: Implement certificate printing functionality
-            alert('Print certificate functionality will be implemented here.');
+        // New streamlined certificate generation function
+        function generateCertificate(certificateType) {
+            if (!currentResidentId) {
+                showNotification('No resident selected', 'error');
+                return;
+            }
+            
+            console.log(`Generating ${certificateType} certificate for resident:`, currentResidentId);
+            
+            // Show loading state
+            const modal = document.getElementById('moreOptionsModal');
+            const originalContent = modal.querySelector('.p-6').innerHTML;
+            modal.querySelector('.p-6').innerHTML = `
+                <div class="text-center py-8">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <p class="mt-4 text-gray-600">Generating ${certificateType.replace('_', ' ')} certificate...</p>
+                </div>
+            `;
+            
+            // Create form data
+            const formData = new FormData();
+            formData.append('certificate_type', certificateType);
+            formData.append('resident_id', currentResidentId);
+            formData.append('purpose', 'Direct generation from residents list');
+            
+            // Generate certificate
+            fetch('generate_certificate.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Download the certificate immediately
+                    const link = document.createElement('a');
+                    link.href = data.download_url;
+                    link.download = data.certificate_id + '.pdf';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    closeMoreOptionsModal();
+                    
+                    // Show success message
+                    showNotification('Certificate generated and downloaded successfully!', 'success');
+                } else {
+                    showNotification('Error generating certificate: ' + (data.error || 'Unknown error'), 'error');
+                    // Restore original content
+                    modal.querySelector('.p-6').innerHTML = originalContent;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('An error occurred while generating the certificate.', 'error');
+                // Restore original content
+                modal.querySelector('.p-6').innerHTML = originalContent;
+            });
         }
 
         function handleExportData(residentId) {
             console.log('Export data for resident:', residentId);
             // TODO: Implement individual resident data export
-            alert('Export data functionality will be implemented here.');
+            showNotification('Export data functionality will be implemented here.', 'info');
         }
 
         function handleDuplicate(residentId) {
             console.log('Duplicate resident:', residentId);
             // TODO: Implement resident duplication functionality
-            alert('Duplicate resident functionality will be implemented here.');
+            showNotification('Duplicate resident functionality will be implemented here.', 'info');
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-20 right-4 p-4 rounded-xl shadow-xl z-50 transform translate-x-full transition-all duration-300 ${
+                type === 'success' ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' : 
+                type === 'error' ? 'bg-gradient-to-r from-red-500 to-red-600 text-white' : 
+                'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+            }`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-white bg-opacity-20 flex items-center justify-center mr-3">
+                        <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-medium">${message}</div>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-3 text-white hover:text-gray-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Trigger animation
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 10);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        if (notification.parentElement) {
+                            notification.remove();
+                        }
+                    }, 300);
+                }
+            }, 5000);
         }
 
         // View Resident Details Modal (Preview Only)

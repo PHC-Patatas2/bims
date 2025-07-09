@@ -93,7 +93,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $peopleActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $peopleId; ?>')">
                     <i class="fas fa-users"></i> People Management <i class="fas fa-chevron-down ml-auto"></i>
                 </button>
-                <div id="<?php echo $peopleId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $peopleActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
+                <div id="<?php echo $peopleId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out dropdown-closed">
                     <?php echo navLink('individuals.php', 'fas fa-user', 'Individuals', navActive('individuals.php'));
                     ?>
                 </div>
@@ -106,7 +106,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $docsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $docsId; ?>')">
                     <i class="fas fa-file-alt"></i> Barangay Documents <i class="fas fa-chevron-down ml-auto"></i>
                 </button>
-                <div id="<?php echo $docsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $docsActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
+                <div id="<?php echo $docsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out dropdown-closed">
                     <?php echo navLink('certificate.php', 'fas fa-stamp', 'Issue Certificate', navActive('certificate.php'));
                     ?>
                     <?php echo navLink('reports.php', 'fas fa-chart-bar', 'Reports', navActive('reports.php'));
@@ -116,17 +116,15 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 </div>
             </div>
             <?php
-            $settingsActive = navActive(['officials.php', 'users.php', 'settings.php', 'logs.php']);
+            $settingsActive = navActive(['officials.php', 'settings.php', 'logs.php']);
             $settingsId = 'settingsSubNav';
             ?>
             <div class="mt-2">
                 <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $settingsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $settingsId; ?>')">
                     <i class="fas fa-cogs"></i> System Settings <i class="fas fa-chevron-down ml-auto"></i>
                 </button>
-                <div id="<?php echo $settingsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $settingsActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
+                <div id="<?php echo $settingsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out dropdown-closed">
                     <?php echo navLink('officials.php', 'fas fa-user-tie', 'Officials', navActive('officials.php'));
-                    ?>
-                    <?php echo navLink('users.php', 'fas fa-users-cog', 'User Accounts', navActive('users.php'));
                     ?>
                     <?php echo navLink('settings.php', 'fas fa-cog', 'General Settings', navActive('settings.php'));
                     ?>
@@ -488,7 +486,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
 
         function printDocument() {
             // Placeholder for print functionality
-            alert('Print functionality would be implemented here');
+            showNotification('Print functionality would be implemented here', 'info');
         }
 
         function exportDocuments() {
@@ -543,6 +541,47 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 userDropdownMenu.classList.remove('show');
             }
         });
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-20 right-4 p-4 rounded-xl shadow-xl z-50 transform translate-x-full transition-all duration-300 ${
+                type === 'success' ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' : 
+                type === 'error' ? 'bg-gradient-to-r from-red-500 to-red-600 text-white' : 
+                'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+            }`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-white bg-opacity-20 flex items-center justify-center mr-3">
+                        <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-medium">${message}</div>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-3 text-white hover:text-gray-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Trigger animation
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 10);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        if (notification.parentElement) {
+                            notification.remove();
+                        }
+                    }, 300);
+                }
+            }, 5000);
+        }
     </script>
 </body>
 </html>
