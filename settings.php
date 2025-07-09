@@ -159,13 +159,252 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
     </nav>
     <div class="flex-1 transition-all duration-300 ease-in-out p-2 md:px-0 md:pt-4 mt-16 flex flex-col items-center">
         <div class="w-full px-4 md:px-8">
-            <div class="flex items-center mb-4">
-                <h1 class="text-2xl font-bold">General Settings</h1>
+            <!-- Settings Tabs -->
+            <div class="bg-white rounded-lg shadow mb-6">
+                <div class="border-b border-gray-200">
+                    <nav class="flex">
+                        <button onclick="switchTab('general')" id="generalTab" class="tab-button active px-6 py-3 font-medium text-sm border-b-2 border-blue-500 text-blue-600">
+                            <i class="fas fa-cog mr-2"></i>General Settings
+                        </button>
+                        <button onclick="switchTab('system')" id="systemTab" class="tab-button px-6 py-3 font-medium text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-server mr-2"></i>System Configuration
+                        </button>
+                        <button onclick="switchTab('appearance')" id="appearanceTab" class="tab-button px-6 py-3 font-medium text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-palette mr-2"></i>Appearance
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- General Settings Tab -->
+                <div id="generalContent" class="tab-content p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">General Settings</h3>
+                    <form id="generalSettingsForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">System Title</label>
+                                <input type="text" id="systemTitle" value="Resident Information and Certification Management System" 
+                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Barangay Name</label>
+                                <input type="text" id="barangayName" value="Barangay Sample" 
+                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Municipality/City</label>
+                                <input type="text" id="municipality" value="Sample City" 
+                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Province</label>
+                                <input type="text" id="province" value="Sample Province" 
+                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Contact Number</label>
+                                <input type="tel" id="contactNumber" value="+63 123 456 7890" 
+                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                                <input type="email" id="emailAddress" value="barangay@example.com" 
+                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                            <textarea id="address" rows="3" 
+                                      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">Sample Street, Sample City, Sample Province</textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Barangay Logo</label>
+                            <div class="flex items-center space-x-4">
+                                <div class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
+                                    <img id="logoPreview" src="img/logo.png" alt="Logo" class="w-16 h-16 object-cover rounded">
+                                </div>
+                                <div>
+                                    <input type="file" id="logoFile" accept="image/*" class="hidden">
+                                    <button type="button" onclick="document.getElementById('logoFile').click()" 
+                                            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                        Upload New Logo
+                                    </button>
+                                    <p class="text-sm text-gray-500 mt-1">Recommended: 200x200 pixels, PNG or JPG</p>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- System Configuration Tab -->
+                <div id="systemContent" class="tab-content p-6 hidden">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">System Configuration</h3>
+                    <form id="systemSettingsForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Time Zone</label>
+                                <select id="timezone" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="Asia/Manila" selected>Asia/Manila (GMT+8)</option>
+                                    <option value="UTC">UTC (GMT+0)</option>
+                                    <option value="America/New_York">America/New_York (GMT-5)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Date Format</label>
+                                <select id="dateFormat" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="MM/DD/YYYY" selected>MM/DD/YYYY</option>
+                                    <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Records Per Page</label>
+                                <select id="recordsPerPage" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="10">10</option>
+                                    <option value="25" selected>25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Session Timeout (minutes)</label>
+                                <input type="number" id="sessionTimeout" value="30" min="5" max="480" 
+                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <h4 class="text-md font-medium text-gray-900">Security Settings</h4>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="enableTwoFactor" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="enableTwoFactor" class="ml-2 block text-sm text-gray-900">Enable Two-Factor Authentication</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="enforcePasswordPolicy" checked class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="enforcePasswordPolicy" class="ml-2 block text-sm text-gray-900">Enforce Strong Password Policy</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="logUserActivity" checked class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="logUserActivity" class="ml-2 block text-sm text-gray-900">Log User Activity</label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Appearance Tab -->
+                <div id="appearanceContent" class="tab-content p-6 hidden">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Appearance Settings</h3>
+                    <form id="appearanceSettingsForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Theme</label>
+                                <select id="theme" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="light" selected>Light Theme</option>
+                                    <option value="dark">Dark Theme</option>
+                                    <option value="auto">Auto (System Preference)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Primary Color</label>
+                                <div class="flex space-x-2">
+                                    <input type="color" id="primaryColor" value="#2563eb" class="w-12 h-12 border border-gray-300 rounded cursor-pointer">
+                                    <input type="text" id="primaryColorHex" value="#2563eb" 
+                                           class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Font Size</label>
+                                <select id="fontSize" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="small">Small</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="large">Large</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Sidebar Style</label>
+                                <select id="sidebarStyle" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="default" selected>Default</option>
+                                    <option value="compact">Compact</option>
+                                    <option value="minimal">Minimal</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <h4 class="text-md font-medium text-gray-900">Display Options</h4>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="showAnimations" checked class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="showAnimations" class="ml-2 block text-sm text-gray-900">Enable Animations</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="showNotifications" checked class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="showNotifications" class="ml-2 block text-sm text-gray-900">Show Notifications</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="compactTable" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="compactTable" class="ml-2 block text-sm text-gray-900">Compact Table View</label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Save Button -->
+                <div class="p-6 border-t border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <button onclick="resetSettings()" class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors">
+                            <i class="fas fa-undo mr-2"></i>Reset to Defaults
+                        </button>
+                        <div class="space-x-3">
+                            <button onclick="previewSettings()" class="bg-yellow-500 text-white px-6 py-2 rounded-lg hover:bg-yellow-600 transition-colors">
+                                <i class="fas fa-eye mr-2"></i>Preview
+                            </button>
+                            <button onclick="saveSettings()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-save mr-2"></i>Save Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-                <i class="fas fa-cog text-5xl mb-4 text-blue-400"></i>
-                <div class="text-xl font-semibold mb-2">This is a placeholder for the General Settings page.</div>
-                <div class="mb-4">You can implement general settings features here.</div>
+
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white rounded-lg shadow p-6 text-center">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-download text-blue-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Backup Data</h3>
+                    <p class="text-sm text-gray-600 mb-4">Create a backup of system data</p>
+                    <button onclick="backupData()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 w-full">
+                        Backup Now
+                    </button>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6 text-center">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-upload text-green-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Restore Data</h3>
+                    <p class="text-sm text-gray-600 mb-4">Restore from backup file</p>
+                    <button onclick="restoreData()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 w-full">
+                        Restore
+                    </button>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6 text-center">
+                    <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-sync text-yellow-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Clear Cache</h3>
+                    <p class="text-sm text-gray-600 mb-4">Clear system cache files</p>
+                    <button onclick="clearCache()" class="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 w-full">
+                        Clear Cache
+                    </button>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6 text-center">
+                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-tools text-red-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Maintenance</h3>
+                    <p class="text-sm text-gray-600 mb-4">System maintenance mode</p>
+                    <button onclick="toggleMaintenance()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 w-full">
+                        Toggle Mode
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -203,6 +442,235 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     }
                 }
             });
+        }
+
+        // Tab switching functionality
+        function switchTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            // Remove active class from all tab buttons
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(button => {
+                button.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                button.classList.add('border-transparent', 'text-gray-500');
+            });
+
+            // Show selected tab content
+            document.getElementById(tabName + 'Content').classList.remove('hidden');
+
+            // Add active class to selected tab button
+            const activeTab = document.getElementById(tabName + 'Tab');
+            activeTab.classList.add('active', 'border-blue-500', 'text-blue-600');
+            activeTab.classList.remove('border-transparent', 'text-gray-500');
+        }
+
+        // Settings functions
+        function saveSettings() {
+            // Collect all form data
+            const generalSettings = {
+                systemTitle: document.getElementById('systemTitle').value,
+                barangayName: document.getElementById('barangayName').value,
+                municipality: document.getElementById('municipality').value,
+                province: document.getElementById('province').value,
+                contactNumber: document.getElementById('contactNumber').value,
+                emailAddress: document.getElementById('emailAddress').value,
+                address: document.getElementById('address').value
+            };
+
+            const systemSettings = {
+                timezone: document.getElementById('timezone').value,
+                dateFormat: document.getElementById('dateFormat').value,
+                recordsPerPage: document.getElementById('recordsPerPage').value,
+                sessionTimeout: document.getElementById('sessionTimeout').value,
+                enableTwoFactor: document.getElementById('enableTwoFactor').checked,
+                enforcePasswordPolicy: document.getElementById('enforcePasswordPolicy').checked,
+                logUserActivity: document.getElementById('logUserActivity').checked
+            };
+
+            const appearanceSettings = {
+                theme: document.getElementById('theme').value,
+                primaryColor: document.getElementById('primaryColor').value,
+                fontSize: document.getElementById('fontSize').value,
+                sidebarStyle: document.getElementById('sidebarStyle').value,
+                showAnimations: document.getElementById('showAnimations').checked,
+                showNotifications: document.getElementById('showNotifications').checked,
+                compactTable: document.getElementById('compactTable').checked
+            };
+
+            // Simulate saving (replace with actual implementation)
+            showNotification('Settings saved successfully!', 'success');
+            console.log('General Settings:', generalSettings);
+            console.log('System Settings:', systemSettings);
+            console.log('Appearance Settings:', appearanceSettings);
+        }
+
+        function resetSettings() {
+            if (confirm('Are you sure you want to reset all settings to defaults? This action cannot be undone.')) {
+                // Reset to default values
+                document.getElementById('systemTitle').value = 'Resident Information and Certification Management System';
+                document.getElementById('barangayName').value = 'Barangay Sample';
+                document.getElementById('municipality').value = 'Sample City';
+                document.getElementById('province').value = 'Sample Province';
+                document.getElementById('contactNumber').value = '+63 123 456 7890';
+                document.getElementById('emailAddress').value = 'barangay@example.com';
+                document.getElementById('address').value = 'Sample Street, Sample City, Sample Province';
+                
+                // Reset system settings
+                document.getElementById('timezone').value = 'Asia/Manila';
+                document.getElementById('dateFormat').value = 'MM/DD/YYYY';
+                document.getElementById('recordsPerPage').value = '25';
+                document.getElementById('sessionTimeout').value = '30';
+                document.getElementById('enableTwoFactor').checked = false;
+                document.getElementById('enforcePasswordPolicy').checked = true;
+                document.getElementById('logUserActivity').checked = true;
+                
+                // Reset appearance settings
+                document.getElementById('theme').value = 'light';
+                document.getElementById('primaryColor').value = '#2563eb';
+                document.getElementById('primaryColorHex').value = '#2563eb';
+                document.getElementById('fontSize').value = 'medium';
+                document.getElementById('sidebarStyle').value = 'default';
+                document.getElementById('showAnimations').checked = true;
+                document.getElementById('showNotifications').checked = true;
+                document.getElementById('compactTable').checked = false;
+
+                showNotification('Settings reset to defaults', 'info');
+            }
+        }
+
+        function previewSettings() {
+            showNotification('Preview mode activated. Changes are temporary.', 'info');
+            // Apply settings temporarily for preview
+            applyAppearanceSettings();
+        }
+
+        function applyAppearanceSettings() {
+            const theme = document.getElementById('theme').value;
+            const primaryColor = document.getElementById('primaryColor').value;
+            const fontSize = document.getElementById('fontSize').value;
+
+            // Apply theme
+            if (theme === 'dark') {
+                document.body.classList.add('dark-theme');
+            } else {
+                document.body.classList.remove('dark-theme');
+            }
+
+            // Apply primary color
+            document.documentElement.style.setProperty('--primary-color', primaryColor);
+
+            // Apply font size
+            const fontSizeMap = {
+                'small': '14px',
+                'medium': '16px',
+                'large': '18px'
+            };
+            document.documentElement.style.setProperty('--base-font-size', fontSizeMap[fontSize]);
+        }
+
+        // Quick action functions
+        function backupData() {
+            if (confirm('Do you want to create a backup of all system data?')) {
+                showNotification('Creating backup...', 'info');
+                // Simulate backup process
+                setTimeout(() => {
+                    const link = document.createElement('a');
+                    link.href = '#'; // Replace with actual backup endpoint
+                    link.download = `bims_backup_${new Date().toISOString().split('T')[0]}.sql`;
+                    showNotification('Backup created successfully!', 'success');
+                }, 2000);
+            }
+        }
+
+        function restoreData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.sql,.zip';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    if (confirm(`Are you sure you want to restore from "${file.name}"? This will overwrite all current data.`)) {
+                        showNotification('Restoring data...', 'info');
+                        // Simulate restore process
+                        setTimeout(() => {
+                            showNotification('Data restored successfully!', 'success');
+                        }, 3000);
+                    }
+                }
+            };
+            input.click();
+        }
+
+        function clearCache() {
+            if (confirm('Do you want to clear all system cache files?')) {
+                showNotification('Clearing cache...', 'info');
+                // Simulate cache clearing
+                setTimeout(() => {
+                    showNotification('Cache cleared successfully!', 'success');
+                }, 1000);
+            }
+        }
+
+        function toggleMaintenance() {
+            const isMaintenanceMode = document.body.classList.contains('maintenance-mode');
+            if (isMaintenanceMode) {
+                if (confirm('Do you want to disable maintenance mode? The system will be available to users.')) {
+                    document.body.classList.remove('maintenance-mode');
+                    showNotification('Maintenance mode disabled', 'success');
+                }
+            } else {
+                if (confirm('Do you want to enable maintenance mode? This will temporarily disable the system for users.')) {
+                    document.body.classList.add('maintenance-mode');
+                    showNotification('Maintenance mode enabled', 'warning');
+                }
+            }
+        }
+
+        // Color picker sync
+        document.getElementById('primaryColor').addEventListener('change', function() {
+            document.getElementById('primaryColorHex').value = this.value;
+        });
+
+        document.getElementById('primaryColorHex').addEventListener('change', function() {
+            document.getElementById('primaryColor').value = this.value;
+        });
+
+        // Logo file preview
+        document.getElementById('logoFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('logoPreview').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-20 right-4 p-4 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-500 text-white' : 
+                type === 'error' ? 'bg-red-500 text-white' : 
+                type === 'warning' ? 'bg-yellow-500 text-white' :
+                'bg-blue-500 text-white'
+            }`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation' : type === 'warning' ? 'exclamation-triangle' : 'info'} mr-2"></i>
+                    ${message}
+                </div>
+            `;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 3000);
         }
         // Dropdown open/close effect styles
         const style = document.createElement('style');

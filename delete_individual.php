@@ -35,14 +35,14 @@ if (!$stmt) {
 $stmt->bind_param('i', $id);
 if ($stmt->execute()) {
     if ($stmt->affected_rows > 0) {
-        echo json_encode(['success' => true]);
+        echo json_encode(['success' => true, 'message' => 'Resident deleted successfully.']);
     } else {
         http_response_code(404);
-        echo json_encode(['error' => 'Resident not found.']);
+        echo json_encode(['success' => false, 'message' => 'Resident not found.']);
     }
 } else {
     http_response_code(500);
-    echo json_encode(['error' => 'Failed to delete resident.']);
+    echo json_encode(['success' => false, 'message' => 'Failed to delete resident.']);
 }
 $stmt->close();
 $conn->close();

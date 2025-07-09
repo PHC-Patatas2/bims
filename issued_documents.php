@@ -162,10 +162,127 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             <div class="flex items-center mb-4">
                 <h1 class="text-2xl font-bold">Issued Documents Log</h1>
             </div>
-            <div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-                <i class="fas fa-history text-5xl mb-4 text-blue-400"></i>
-                <div class="text-xl font-semibold mb-2">This is a placeholder for the Issued Documents Log page.</div>
-                <div class="mb-4">You can implement document log features here.</div>
+            <!-- Search and Filter Controls -->
+            <div class="bg-white rounded-lg shadow mb-6 p-6">
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Search Documents</label>
+                        <div class="relative">
+                            <input type="text" id="searchInput" placeholder="Search by resident name, document type, or certificate number..." 
+                                   class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                    </div>
+                    <div class="md:w-48">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Document Type</label>
+                        <select id="documentTypeFilter" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">All Types</option>
+                            <option value="barangay_clearance">Barangay Clearance</option>
+                            <option value="certificate_of_residency">Certificate of Residency</option>
+                            <option value="certificate_of_indigency">Certificate of Indigency</option>
+                            <option value="business_permit">Business Permit</option>
+                            <option value="cedula">Cedula</option>
+                        </select>
+                    </div>
+                    <div class="md:w-48">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+                        <select id="dateRangeFilter" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="year">This Year</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="exportDocuments()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                            <i class="fas fa-download mr-2"></i>Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="bg-blue-100 p-3 rounded-lg mr-4">
+                            <i class="fas fa-file-alt text-blue-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Total Documents</p>
+                            <p class="text-2xl font-bold text-gray-900" id="totalDocuments">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="bg-green-100 p-3 rounded-lg mr-4">
+                            <i class="fas fa-calendar-day text-green-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Today</p>
+                            <p class="text-2xl font-bold text-gray-900" id="todayDocuments">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="bg-yellow-100 p-3 rounded-lg mr-4">
+                            <i class="fas fa-calendar-week text-yellow-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">This Week</p>
+                            <p class="text-2xl font-bold text-gray-900" id="weekDocuments">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="bg-purple-100 p-3 rounded-lg mr-4">
+                            <i class="fas fa-calendar-alt text-purple-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">This Month</p>
+                            <p class="text-2xl font-bold text-gray-900" id="monthDocuments">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents Table -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">Issued Documents</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <div id="documentsTable"></div>
+                </div>
+            </div>
+
+            <!-- Document Details Modal -->
+            <div id="documentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+                <div class="flex items-center justify-center min-h-screen p-4">
+                    <div class="bg-white rounded-lg shadow-xl max-w-lg w-full">
+                        <div class="flex items-center justify-between p-6 border-b">
+                            <h3 class="text-lg font-semibold">Document Details</h3>
+                            <button onclick="closeDocumentModal()" class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="p-6" id="documentDetails">
+                            <!-- Details will be populated here -->
+                        </div>
+                        <div class="flex justify-end gap-3 p-6 border-t">
+                            <button onclick="closeDocumentModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                                Close
+                            </button>
+                            <button onclick="printDocument()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                <i class="fas fa-print mr-2"></i>Print
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -204,6 +321,199 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 }
             });
         }
+
+        // Sample data for demonstration
+        const sampleDocuments = [
+            {
+                id: 1,
+                certificate_number: 'BC-2024-001',
+                document_type: 'Barangay Clearance',
+                resident_name: 'Juan dela Cruz',
+                issued_by: 'Maria Santos',
+                issued_date: '2024-07-09',
+                purpose: 'Employment Requirements'
+            },
+            {
+                id: 2,
+                certificate_number: 'CR-2024-015',
+                document_type: 'Certificate of Residency',
+                resident_name: 'Ana Rodriguez',
+                issued_by: 'Maria Santos',
+                issued_date: '2024-07-08',
+                purpose: 'Bank Requirements'
+            },
+            {
+                id: 3,
+                certificate_number: 'CI-2024-008',
+                document_type: 'Certificate of Indigency',
+                resident_name: 'Pedro Martinez',
+                issued_by: 'Jose Garcia',
+                issued_date: '2024-07-07',
+                purpose: 'Medical Assistance'
+            }
+        ];
+
+        // Initialize Tabulator table
+        let documentsTable;
+
+        function initializeTable() {
+            documentsTable = new Tabulator("#documentsTable", {
+                data: sampleDocuments,
+                layout: "fitColumns",
+                pagination: "local",
+                paginationSize: 10,
+                paginationSizeSelector: [5, 10, 20, 50],
+                movableColumns: true,
+                resizableColumns: true,
+                columns: [
+                    {title: "Certificate #", field: "certificate_number", width: 150, sorter: "string"},
+                    {title: "Document Type", field: "document_type", width: 180, sorter: "string"},
+                    {title: "Resident Name", field: "resident_name", width: 200, sorter: "string"},
+                    {title: "Issued By", field: "issued_by", width: 150, sorter: "string"},
+                    {title: "Date Issued", field: "issued_date", width: 120, sorter: "date", 
+                     formatter: function(cell) {
+                         return new Date(cell.getValue()).toLocaleDateString();
+                     }
+                    },
+                    {title: "Purpose", field: "purpose", width: 200, sorter: "string"},
+                    {title: "Actions", formatter: function(cell) {
+                        return '<button onclick="viewDocument(' + cell.getRow().getData().id + ')" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"><i class="fas fa-eye mr-1"></i>View</button>';
+                    }, width: 100, hozAlign: "center", headerSort: false}
+                ]
+            });
+        }
+
+        // Update statistics
+        function updateStatistics() {
+            const total = sampleDocuments.length;
+            const today = new Date().toISOString().split('T')[0];
+            const todayDocs = sampleDocuments.filter(doc => doc.issued_date === today).length;
+            
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            const weekDocs = sampleDocuments.filter(doc => new Date(doc.issued_date) >= oneWeekAgo).length;
+            
+            const oneMonthAgo = new Date();
+            oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+            const monthDocs = sampleDocuments.filter(doc => new Date(doc.issued_date) >= oneMonthAgo).length;
+
+            document.getElementById('totalDocuments').textContent = total;
+            document.getElementById('todayDocuments').textContent = todayDocs;
+            document.getElementById('weekDocuments').textContent = weekDocs;
+            document.getElementById('monthDocuments').textContent = monthDocs;
+        }
+
+        // Search and filter functions
+        function setupFilters() {
+            document.getElementById('searchInput').addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                documentsTable.setFilter(function(data) {
+                    return data.resident_name.toLowerCase().includes(searchTerm) ||
+                           data.document_type.toLowerCase().includes(searchTerm) ||
+                           data.certificate_number.toLowerCase().includes(searchTerm);
+                });
+            });
+
+            document.getElementById('documentTypeFilter').addEventListener('change', function() {
+                const type = this.value;
+                if (type) {
+                    documentsTable.setFilter("document_type", "=", type);
+                } else {
+                    documentsTable.clearFilter();
+                }
+            });
+
+            document.getElementById('dateRangeFilter').addEventListener('change', function() {
+                const range = this.value;
+                const today = new Date();
+                
+                if (range === 'today') {
+                    const todayStr = today.toISOString().split('T')[0];
+                    documentsTable.setFilter("issued_date", "=", todayStr);
+                } else if (range === 'week') {
+                    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    documentsTable.setFilter("issued_date", ">=", weekAgo.toISOString().split('T')[0]);
+                } else if (range === 'month') {
+                    const monthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+                    documentsTable.setFilter("issued_date", ">=", monthAgo.toISOString().split('T')[0]);
+                } else if (range === 'year') {
+                    const yearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+                    documentsTable.setFilter("issued_date", ">=", yearAgo.toISOString().split('T')[0]);
+                } else {
+                    documentsTable.clearFilter();
+                }
+            });
+        }
+
+        // Modal functions
+        function viewDocument(id) {
+            const document = sampleDocuments.find(doc => doc.id === id);
+            if (document) {
+                const detailsHtml = `
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Certificate Number</label>
+                            <p class="text-gray-900">${document.certificate_number}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Document Type</label>
+                            <p class="text-gray-900">${document.document_type}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Resident Name</label>
+                            <p class="text-gray-900">${document.resident_name}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Issued By</label>
+                            <p class="text-gray-900">${document.issued_by}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Date Issued</label>
+                            <p class="text-gray-900">${new Date(document.issued_date).toLocaleDateString()}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Purpose</label>
+                            <p class="text-gray-900">${document.purpose}</p>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('documentDetails').innerHTML = detailsHtml;
+                document.getElementById('documentModal').classList.remove('hidden');
+            }
+        }
+
+        function closeDocumentModal() {
+            document.getElementById('documentModal').classList.add('hidden');
+        }
+
+        function printDocument() {
+            // Placeholder for print functionality
+            alert('Print functionality would be implemented here');
+        }
+
+        function exportDocuments() {
+            // Simple CSV export
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + "Certificate Number,Document Type,Resident Name,Issued By,Date Issued,Purpose\n"
+                + sampleDocuments.map(doc => 
+                    `${doc.certificate_number},${doc.document_type},${doc.resident_name},${doc.issued_by},${doc.issued_date},${doc.purpose}`
+                  ).join("\n");
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `issued_documents_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTable();
+            updateStatistics();
+            setupFilters();
+        });
         // Dropdown open/close effect styles
         const style = document.createElement('style');
         style.innerHTML = `

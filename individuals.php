@@ -36,7 +36,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Individuals - <?php echo htmlspecialchars($system_title); ?></title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="lib/assets/tailwind.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         .custom-scrollbar {
@@ -59,89 +59,502 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         .sidebar-border { border-right: 1px solid #e5e7eb; }
         .dropdown-menu { display: none; position: absolute; right: 0; top: 100%; background: white; min-width: 180px; box-shadow: 0 4px 16px #0001; border-radius: 0.5rem; z-index: 50; }
         .dropdown-menu.show { display: block; }
-        /* --- Tabulator cell centering fix (revised) --- */
-        .tabulator .tabulator-cell.tab-center {
+
+        /* Enhanced Tabulator Styling - Optimized for Large Datasets */
+        .tabulator {
+            border-radius: 12px !important;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+        .tabulator-header {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+            color: black !important;
+            font-weight: 600 !important;
+            border: none !important;
+        }
+        .tabulator-header .tabulator-col {
+            border-right: 1px solid rgba(0,0,0,0.1) !important;
+            text-align: center !important;
+            padding: 10px 6px !important;
+            font-size: 0.8rem !important;
+        }
+        .tabulator-header .tabulator-col:last-child {
+            border-right: none !important;
+            text-align: center !important;
+            justify-content: center !important;
+        }
+        .tabulator-row {
+            border-bottom: 1px solid #f1f5f9 !important;
+            transition: background-color 0.15s ease;
+        }
+        .tabulator-row:hover {
+            background-color: #f8fafc !important;
+        }
+        .tabulator-row:nth-child(even) {
+            background-color: #fdfdfd !important;
+        }
+        .tabulator-cell {
+            text-align: center !important;
+            vertical-align: middle !important;
+            padding: 8px 6px !important;
+            border-right: 1px solid #f1f5f9 !important;
+            font-size: 0.8rem !important;
+            line-height: 1.3;
+        }
+        .tabulator-cell:last-child {
+            border-right: none !important;
+        }
+        .tabulator-footer {
+            background: #f8fafc !important;
+            border-top: 1px solid #e2e8f0 !important;
+            border-radius: 0 0 12px 12px !important;
+        }
+
+        /* Action Button Styling */
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            margin: 0 2px;
+        }
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .action-btn.view-btn {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+        .action-btn.edit-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        .action-btn.delete-btn {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        /* Enhanced Form Styling */
+        .form-input, .form-select {
+            background-color: #ffffff;
+            border: 2px solid #e2e8f0;
+            color: #1a202c;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+        .form-input:focus, .form-select:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background-color: #fafbfc;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+            display: block;
+            font-size: 0.875rem;
+        }
+        .form-checkbox {
+            accent-color: #667eea;
+            transform: scale(1.1);
+        }
+
+        /* Modal Enhancements */
+        .modal-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            border: 1px solid #e2e8f0;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 24px;
+            border-radius: 16px 16px 0 0;
+            position: relative;
+        }
+        .modal-close-btn {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
-            text-align: center !important;
-            vertical-align: middle !important;
-            height: 100%;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
-        .tabulator .tabulator-header .tabulator-col {
-            text-align: center !important;
-        }
-        .tabulator .tabulator-cell {
-            text-align: center !important;
-            vertical-align: middle !important;
+        .modal-close-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.1);
         }
 
-        /* Custom style for select dropdown options */
-        select {
-            background-color: #f8fafc;
-            border: 1px solid #cbd5e1;
-            color: #22223b;
-            border-radius: 0.375rem;
-            transition: border-color 0.2s;
+        /* Modal Display Logic */
+        .modal-overlay.show {
+            display: flex !important;
+            opacity: 1;
         }
-        select:focus {
-            border-color: #2563eb;
+        .modal-overlay {
+            display: none;
+        }
+
+        /* Button Enhancements */
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        .btn-secondary {
+            background: #f8fafc;
+            color: #374151;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-secondary:hover {
+            background: #e2e8f0;
+            transform: translateY(-2px);
+        }
+
+        /* Search and Filter Enhancements */
+        .search-container {
+            position: relative;
+        }
+        .search-input {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px 16px 12px 44px;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            width: 280px;
+        }
+        @media (min-width: 769px) {
+            .search-container {
+                width: auto;
+            }
+        }
+        .search-input:focus {
+            border-color: #667eea;
             outline: none;
-            box-shadow: 0 0 0 2px #2563eb33;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-        select option {
-            background: #f1f5f9;
-            color: #22223b;
-            font-size: 0.97em;
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 16px;
+        }
+
+        /* Stats Cards */
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Loading indicator for large datasets */
+        .table-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: 12px;
+        }
+        .table-loading.hidden {
+            display: none !important;
+        }
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .search-input {
+                width: 100%;
+            }
+            .modal-container {
+                margin: 16px;
+                max-width: calc(100vw - 32px);
+            }
+            .page-header > div {
+                flex-direction: column;
+            }
+            .page-header > div > div:last-child {
+                margin-top: 20px;
+                align-self: flex-start;
+            }
+            /* Action Bar responsive behavior */
+            .bg-white.rounded-xl .flex.flex-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .bg-white.rounded-xl .flex.flex-row > div:last-child {
+                flex-direction: column;
+                align-items: flex-start;
+                width: 100%;
+                margin-top: 15px;
+                gap: 10px;
+            }
+            .bg-white.rounded-xl .search-container {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            #advanced-filter-btn, #export-btn {
+                align-self: flex-start;
+            }
         }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
     <!-- Add Resident Modal -->
-    <div id="addResidentModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-white shadow-lg w-full max-w-md mx-4 p-4 relative scale-95 transition-transform duration-300 border border-gray-300" style="border-radius:0; box-shadow:0 8px 32px 0 rgba(60,60,60,0.10); font-size:0.92rem;">
-            <button id="closeAddResidentModal" class="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl focus:outline-none" title="Close">
-                <i class="fas fa-times"></i>
-            </button>
-            <h2 class="text-lg font-bold mb-3 text-blue-700 text-center w-full">Add New Resident</h2>
-            <form id="addResidentForm" class="space-y-3">
-                <hr class="mb-2 border-gray-300">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-semibold mb-1">First Name <span class="text-red-500">*</span></label>
-                        <input type="text" name="first_name" required class="w-full border rounded px-2 py-1.5 text-sm focus:ring focus:ring-blue-200" placeholder="e.g., Juan">
+    <div id="addResidentModal" class="fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-40 hidden opacity-0 transition-opacity duration-300" style="display: none;">
+        <div class="modal-container w-full max-w-2xl mx-4 relative scale-95 transition-transform duration-300">
+            <div class="modal-header">
+                <h2 class="text-xl font-bold">Add New Resident</h2>
+                <button id="closeAddResidentModal" class="modal-close-btn" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="addResidentForm" class="space-y-4">
+                    <!-- Personal Information Section -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-user text-blue-600"></i>
+                            Personal Information
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="form-label">First Name <span class="text-red-500">*</span></label>
+                                <input type="text" name="first_name" required class="form-input" placeholder="e.g., Juan">
+                            </div>
+                            <div>
+                                <label class="form-label">Middle Name</label>
+                                <input type="text" name="middle_name" class="form-input" placeholder="(optional)">
+                            </div>
+                            <div>
+                                <label class="form-label">Last Name <span class="text-red-500">*</span></label>
+                                <input type="text" name="last_name" required class="form-input" placeholder="e.g., Dela Cruz">
+                            </div>
+                            <div>
+                                <label class="form-label">Suffix</label>
+                                <input type="text" name="suffix" class="form-input" placeholder="e.g., III, Jr., Sr., II">
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block font-semibold mb-1">Middle Name</label>
-                        <input type="text" name="middle_name" class="w-full border rounded px-2 py-1.5 text-sm focus:ring focus:ring-blue-200" placeholder="(optional)">
+
+                    <!-- Basic Details Section -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-info-circle text-blue-600"></i>
+                            Basic Details
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="form-label">Gender <span class="text-red-500">*</span></label>
+                                <select name="gender" required class="form-select">
+                                    <option value="">Select Gender</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">Birthdate <span class="text-red-500">*</span></label>
+                                <input type="date" name="birthdate" required class="form-input">
+                            </div>
+                            <div>
+                                <label class="form-label">Civil Status <span class="text-red-500">*</span></label>
+                                <select name="civil_status" required class="form-select">
+                                    <option value="">Select Civil Status</option>
+                                    <option value="Single">Single</option>
+                                    <option value="Married">Married</option>
+                                    <option value="Widowed">Widowed</option>
+                                    <option value="Separated">Separated</option>
+                                    <option value="Divorced">Divorced</option>
+                                    <option value="Annulled">Annulled</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">Blood Type</label>
+                                <select name="blood_type" class="form-select">
+                                    <option value="">Select Blood Type</option>
+                                    <option value="A+">A+</option>
+                                    <option value="A-">A-</option>
+                                    <option value="B+">B+</option>
+                                    <option value="B-">B-</option>
+                                    <option value="AB+">AB+</option>
+                                    <option value="AB-">AB-</option>
+                                    <option value="O+">O+</option>
+                                    <option value="O-">O-</option>
+                                    <option value="Unknown">Unknown</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">Religion <span class="text-red-500">*</span></label>
+                                <select name="religion" id="religionSelect" required class="form-select">
+                                    <option value="">Loading...</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">Residing Purok <span class="text-red-500">*</span></label>
+                                <select name="purok_id" id="purokSelect" required class="form-select">
+                                    <option value="">Loading...</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block font-semibold mb-1">Last Name <span class="text-red-500">*</span></label>
-                        <input type="text" name="last_name" required class="w-full border rounded px-2 py-1.5 text-sm focus:ring focus:ring-blue-200" placeholder="e.g., Dela Cruz">
+
+                    <!-- Status Information -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-tags text-blue-600"></i>
+                            Status Information
+                        </h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <label class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <input type="checkbox" name="is_pwd" value="1" class="form-checkbox">
+                                <span class="text-sm font-medium">PWD</span>
+                            </label>
+                            <label class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <input type="checkbox" name="is_voter" value="1" class="form-checkbox">
+                                <span class="text-sm font-medium">Registered Voter</span>
+                            </label>
+                            <label class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <input type="checkbox" name="is_4ps" value="1" class="form-checkbox">
+                                <span class="text-sm font-medium">4Ps Beneficiary</span>
+                            </label>
+                            <label class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <input type="checkbox" name="is_pregnant" value="1" class="form-checkbox">
+                                <span class="text-sm font-medium">Pregnant</span>
+                            </label>
+                            <label class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <input type="checkbox" name="is_solo_parent" value="1" class="form-checkbox">
+                                <span class="text-sm font-medium">Solo Parent</span>
+                            </label>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block font-semibold mb-1">Suffix</label>
-                        <input type="text" name="suffix" class="w-full border rounded px-2 py-1.5 text-sm focus:ring focus:ring-blue-200" placeholder="e.g., III, Jr., Sr., II">
+
+                    <!-- Action Buttons -->
+                    <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                        <button type="button" id="cancelAddResident" class="btn-secondary">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i>
+                            Save Resident
+                        </button>
                     </div>
-                </div>
-                <div class="col-span-1 md:col-span-2"><hr class="my-2 border-gray-300"></div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div id="addResidentMsg" class="mt-4 text-center text-sm"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Filter Modal -->
+    <div id="advancedFilterModal" class="fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-40 hidden opacity-0 transition-opacity duration-300" style="display: none;">
+        <div class="modal-container w-full max-w-lg mx-4 relative scale-95 transition-transform duration-300">
+            <div class="modal-header">
+                <h2 class="text-xl font-bold">Advanced Filters</h2>
+                <button id="closeAdvancedFilterModal" class="modal-close-btn" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="advancedFilterForm" class="space-y-4">
+                    <!-- Gender Filter -->
                     <div>
-                        <label class="block font-semibold mb-1">Gender <span class="text-red-500">*</span></label>
-                        <select name="gender" required class="w-full border rounded px-2 py-1.5 text-sm">
-                            <option value="">Select...</option>
+                        <label class="form-label">Gender</label>
+                        <select name="gender_filter" class="form-select">
+                            <option value="">All Genders</option>
                             <option value="male">Male</option>
                             <option value="female">Female</option>
                         </select>
                     </div>
+
+                    <!-- Age Range Filter -->
                     <div>
-                        <label class="block font-semibold mb-1">Birthdate <span class="text-red-500">*</span></label>
-                        <input type="date" name="birthdate" required class="w-full border rounded px-2 py-1.5 text-sm">
+                        <label class="form-label">Age Range</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <input type="number" name="age_from" placeholder="From" class="form-input" min="0" max="120">
+                            <input type="number" name="age_to" placeholder="To" class="form-input" min="0" max="120">
+                        </div>
                     </div>
+
+                    <!-- Civil Status Filter -->
                     <div>
-                        <label class="block font-semibold mb-1">Civil Status <span class="text-red-500">*</span></label>
-                        <select name="civil_status" required class="w-full border rounded px-2 py-1.5 text-sm">
-                            <option value="">Select...</option>
+                        <label class="form-label">Civil Status</label>
+                        <select name="civil_status_filter" class="form-select">
+                            <option value="">All Status</option>
                             <option value="Single">Single</option>
                             <option value="Married">Married</option>
                             <option value="Widowed">Widowed</option>
@@ -150,141 +563,241 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                             <option value="Annulled">Annulled</option>
                         </select>
                     </div>
+
+                    <!-- Purok Filter -->
                     <div>
-                        <label class="block font-semibold mb-1">Blood Type</label>
-                        <select name="blood_type" class="w-full border rounded px-2 py-1.5 text-sm">
-                            <option value="">Select...</option>
-                            <option value="A+">A+</option>
-                            <option value="A-">A-</option>
-                            <option value="B+">B+</option>
-                            <option value="B-">B-</option>
-                            <option value="AB+">AB+</option>
-                            <option value="AB-">AB-</option>
-                            <option value="O+">O+</option>
-                            <option value="O-">O-</option>
-                            <option value="Unknown">Unknown</option>
+                        <label class="form-label">Purok</label>
+                        <select name="purok_filter" id="purokFilterSelect" class="form-select">
+                            <option value="">All Puroks</option>
                         </select>
                     </div>
+
+                    <!-- Status Filters -->
                     <div>
-                        <label class="block font-semibold mb-1">Religion <span class="text-red-500">*</span></label>
-                        <select name="religion" id="religionSelect" required class="w-full border rounded px-2 py-1.5 text-sm">
-                            <option value="">Loading...</option>
-                        </select>
+                        <label class="form-label">Special Status</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" name="filter_voter" value="1" class="form-checkbox">
+                                <span class="text-sm">Registered Voter</span>
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" name="filter_pwd" value="1" class="form-checkbox">
+                                <span class="text-sm">PWD</span>
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" name="filter_4ps" value="1" class="form-checkbox">
+                                <span class="text-sm">4Ps Beneficiary</span>
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" name="filter_solo_parent" value="1" class="form-checkbox">
+                                <span class="text-sm">Solo Parent</span>
+                            </label>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block font-semibold mb-1">Residing Purok <span class="text-red-500">*</span></label>
-                        <select name="purok_id" id="purokSelect" required class="w-full border rounded px-2 py-1.5 text-sm">
-                            <option value="">Loading...</option>
-                        </select>
+
+                    <!-- Action Buttons -->
+                    <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                        <button type="button" id="clearFilters" class="btn-secondary">
+                            <i class="fas fa-eraser"></i>
+                            Clear All
+                        </button>
+                        <button type="button" id="cancelAdvancedFilter" class="btn-secondary">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-filter"></i>
+                            Apply Filters
+                        </button>
                     </div>
-                </div>
-                <hr class="my-2 border-gray-300">
-                <div class="grid grid-cols-2 md:grid-cols-5 gap-1">
-                    <label class="inline-flex items-center gap-1 text-xs"><input type="checkbox" name="is_pwd" value="1" class="accent-blue-600 scale-90">PWD</label>
-                    <label class="inline-flex items-center gap-1 text-xs"><input type="checkbox" name="is_voter" value="1" class="accent-blue-600 scale-90">Voter</label>
-                    <label class="inline-flex items-center gap-1 text-xs"><input type="checkbox" name="is_4ps" value="1" class="accent-blue-600 scale-90">4Ps</label>
-                    <label class="inline-flex items-center gap-1 text-xs"><input type="checkbox" name="is_pregnant" value="1" class="accent-blue-600 scale-90">Pregnant</label>
-                    <label class="inline-flex items-center gap-1 text-xs"><input type="checkbox" name="is_solo_parent" value="1" class="accent-blue-600 scale-90">Solo Parent</label>
-                </div>
-                <div class="col-span-1 md:col-span-2"><hr class="my-2 border-gray-300"></div>
-                <div class="mt-4"></div>
-                <div class="flex justify-end gap-2 mt-2">
-                    <button type="button" id="cancelAddResident" class="px-3 py-1.5 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold text-sm">Cancel</button>
-                    <button type="submit" class="px-4 py-1.5 rounded bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm">Save Resident</button>
-                </div>
-                <div id="addResidentMsg" class="mt-2 text-center text-sm"></div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
-    <!-- Sidepanel -->
-    <div id="sidepanel" class="fixed top-0 left-0 h-full w-80 shadow-lg z-40 transform -translate-x-full transition-transform duration-300 ease-in-out sidebar-border overflow-y-auto custom-scrollbar" style="background-color: #454545;">
-        <div class="flex flex-col items-center justify-center min-h-[90px] px-4 pt-3 pb-3 relative" style="border-bottom: 4px solid #FFD700;">
-            <button id="closeSidepanel" class="absolute right-2 top-2 text-white hover:text-blue-400 focus:outline-none text-2xl md:hidden" aria-label="Close menu">
-                <i class="fas fa-times"></i>
-            </button>
-            <?php
-            $barangay_logo = 'img/logo.png';
-            $logo_result = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key='barangay_logo_path' LIMIT 1");
-            if ($logo_result && $logo_row = $logo_result->fetch_assoc()) {
-                if (!empty($logo_row['setting_value'])) {
-                    $barangay_logo = $logo_row['setting_value'];
-                }
-            }
-            ?>
-            <img src="<?php echo htmlspecialchars($barangay_logo); ?>" alt="Barangay Logo" class="w-28 h-28 object-cover rounded-full mb-1 border-2 border-white bg-white p-1" style="aspect-ratio:1/1;" onerror="this.onerror=null;this.src='img/logo.png';">
+
+    <!-- Export Options Modal -->
+    <div id="exportModal" class="fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-40 hidden opacity-0 transition-opacity duration-300" style="display: none;">
+        <div class="modal-container w-full max-w-md mx-4 relative scale-95 transition-transform duration-300">
+            <div class="modal-header">
+                <h2 class="text-xl font-bold">Export Residents Data</h2>
+                <button id="closeExportModal" class="modal-close-btn" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    <p class="text-gray-600 text-sm">Choose your preferred export format:</p>
+                    <div class="grid gap-3">
+                        <button type="button" id="exportCsv" class="btn-secondary justify-start">
+                            <i class="fas fa-file-csv text-green-600"></i>
+                            Export as CSV
+                            <span class="text-xs text-gray-500 ml-auto">Excel compatible</span>
+                        </button>
+                        <button type="button" id="exportExcel" class="btn-secondary justify-start">
+                            <i class="fas fa-file-excel text-green-600"></i>
+                            Export as Excel
+                            <span class="text-xs text-gray-500 ml-auto">.xlsx format</span>
+                        </button>
+                        <button type="button" id="exportPdf" class="btn-secondary justify-start">
+                            <i class="fas fa-file-pdf text-red-600"></i>
+                            Export as PDF
+                            <span class="text-xs text-gray-500 ml-auto">Print ready</span>
+                        </button>
+                    </div>
+                    <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                        <button type="button" id="cancelExport" class="btn-secondary">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-        <nav class="flex flex-col p-4 gap-2 text-white">
-            <?php
-            // --- Sidepanel Navigation Refactored ---
-            $current = basename($_SERVER['PHP_SELF']);
-            function navActive($pages) {
-                global $current;
-                return in_array($current, (array)$pages);
-            }
-            function navLink($href, $icon, $label, $active, $extra = '') {
-                $classes = $active ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-white';
-                return '<a href="' . $href . '" class="py-2 px-3 rounded-lg flex items-center gap-2 ' . $classes . ' hover:bg-blue-500 hover:text-white ' . $extra . '"><i class="' . $icon . '"></i> ' . $label . '</a>';
-            }
-            echo navLink('dashboard.php', 'fas fa-tachometer-alt', 'Dashboard', navActive('dashboard.php'));
-
-            // People Management
-            $peopleActive = navActive(['individuals.php']);
-            $peopleId = 'peopleSubNav';
-            ?>
-            <div class="mt-2">
-                <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $peopleActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $peopleId; ?>')">
-                    <i class="fas fa-users"></i> People Management
-                    <i class="fas fa-chevron-down ml-auto text-xs transition-transform duration-300 dropdown-arrow <?php echo $peopleActive ? 'rotate-180' : ''; ?>" data-arrow="<?php echo $peopleId; ?>"></i>
-                </button>
-                <div id="<?php echo $peopleId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $peopleActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
-                    <?php echo navLink('individuals.php', 'fas fa-user', 'Residents', navActive('individuals.php'), 'rounded'); ?>
-                </div>
-            </div>
-
-            <?php
-            // Barangay Documents
-            $docsActive = navActive(['certificate.php', 'reports.php', 'issued_documents.php']);
-            $docsId = 'docsSubNav';
-            ?>
-            <div class="mt-2">
-                <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $docsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $docsId; ?>')">
-                    <i class="fas fa-file-alt"></i> Barangay Documents
-                    <i class="fas fa-chevron-down ml-auto text-xs transition-transform duration-300 dropdown-arrow <?php echo $docsActive ? 'rotate-180' : ''; ?>" data-arrow="<?php echo $docsId; ?>"></i>
-                </button>
-                <div id="<?php echo $docsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $docsActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
-                    <?php echo navLink('certificate.php', 'fas fa-stamp', 'Issue Certificate', navActive('certificate.php'), 'rounded'); ?>
-                    <?php echo navLink('reports.php', 'fas fa-chart-bar', 'Generate Reports', navActive('reports.php'), 'rounded'); ?>
-                    <?php echo navLink('issued_documents.php', 'fas fa-history', 'Issued Documents Log', navActive('issued_documents.php'), 'rounded'); ?>
-                </div>
-            </div>
-
-            <?php
-            // System Settings
-            $settingsActive = navActive(['officials.php', 'users.php', 'settings.php', 'logs.php']);
-            $settingsId = 'settingsSubNav';
-            ?>
-            <div class="mt-2">
-                <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $settingsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $settingsId; ?>')">
-                    <i class="fas fa-cogs"></i> System Settings
-                    <i class="fas fa-chevron-down ml-auto text-xs transition-transform duration-300 dropdown-arrow <?php echo $settingsActive ? 'rotate-180' : ''; ?>" data-arrow="<?php echo $settingsId; ?>"></i>
-                </button>
-                <div id="<?php echo $settingsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $settingsActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
-                    <?php echo navLink('officials.php', 'fas fa-user-tie', 'Officials Management', navActive('officials.php'), 'rounded'); ?>
-                    <?php echo navLink('users.php', 'fas fa-users-cog', 'User Accounts', navActive('users.php'), 'rounded'); ?>
-                    <?php echo navLink('settings.php', 'fas fa-cog', 'General Settings', navActive('settings.php'), 'rounded'); ?>
-                    <?php echo navLink('logs.php', 'fas fa-clipboard-list', 'Logs', navActive('logs.php'), 'rounded'); ?>
-                </div>
-            </div>
-        </nav>
     </div>
-    <!-- Overlay -->
-    <div id="sidepanelOverlay" class="fixed inset-0 bg-black bg-opacity-30 z-30 hidden"></div>
+
+    <!-- Edit Resident Modal -->
+    <div id="editResidentModal" class="fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-40 hidden opacity-0 transition-opacity duration-300" style="display: none;">
+        <div class="modal-overlay absolute inset-0" onclick="closeEditResidentModal()"></div>
+        <div class="modal-container w-full max-w-2xl mx-4 relative scale-95 transition-transform duration-300">
+            <div class="bg-white rounded-xl shadow-xl overflow-hidden">
+                <div class="modal-header bg-blue-600 text-white p-4 flex items-center justify-between">
+                    <h3 class="text-lg font-bold">Edit Resident</h3>
+                    <button id="closeEditResidentModalBtn" class="text-white hover:text-blue-200 focus:outline-none" onclick="closeEditResidentModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <form id="editResidentForm" class="space-y-4">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- View Resident Modal -->
+    <div id="viewResidentModal" class="fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-40 hidden opacity-0 transition-opacity duration-300" style="display: none;">
+        <div class="modal-overlay absolute inset-0" onclick="closeViewResidentModal()"></div>
+        <div class="modal-container w-full max-w-2xl mx-4 relative scale-95 transition-transform duration-300">
+            <div class="bg-white rounded-xl shadow-xl overflow-hidden">
+                <div class="modal-header bg-blue-600 text-white p-4 flex items-center justify-between">
+                    <h3 class="text-lg font-bold">Resident Details</h3>
+                    <button id="closeViewResidentModal" class="text-white hover:text-blue-200 focus:outline-none">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="viewResidentContent" class="p-6">
+                    <div class="text-center py-10">
+                        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto"></div>
+                        <p class="mt-3 text-gray-600">Loading resident details...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Resident Confirmation Modal -->
+    <div id="deleteResidentModal" class="fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-40 hidden opacity-0 transition-opacity duration-300" style="display: none;">
+        <div class="modal-overlay absolute inset-0" onclick="closeDeleteResidentModal()"></div>
+        <div class="modal-container w-full max-w-md mx-4 relative scale-95 transition-transform duration-300">
+            <div class="bg-white rounded-xl shadow-xl overflow-hidden">
+                <div class="modal-header bg-red-600 text-white p-4 flex items-center justify-between">
+                    <h3 class="text-lg font-bold">Confirm Deletion</h3>
+                    <button id="closeDeleteResidentModal" class="text-white hover:text-red-200 focus:outline-none">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="deleteResidentContent" class="p-6">
+                    <div class="text-center">
+                        <div class="text-red-500 text-5xl mb-4">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <p class="text-gray-700 font-medium mb-2">Are you sure you want to delete this resident?</p>
+                        <p class="text-gray-500 text-sm mb-6">This action cannot be undone.</p>
+                        
+                        <div id="deleteResidentMsg" class="mb-4"></div>
+                        
+                        <div class="flex justify-center gap-3">
+                            <button id="cancelDeleteResident" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                                Cancel
+                            </button>
+                            <button id="confirmDeleteResident" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+                                <i class="fas fa-trash mr-1"></i>
+                                <span id="deleteButtonText">Delete (4)</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <style>
+    .edit-modal-style input[readonly], .edit-modal-style select[disabled], .edit-modal-style textarea[readonly] {
+        background-color: #f3f4f6 !important;
+        color: #22223b !important;
+        border-color: #cbd5e1 !important;
+        cursor: default !important;
+        pointer-events: none;
+    }
+    .edit-modal-style label {
+        color: #1e293b;
+    }
+    
+    /* View resident modal styles */
+    .resident-info-group {
+        margin-bottom: 1.25rem;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 1rem;
+    }
+    .resident-info-group:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+        margin-bottom: 0;
+    }
+    .resident-info-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.75rem;
+    }
+    .resident-info-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
+    }
+    @media (min-width: 640px) {
+        .resident-info-row {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+    .resident-info-item {
+        margin-bottom: 0.75rem;
+    }
+    .resident-info-label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #6b7280;
+    }
+    .resident-info-value {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #1f2937;
+    }
+    .resident-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    </style>
     <!-- Navbar -->
     <nav class="fixed top-0 left-0 right-0 z-30 bg-white shadow flex items-center justify-between h-16 px-4 md:px-8">
         <div class="flex items-center gap-2">
-            <button id="menuBtn" class="h-8 w-8 mr-2 flex items-center justify-center text-blue-700 focus:outline-none">
-                <i class="fas fa-bars text-2xl"></i>
-            </button>
             <span class="font-bold text-lg text-blue-700"><?php echo htmlspecialchars($system_title); ?></span>
         </div>
         <div class="relative flex items-center gap-2">
@@ -299,63 +812,15 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         </div>
     </nav>
     <script>
-        // Sidepanel toggle
-        const menuBtn = document.getElementById('menuBtn');
-        const sidepanel = document.getElementById('sidepanel');
-        const sidepanelOverlay = document.getElementById('sidepanelOverlay');
-        const closeSidepanel = document.getElementById('closeSidepanel');
-        function openSidepanel() {
-            sidepanel.classList.remove('-translate-x-full');
-            sidepanelOverlay.classList.remove('hidden');
-            document.body.classList.add('overflow-hidden');
-        }
-        function closeSidepanelFn() {
-            sidepanel.classList.add('-translate-x-full');
-            sidepanelOverlay.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-        }
-        menuBtn.addEventListener('click', openSidepanel);
-        closeSidepanel.addEventListener('click', closeSidepanelFn);
-        sidepanelOverlay.addEventListener('click', closeSidepanelFn);
-        // Dropdown logic for sidepanel (only one open at a time)
-        function toggleDropdown(id) {
-            const dropdowns = ['peopleSubNav', 'docsSubNav', 'settingsSubNav'];
-            dropdowns.forEach(function(dropId) {
-                const el = document.getElementById(dropId);
-                if (el) {
-                    if (dropId === id) {
-                        el.classList.toggle('dropdown-open');
-                        el.classList.toggle('dropdown-closed');
-                    } else {
-                        el.classList.remove('dropdown-open');
-                        el.classList.add('dropdown-closed');
-                    }
-                }
-            });
-        }
-        // Dropdown open/close effect styles
-        const style = document.createElement('style');
-        style.innerHTML = `
-        .dropdown-open {
-            max-height: 500px;
-            opacity: 1;
-            pointer-events: auto;
-            overflow: hidden;
-        }
-        .dropdown-closed {
-            max-height: 0;
-            opacity: 0;
-            pointer-events: none;
-            overflow: hidden;
-        }
-        `;
-        document.head.appendChild(style);
         // User dropdown
         const userDropdownBtn = document.getElementById('userDropdownBtn');
         const userDropdownMenu = document.getElementById('userDropdownMenu');
+
         userDropdownBtn.addEventListener('click', () => {
             userDropdownMenu.classList.toggle('show');
         });
+
+        // Close user dropdown if clicked outside
         document.addEventListener('click', (e) => {
             if (!userDropdownBtn.contains(e.target) && !userDropdownMenu.contains(e.target)) {
                 userDropdownMenu.classList.remove('show');
@@ -364,591 +829,1751 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
     </script>
     <div style="height:64px;"></div>
     <!-- Main content -->
-    <div class="flex-1 p-4 md:p-8">
-        <div class="flex items-center mb-4">
-            <h1 class="text-2xl font-bold">All Residents</h1>
-        </div>
-        <!-- Action Bar (New Style) -->
-        <div class="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm mb-4">
-            <div>
-                <a href="#" id="add-resident-btn" class="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white font-semibold shadow-sm transition-all hover:bg-blue-700 focus:ring-4 focus:ring-blue-300">
-                    <i class="fas fa-plus"></i>
-                    <span>Add New Resident</span>
-                </a>
-            </div>
-            <div class="flex items-center gap-2">
-                <div class="relative">
-                    <input type="text" id="resident-search" placeholder="Search for ..." class="rounded-lg border border-gray-300 outline outline-2 outline-gray-300 pl-10 pr-4 py-2 focus:border-blue-500 focus:ring-blue-500 focus:outline-gray-400">
-                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+    <div class="flex-1 p-4 md:p-8 bg-gray-50">
+        <!-- Page Header -->
+        <div class="page-header mb-6">
+            <div class="flex justify-start items-start">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                        <div class="bg-blue-100 p-3 rounded-lg">
+                            <i class="fas fa-users text-blue-600 text-2xl"></i>
+                        </div>
+                        Residents Management
+                    </h1>
+                    <p class="text-gray-600 mt-2">Manage and view all registered residents in the barangay</p>
                 </div>
-                <a href="#" id="advanced-filter-btn" class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-700 font-semibold shadow-sm transition-all hover:bg-gray-50">
-                    <i class="fas fa-filter"></i>
-                    <span>Filters</span>
-                </a>
-                <a href="#" id="export-btn" class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-700 font-semibold shadow-sm transition-all hover:bg-gray-50">
-                    <i class="fas fa-file-export"></i>
-                    <span>Export</span>
-                </a>
             </div>
         </div>
+
+        <!-- Action Bar -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+            <div class="px-6 py-6">
+                <div class="flex flex-row items-center justify-between flex-wrap gap-4">
+                    <div>
+                        <button id="add-resident-btn" class="btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Add New Resident
+                        </button>
+                    </div>
+                    <div class="flex flex-row items-center gap-3">
+                        <div class="search-container">
+                            <input type="text" id="resident-search" placeholder="Search residents..." class="search-input">
+                            <i class="fas fa-search search-icon"></i>
+                        </div>
+                        <button id="advanced-filter-btn" class="btn-secondary">
+                            <i class="fas fa-filter"></i>
+                            Filters
+                        </button>
+                        <button id="export-btn" class="btn-secondary">
+                            <i class="fas fa-download"></i>
+                            Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Residents Table -->
-        <div id="residents-table" class="bg-white rounded-lg shadow overflow-x-auto w-full"></div>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js" crossorigin="anonymous"></script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator.min.css" crossorigin="anonymous" />
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 relative">
+            <div class="p-2">
+                <div id="table-loading" class="table-loading hidden">
+                    <div class="text-center">
+                        <div class="loading-spinner mx-auto mb-3"></div>
+                        <div class="text-gray-600 font-medium">Loading residents...</div>
+                    </div>
+                </div>
+                <div id="residents-table" class="w-full"></div>
+            </div>
+        </div>
+    </div>
+        <script src="https://unpkg.com/tabulator-tables@5.5.2/dist/js/tabulator.min.js"></script>
+        <link rel="stylesheet" href="https://unpkg.com/tabulator-tables@5.5.2/dist/css/tabulator.min.css" />
+        
+        <!-- Libraries for Tabulator export functionality -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+        
         <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Calculate row height and table height so that all rows fit exactly without scroll
-            var rowHeight = 38; // px, compact rows
-            var pageSize = 10; // number of rows per page
-            // Set table height to fit exactly 10 rows plus header and footer (pagination)
-            // Fine-tuned header/footer for a perfectly compact, balanced fit
-            var headerHeight = 31.0; // very very slightly increased again
-            var footerHeight = 37.7; // very very slightly increased again
+            console.log("DOM Content Loaded - Starting table initialization");
+            
+            // Reset loading indicator state
+            const loadingElement = document.getElementById('table-loading');
+            if (loadingElement) {
+                console.log("Loading indicator found - ensuring it shows while data loads");
+                loadingElement.classList.remove('hidden');
+            } else {
+                console.error("Loading indicator element NOT found!");
+            }
+
+            // Optimized table configuration for large datasets
+            var rowHeight = 42; // Optimized for performance and readability
+            var pageSize = 10; // Default 10 records as requested
+            var headerHeight = 40;
+            var footerHeight = 40;
             var tableHeight = (rowHeight * pageSize) + headerHeight + footerHeight;
 
-            var table = new Tabulator("#residents-table", {
+            // URL parameter handling
+            function getUrlParam(name) {
+                const url = new URL(window.location.href);
+                return url.searchParams.get(name);
+            }
+
+            function getTabulatorFilter(filterType) {
+                if (!filterType) return null;
+                switch (filterType) {
+                    case 'male':
+                        return {field: 'gender', type: 'like', value: 'male'};
+                    case 'female':
+                        return {field: 'gender', type: 'like', value: 'female'};
+                    case 'voter':
+                        return {field: 'is_voter', type: '=', value: 1};
+                    case '4ps':
+                        return {field: 'is_4ps', type: '=', value: 1};
+                    case 'senior':
+                        return null;
+                    case 'pwd':
+                        return {field: 'is_pwd', type: '=', value: 1};
+                    case 'solo_parent':
+                        return {field: 'is_solo_parent', type: '=', value: 1};
+                    case 'minor':
+                        return null;
+                    case 'children_and_youth':
+                        return null;
+                    default:
+                        return null;
+                }
+            }
+
+            var filterType = getUrlParam('filter_type');
+            var tabFilter = getTabulatorFilter(filterType);
+
+            console.log("Creating Tabulator table...");
+            
+            // Fallback timeout to hide loading indicator after 10 seconds
+            setTimeout(function() {
+                const loadingElement = document.getElementById('table-loading');
+                if (loadingElement && !loadingElement.classList.contains('hidden')) {
+                    console.log("Fallback timeout - hiding loading indicator");
+                    loadingElement.classList.add('hidden');
+                    loadingElement.style.display = 'none';
+                }
+            }, 10000);
+            
+            window.table = new Tabulator("#residents-table", {
                 ajaxURL: "fetch_individuals.php",
                 ajaxConfig: "GET",
-                layout: "fitColumns", // ensures columns fill the table equally
-                height: tableHeight, // fit 10 rows + header + pagination controls
-                responsiveLayout: true,
+                ajaxParams: filterType ? { filter_type: filterType } : {},
+                layout: "fitDataFill",
+                height: tableHeight,
+                responsiveLayout: "hide",
                 pagination: "local",
                 paginationSize: pageSize,
+                paginationSizeSelector: [10, 20, 50, 100],
                 rowHeight: rowHeight,
+                virtualDom: true, // Enable virtual DOM for better performance with large datasets
+                virtualDomBuffer: 500, // Increased buffer for smoother scrolling with large datasets
+                virtualDomHoz: true, // Enable horizontal virtual DOM for wide tables
                 columnDefaults: {
-                    resizable: false,
+                    resizable: true,
+                    headerSort: true,
                 },
                 columns: [
-                    {title: "First Name", field: "first_name", headerSort: false, hozAlign: "center", vertAlign: "middle", cssClass: "tab-center"},
-                    {title: "Middle Name", field: "middle_name", headerSort: false, hozAlign: "center", vertAlign: "middle", cssClass: "tab-center"},
-                    {title: "Last Name", field: "last_name", headerSort: false, hozAlign: "center", vertAlign: "middle", cssClass: "tab-center"},
-                    {title: "Suffix", field: "suffix", headerSort: false, hozAlign: "center", vertAlign: "middle", cssClass: "tab-center", width: 60},
-                    {title: "Gender", field: "gender", headerSort: false, hozAlign: "center", vertAlign: "middle", cssClass: "tab-center", width: 80},
-                    {title: "Birthdate", field: "birthdate", headerSort: false, hozAlign: "center", vertAlign: "middle", cssClass: "tab-center", width: 110},
-                    {title: "Residing Purok", field: "purok", headerSort: false, hozAlign: "center", vertAlign: "middle", cssClass: "tab-center", width: 140,
-                        formatter: function(cell) {
-                            // Only show the word 'Purok' and the number, hide anything in parentheses
+                    {
+                        title: "First Name", 
+                        field: "first_name", 
+                        headerSort: true, 
+                        hozAlign: "center", 
+                        vertAlign: "middle",
+                        width: 180,
+                        minWidth: 120,
+                        responsive: 1,
+                        formatter: function(cell, formatterParams, onRendered) {
                             var value = cell.getValue() || '';
-                            // Remove anything in parentheses and trim
-                            value = value.replace(/\s*\([^)]*\)/g, '').trim();
-                            return value;
+                            return `<div class="font-medium text-black truncate">${value}</div>`;
                         }
                     },
-                    {title: "Action", field: "action", headerSort: false, formatter: function(cell, formatterParams, onRendered) {
-                        // Add data attributes for resident info for modal
-                        var row = cell.getRow().getData();
-                        return `
-                            <div style=\"width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; margin: 0; padding: 0;\">
-                                <a href=\"#\" title=\"View\" class=\"text-blue-600 hover:text-blue-800 p-2 rounded-full transition m-0 view-resident-btn\" 
-                                    data-resident='${JSON.stringify(row).replace(/'/g, "&#39;")}'><i class=\"fas fa-eye\"></i></a>
-                                <span class=\"w-px h-5 bg-gray-300 mx-1 m-0\"></span>
-                                <a href=\"#\" title=\"Edit\" class=\"text-green-600 hover:text-green-800 p-2 rounded-full transition m-0\"><i class=\"fas fa-pen\"></i></a>
-                                <span class=\"w-px h-5 bg-gray-300 mx-1 m-0\"></span>
-                                <a href=\"#\" title=\"Delete\" class=\"text-red-600 hover:text-red-800 p-2 rounded-full transition m-0 delete-resident-btn\"><i class=\"fas fa-trash\"></i></a>
-                            </div>
-                        `;
-                    }, hozAlign: "center", vertAlign: "middle", cssClass: "tab-center action-bg-gray", width: 180, frozen: true, resizable: false}
+                    {
+                        title: "Middle Name", 
+                        field: "middle_name", 
+                        headerSort: true, 
+                        hozAlign: "center", 
+                        vertAlign: "middle",
+                        width: 130,
+                        minWidth: 100,
+                        responsive: 5,
+                        formatter: function(cell, formatterParams, onRendered) {
+                            var value = cell.getValue() || '';
+                            if (!value) return '<span class="text-gray-400 text-xs">—</span>';
+                            return `<div class="text-gray-700 truncate">${value}</div>`;
+                        }
+                    },
+                    {
+                        title: "Last Name", 
+                        field: "last_name", 
+                        headerSort: true, 
+                        hozAlign: "center", 
+                        vertAlign: "middle",
+                        width: 140,
+                        minWidth: 120,
+                        responsive: 2,
+                        formatter: function(cell, formatterParams, onRendered) {
+                            var value = cell.getValue() || '';
+                            return `<div class="font-medium text-black truncate">${value}</div>`;
+                        }
+                    },
+                    {
+                        title: "Suffix", 
+                        field: "suffix", 
+                        headerSort: true, 
+                        hozAlign: "center", 
+                        vertAlign: "middle",
+                        width: 80,
+                        minWidth: 60,
+                        responsive: 6,
+                        formatter: function(cell, formatterParams, onRendered) {
+                            var value = cell.getValue() || '';
+                            if (!value) return '<span class="text-gray-400 text-xs">—</span>';
+                            return `<div class="text-gray-700 text-sm">${value}</div>`;
+                        }
+                    },
+                    {
+                        title: "Gender", 
+                        field: "gender", 
+                        headerSort: true, 
+                        hozAlign: "center", 
+                        vertAlign: "middle", 
+                        width: 100,
+                        minWidth: 80,
+                        responsive: 4,
+                        formatter: function(cell, formatterParams, onRendered) {
+                            var value = cell.getValue();
+                            var text = value ? value.charAt(0).toUpperCase() + value.slice(1) : '';
+                            return `<div class="text-sm text-black">${text}</div>`;
+                        }
+                    },
+                    {
+                        title: "Birthdate", 
+                        field: "birthdate", 
+                        headerSort: true, 
+                        hozAlign: "center", 
+                        vertAlign: "middle", 
+                        width: 120,
+                        minWidth: 100,
+                        responsive: 3,
+                        formatter: function(cell, formatterParams, onRendered) {
+                            var birthdate = cell.getValue();
+                            if (!birthdate) return '';
+                            var date = new Date(birthdate);
+                            var formatted = date.toLocaleDateString('en-US', { 
+                                year: 'numeric', 
+                                month: 'short', 
+                                day: 'numeric' 
+                            });
+                            var today = new Date();
+                            var age = today.getFullYear() - date.getFullYear();
+                            // Check if birthday has not occurred yet this year
+                            var hasBirthdayOccurred = (today.getMonth() > date.getMonth()) || (today.getMonth() === date.getMonth() && today.getDate() >= date.getDate());
+                            if (!hasBirthdayOccurred) {
+                                age = age - 1;
+                            }
+                            return `<div class="text-center"><div class="text-xs text-gray-600">${formatted}</div><div class="text-xs text-blue-600 font-medium">(${age} yrs)</div></div>`;
+                        }
+                    },
+                    {
+                        title: "Civil Status", 
+                        field: "civil_status", 
+                        headerSort: true, 
+                        hozAlign: "center", 
+                        vertAlign: "middle", 
+                        width: 110,
+                        formatter: function(cell, formatterParams, onRendered) {
+                            var value = cell.getValue() || '';
+                            return `<div class="text-sm text-gray-700">${value}</div>`;
+                        }
+                    },
+                    {
+                        title: "Purok", 
+                        field: "purok", 
+                        headerSort: true, 
+                        hozAlign: "center", 
+                        vertAlign: "middle", 
+                        width: 90,
+                        formatter: function(cell) {
+                            var value = cell.getValue() || '';
+                            value = value.replace(/\s*\([^)]*\)/g, '').trim();
+                            return `<span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">${value}</span>`;
+                        }
+                    },
+                    {
+                        title: "Status", 
+                        field: "status", 
+                        headerSort: false, 
+                        hozAlign: "center", 
+                        vertAlign: "middle", 
+                        width: 250,
+                        formatter: function(cell, formatterParams, onRendered) {
+                            var row = cell.getRow().getData();
+                            var badges = [];
+                            
+                            if (row.is_voter == 1) badges.push('<span class="inline-block px-1 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium mb-0.5">Voter</span>');
+                            if (row.is_pwd == 1) badges.push('<span class="inline-block px-1 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium mb-0.5">PWD</span>');
+                            if (row.is_4ps == 1) badges.push('<span class="inline-block px-1 py-0.5 bg-orange-100 text-orange-700 rounded text-xs font-medium mb-0.5">4Ps</span>');
+                            if (row.is_solo_parent == 1) badges.push('<span class="inline-block px-1 py-0.5 bg-red-100 text-red-700 rounded text-xs font-medium mb-0.5">Solo</span>');
+                            if (row.is_pregnant == 1) badges.push('<span class="inline-block px-1 py-0.5 bg-pink-100 text-pink-700 rounded text-xs font-medium mb-0.5">Pregnant</span>');
+                            
+                            if (badges.length === 0) {
+                                return '<span class="text-gray-400 text-xs">—</span>';
+                            }
+                            
+                            return `<div class="flex flex-wrap gap-1 justify-center max-w-full">${badges.join('')}</div>`;
+                        }
+                    },
+                    {
+                        title: "Actions", 
+                        field: "action", 
+                        headerSort: false, 
+                        hozAlign: "center", 
+                        vertAlign: "middle",
+                        widthGrow: 1,
+                        minWidth: 130,
+                        resizable: false,
+                        responsive: 0,
+                        formatter: function(cell, formatterParams, onRendered) {
+                            var row = cell.getRow().getData();
+                            return `
+                                <div class="flex items-center justify-center gap-1" style="width: 100%; padding: 0 8px;">
+                                    <a href="#" title="View Details" class="action-btn view-btn view-resident-btn" style="width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: #3b82f6; color: white; border-radius: 4px; text-decoration: none;" 
+                                        data-id='${row.id || row.ID || 0}'>
+                                        <i class="fas fa-eye" style="font-size: 11px;"></i>
+                                    </a>
+                                    <a href="#" title="Edit Resident" class="action-btn edit-btn edit-resident-btn" style="width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: #10b981; color: white; border-radius: 4px; text-decoration: none;"
+                                        data-id='${row.id || row.ID || 0}'>
+                                        <i class="fas fa-edit" style="font-size: 11px;"></i>
+                                    </a>
+                                    <a href="#" title="Delete Resident" class="action-btn delete-btn delete-resident-btn" style="width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: #ef4444; color: white; border-radius: 4px; text-decoration: none;"
+                                        data-id='${row.id || row.ID || 0}'>
+                                        <i class="fas fa-trash" style="font-size: 11px;"></i>
+                                    </a>
+                                    <div class="relative">
+                                        <button title="More Options" class="action-btn more-btn" style="width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #6b7280, #4b5563); color: white; border-radius: 4px; border: none; cursor: pointer;" onclick="toggleActionMenu(this, '${row.id || row.ID || 0}')">
+                                            <i class="fas fa-ellipsis-v" style="font-size: 11px;"></i>
+                                        </button>
+                                        <div class="action-menu hidden absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[150px]">
+                                            <a href="#" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 print-cert-btn">
+                                                <i class="fas fa-print text-xs mr-2"></i>Print Certificate
+                                            </a>
+                                            <a href="#" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 export-data-btn">
+                                                <i class="fas fa-download text-xs mr-2"></i>Export Data
+                                            </a>
+                                            <a href="#" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 duplicate-btn">
+                                                <i class="fas fa-copy text-xs mr-2"></i>Duplicate
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
                 ],
-                headerFilterPlaceholder: "",
-                tooltips: false,
-                // removed renderComplete for More button
                 placeholder: function(){
                     return `
-                        <div class=\"flex flex-col items-center justify-center h-96 w-full text-center text-gray-500\">
-                            <i class='fas fa-users text-6xl mb-4 text-blue-400'></i>
-                            <div class=\"text-2xl font-semibold mb-2\">No Residents Found</div>
-                            <div class=\"mb-4\">Get started by <a href=\"#\" id=\"add-resident-link-empty\" class=\"text-blue-600 hover:underline font-semibold\">adding the first resident</a> to the system.</div>
+                        <div class="flex flex-col items-center justify-center h-96 w-full text-center text-gray-500 p-8">
+                            <div class="bg-gray-100 rounded-full p-6 mb-4">
+                                <i class='fas fa-users text-4xl text-gray-400'></i>
+                            </div>
+                            <div class="text-xl font-semibold mb-2 text-gray-700">No Residents Found</div>
+                            <div class="text-gray-500 mb-4">Start building your community database</div>
+                            <button id="add-resident-link-empty" class="btn-primary">
+                                <i class="fas fa-plus"></i>
+                                Add First Resident
+                            </button>
                         </div>
                     `;
                 },
-                rowFormatter: function(row) {
-                    // Add center alignment to all cells
-                    row.getElement().querySelectorAll('.tabulator-cell.tab-center').forEach(function(cell) {
-                        cell.style.textAlign = 'center';
-                        cell.style.verticalAlign = 'middle';
-                        cell.style.height = rowHeight + 'px';
-                        cell.style.minHeight = rowHeight + 'px';
-                        cell.style.maxHeight = rowHeight + 'px';
-                        cell.style.paddingTop = '0px';
-                        cell.style.paddingBottom = '0px';
-                    });
+                dataLoaded: function(data) {
+                    // Don't update the counter here as we want to show total database count
+                    // regardless of filtering
+                    console.log("Data loaded: " + data.length + " records in the current view");
+                },
+                renderStarted: function() {
+                    // Show loading indicator for large datasets
+                    document.getElementById('table-loading').classList.remove('hidden');
+                    console.log("Table rendering started...");
                 },
                 renderComplete: function() {
-                    // Force all rows to have consistent height after render (pagination, etc)
-                    document.querySelectorAll('#residents-table .tabulator-row').forEach(function(row) {
-                        row.style.height = rowHeight + 'px';
-                        row.style.minHeight = rowHeight + 'px';
-                        row.style.maxHeight = rowHeight + 'px';
-                    });
+                    // Hide loading indicator
+                    const loadingElement = document.getElementById('table-loading');
+                    if (loadingElement) {
+                        console.log("Table rendering completed - hiding loading indicator");
+                        loadingElement.classList.add('hidden');
+                        // Force hide with inline style as a backup
+                        loadingElement.style.display = 'none';
+                    } else {
+                        console.error("Loading element not found in renderComplete!");
+                    }
+                    
+                    console.log("Table rendering completed.");
+                },
+                ajaxLoading: function(url) {
+                    // Show loading when fetching data
+                    document.getElementById('table-loading').classList.remove('hidden');
+                },
+                ajaxResponse: function(url, params, response) {
+                    // Hide loading when data arrives
+                    const loadingElement = document.getElementById('table-loading');
+                    if (loadingElement) {
+                        console.log("Hiding loading indicator...");
+                        loadingElement.classList.add('hidden');
+                    } else {
+                        console.error("Loading element not found!");
+                    }
+                    
+                    return response;
+                },
+                ajaxError: function(xhr, textStatus, errorThrown) {
+                    // Hide loading on error
+                    document.getElementById('table-loading').classList.add('hidden');
+                    console.error("Table loading error:", textStatus, errorThrown);
+                    console.error("Response:", xhr.responseText);
+                    
+                    // Show error message to user
+                    const tableElement = document.getElementById('residents-table');
+                    if (tableElement) {
+                        tableElement.innerHTML = `
+                            <div class="flex flex-col items-center justify-center h-64 text-center text-red-500 p-8">
+                                <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
+                                <div class="text-xl font-semibold mb-2">Error Loading Residents</div>
+                                <div class="text-sm text-gray-600 mb-4">Please check your connection and try again</div>
+                                <button onclick="location.reload()" class="btn-primary">
+                                    <i class="fas fa-refresh"></i>
+                                    Reload Page
+                                </button>
+                            </div>
+                        `;
+                    }
+                },
+                rowClick: function(e, row) {
+                    // Don't do anything on row click to prevent interference with action buttons
+                },
+                cellClick: function(e, cell) {
+                    // Handle clicks only on action column
+                    if (cell.getField() === "action") {
+                        const target = e.target;
+                        const button = target.closest('a');
+                        const rowData = cell.getRow().getData();
+                        const residentId = rowData.id || rowData.ID;
+                        
+                        if (!button) return;
+                        
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        // View button
+                        if (button.classList.contains('view-resident-btn')) {
+                            viewResidentDetails(residentId);
+                        }
+                        
+                        // Edit button
+                        else if (button.classList.contains('edit-resident-btn')) {
+                            editResident(residentId);
+                        }
+                        
+                        // Delete button
+                        else if (button.classList.contains('delete-resident-btn')) {
+                            showDeleteConfirmation(residentId);
+                        }
+                    }
                 }
             });
 
-            // SEARCH BAR FUNCTIONALITY: Search all relevant fields
+            // Set filter if provided
+            if (tabFilter) {
+                window.table.setFilter([tabFilter]);
+            }
+
+            // Enhanced search functionality for all fields
             var searchInput = document.getElementById('resident-search');
             if (searchInput) {
                 searchInput.addEventListener('input', function() {
                     var val = this.value.trim();
                     if (val === '') {
-                        table.clearFilter();
+                        window.table.clearFilter();
+                        if (tabFilter) window.table.setFilter([tabFilter]);
                     } else {
-                        table.setFilter([
-                            [
-                                {field: "first_name", type: "like", value: val},
-                                {field: "middle_name", type: "like", value: val},
-                                {field: "last_name", type: "like", value: val},
-                                {field: "suffix", type: "like", value: val},
-                                {field: "gender", type: "like", value: val},
-                                {field: "birthdate", type: "like", value: val},
-                                {field: "civil_status", type: "like", value: val},
-                                {field: "purok_id", type: "like", value: val}
-                            ]
-                        ]);
+                        var filters = [
+                            {field: "first_name", type: "like", value: val},
+                            {field: "middle_name", type: "like", value: val},
+                            {field: "last_name", type: "like", value: val},
+                            {field: "suffix", type: "like", value: val},
+                            {field: "gender", type: "like", value: val},
+                            {field: "civil_status", type: "like", value: val},
+                            {field: "purok", type: "like", value: val}
+                        ];
+                        
+                        // Use OR filter for search across multiple fields
+                        if (tabFilter) {
+                            window.table.setFilter([[filters], tabFilter]);
+                        } else {
+                            window.table.setFilter([filters]);
+                        }
                     }
+                    
+                    // No need to update counter with filtered results - keep showing total count
                 });
             }
         });
         </script>
     </div>
+    
     <script>
-        // Add event listener for the placeholder link to open the Add Resident modal
-        document.addEventListener('click', function(e) {
-            if (e.target && e.target.id === 'add-resident-link-empty') {
+        // Action menu dropdown functionality
+        function toggleActionMenu(button, residentId) {
+            // Make sure we have the event object
+            if (typeof event !== 'undefined') {
+                event.stopPropagation();
+            }
+            
+            // Close all other open menus
+            document.querySelectorAll('.action-menu').forEach(menu => {
+                if (menu !== button.nextElementSibling) {
+                    menu.classList.add('hidden');
+                }
+            });
+            
+            // Toggle current menu
+            const menu = button.nextElementSibling;
+            menu.classList.toggle('hidden');
+            
+            // Set up event listeners for menu items
+            const printBtn = menu.querySelector('.print-cert-btn');
+            const exportBtn = menu.querySelector('.export-data-btn');
+            const duplicateBtn = menu.querySelector('.duplicate-btn');
+            
+            printBtn.onclick = function(e) {
                 e.preventDefault();
-                // Trigger the same action as the main Add New Resident button
-                var btn = document.getElementById('add-resident-btn');
-                if (btn) btn.click();
+                e.stopPropagation();
+                handlePrintCertificate(residentId);
+                menu.classList.add('hidden');
+            };
+            
+            exportBtn.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                handleExportData(residentId);
+                menu.classList.add('hidden');
+            };
+            
+            duplicateBtn.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                handleDuplicate(residentId);
+                menu.classList.add('hidden');
+            };
+        }
+        
+        // Close menus when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.more-btn') && !e.target.closest('.action-menu')) {
+                document.querySelectorAll('.action-menu').forEach(menu => {
+                    menu.classList.add('hidden');
+                });
             }
         });
-    </script>
-    <script>
-// Modal open/close logic
-function openAddResidentModal() {
-    const modal = document.getElementById('addResidentModal');
-    modal.classList.remove('hidden');
-    setTimeout(() => {
-        modal.classList.add('opacity-100');
-        modal.classList.remove('opacity-0');
-        const inner = modal.querySelector('div.bg-white');
-        if(inner) inner.classList.add('scale-100');
-        if(inner) inner.classList.remove('scale-95');
-    }, 10);
-}
-function closeAddResidentModal() {
-    const modal = document.getElementById('addResidentModal');
-    modal.classList.remove('opacity-100');
-    modal.classList.add('opacity-0');
-    const inner = modal.querySelector('div.bg-white');
-    if(inner) inner.classList.remove('scale-100');
-    if(inner) inner.classList.add('scale-95');
-    setTimeout(() => {
-        modal.classList.add('hidden');
-        document.getElementById('addResidentForm').reset();
-        document.getElementById('addResidentMsg').textContent = '';
-    }, 300);
-}
-document.getElementById('add-resident-btn').addEventListener('click', function(e) {
-    e.preventDefault();
-    openAddResidentModal();
-});
-document.getElementById('closeAddResidentModal').addEventListener('click', closeAddResidentModal);
-document.getElementById('cancelAddResident').addEventListener('click', closeAddResidentModal);
-// Also open modal from empty state link
-if(document.getElementById('add-resident-link-empty')) {
-    document.getElementById('add-resident-link-empty').addEventListener('click', function(e) {
-        e.preventDefault();
-        openAddResidentModal();
-    });
-}
-// Load purok options via AJAX
-// Load religion options via AJAX
-function loadReligionOptions() {
-    var religionSelect = document.getElementById('religionSelect');
-    religionSelect.innerHTML = '<option value="">Loading...</option>';
-    fetch('fetch_religions.php')
-        .then(res => res.json())
-        .then(data => {
-            religionSelect.innerHTML = '<option value="">Select...</option>';
-            data.forEach(function(religion) {
-                religionSelect.innerHTML += `<option value="${religion}">${religion}</option>`;
-            });
-        })
-        .catch(() => {
-            religionSelect.innerHTML = '<option value="">Error loading religions</option>';
-        });
-}
-
-function loadPurokOptions() {
-    var purokSelect = document.getElementById('purokSelect');
-    purokSelect.innerHTML = '<option value="">Loading...</option>';
-    fetch('fetch_puroks.php')
-        .then(res => res.json())
-        .then(data => {
-            purokSelect.innerHTML = '<option value="">Select...</option>';
-            data.forEach(function(purok) {
-                purokSelect.innerHTML += `<option value="${purok.id}">${purok.name}</option>`;
-            });
-        })
-        .catch(() => {
-            purokSelect.innerHTML = '<option value="">Error loading puroks</option>';
-        });
-}
-document.getElementById('add-resident-btn').addEventListener('click', loadPurokOptions);
-// Also load puroks when opening from empty state
-// Load religions when opening modal
-document.getElementById('add-resident-btn').addEventListener('click', loadReligionOptions);
-if(document.getElementById('add-resident-link-empty')) {
-    document.getElementById('add-resident-link-empty').addEventListener('click', loadReligionOptions);
-}
-if(document.getElementById('add-resident-link-empty')) {
-    document.getElementById('add-resident-link-empty').addEventListener('click', loadPurokOptions);
-}
-// AJAX submit
-const addResidentForm = document.getElementById('addResidentForm');
-addResidentForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const formData = new FormData(addResidentForm);
-    fetch('add_individual.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        const msg = document.getElementById('addResidentMsg');
-        if(data.success) {
-            msg.textContent = 'Resident added successfully!';
-            msg.className = 'mt-2 text-center text-green-600 text-sm';
-            setTimeout(() => { closeAddResidentModal(); location.reload(); }, 1200);
-        } else {
-            msg.textContent = data.error || 'Failed to add resident.';
-            msg.className = 'mt-2 text-center text-red-600 text-sm';
+        
+        // Action handlers
+        function handlePrintCertificate(residentId) {
+            console.log('Print certificate for resident:', residentId);
+            // TODO: Implement certificate printing functionality
+            alert('Print certificate functionality will be implemented here.');
         }
-    })
-    .catch(() => {
-        const msg = document.getElementById('addResidentMsg');
-        msg.textContent = 'Failed to add resident.';
-        msg.className = 'mt-2 text-center text-red-600 text-sm';
-    });
-});
-</script>
 
-<!-- View Resident Modal -->
-<div id="viewResidentModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden opacity-0 transition-opacity duration-300">
-    <div class="bg-white shadow-lg w-full max-w-md mx-4 p-4 relative scale-95 transition-transform duration-300 border border-gray-300 view-modal-style" style="border-radius:0; box-shadow:0 8px 32px 0 rgba(60,60,60,0.10); font-size:0.92rem;">
-        <button id="closeViewResidentModal" class="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl focus:outline-none" title="Close">
-            <i class="fas fa-times"></i>
-        </button>
-        <h2 class="text-lg font-bold mb-3 text-blue-700 text-center w-full">Resident Information</h2>
-        <form class="space-y-3 pointer-events-none select-none" id="viewResidentForm">
-            <hr class="mb-2 border-gray-300">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <div>
-                    <label class="block font-semibold mb-1">First Name</label>
-                    <input type="text" name="first_name" readonly class="w-full border rounded px-2 py-1.5 text-sm bg-gray-100" id="view_first_name">
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">Middle Name</label>
-                    <input type="text" name="middle_name" readonly class="w-full border rounded px-2 py-1.5 text-sm bg-gray-100" id="view_middle_name">
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">Last Name</label>
-                    <input type="text" name="last_name" readonly class="w-full border rounded px-2 py-1.5 text-sm bg-gray-100" id="view_last_name">
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">Suffix</label>
-                    <input type="text" name="suffix" readonly class="w-full border rounded px-2 py-1.5 text-sm bg-gray-100" id="view_suffix">
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">Gender</label>
-                    <input type="text" name="gender" readonly class="w-full border rounded px-2 py-1.5 text-sm bg-gray-100" id="view_gender">
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">Birthdate</label>
-                    <input type="text" name="birthdate" readonly class="w-full border rounded px-2 py-1.5 text-sm bg-gray-100" id="view_birthdate">
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">Civil Status</label>
-                    <input type="text" name="civil_status" readonly class="w-full border rounded px-2 py-1.5 text-sm bg-gray-100" id="view_civil_status">
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">Blood Type</label>
-                    <input type="text" name="blood_type" readonly class="w-full border rounded px-2 py-1.5 text-sm bg-gray-100" id="view_blood_type">
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">Religion</label>
-                    <input type="text" name="religion" readonly class="w-full border rounded px-2 py-1.5 text-sm bg-gray-100" id="view_religion">
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">Residing Purok</label>
-                    <input type="text" name="purok" readonly class="w-full border rounded px-2 py-1.5 text-sm bg-gray-100" id="view_purok">
-                </div>
-                <!-- Removed Purok ID and Created At fields -->
-            </div>
-            <hr class="my-2 border-gray-300">
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-1">
-                <label class="inline-flex items-center gap-1 text-xs"><input type="checkbox" id="view_is_pwd" disabled class="accent-blue-600 scale-90">PWD</label>
-                <label class="inline-flex items-center gap-1 text-xs"><input type="checkbox" id="view_is_voter" disabled class="accent-blue-600 scale-90">Voter</label>
-                <label class="inline-flex items-center gap-1 text-xs"><input type="checkbox" id="view_is_4ps" disabled class="accent-blue-600 scale-90">4Ps</label>
-                <label class="inline-flex items-center gap-1 text-xs"><input type="checkbox" id="view_is_pregnant" disabled class="accent-blue-600 scale-90">Pregnant</label>
-                <label class="inline-flex items-center gap-1 text-xs"><input type="checkbox" id="view_is_solo_parent" disabled class="accent-blue-600 scale-90">Solo Parent</label>
-            </div>
-        </form>
-    </div>
-</div>
-<style>
-    .view-modal-style input[readonly], .view-modal-style select[disabled], .view-modal-style textarea[readonly] {
-        background-color: #f3f4f6 !important;
-        color: #22223b !important;
-        border-color: #cbd5e1 !important;
-        cursor: default !important;
-        pointer-events: none;
-    }
-    .view-modal-style label {
-        color: #1e293b;
-    }
-</style>
-<script>
-// View Resident Modal logic
-function openViewResidentModal() {
-    const modal = document.getElementById('viewResidentModal');
-    modal.classList.remove('hidden');
-    setTimeout(() => {
-        modal.classList.add('opacity-100');
-        modal.classList.remove('opacity-0');
-        const inner = modal.querySelector('div.bg-white');
-        if(inner) inner.classList.add('scale-100');
-        if(inner) inner.classList.remove('scale-95');
-    }, 10);
-}
-function closeViewResidentModal() {
-    const modal = document.getElementById('viewResidentModal');
-    modal.classList.remove('opacity-100');
-    modal.classList.add('opacity-0');
-    const inner = modal.querySelector('div.bg-white');
-    if(inner) inner.classList.remove('scale-100');
-    if(inner) inner.classList.add('scale-95');
-    setTimeout(() => {
-        modal.classList.add('hidden');
-        // Optionally clear fields
-    }, 300);
-}
-document.getElementById('closeViewResidentModal').addEventListener('click', closeViewResidentModal);
+        function handleExportData(residentId) {
+            console.log('Export data for resident:', residentId);
+            // TODO: Implement individual resident data export
+            alert('Export data functionality will be implemented here.');
+        }
 
-// Delegate click for all view buttons
-document.addEventListener('click', function(e) {
-    if(e.target.closest('.view-resident-btn')) {
-        e.preventDefault();
-        var btn = e.target.closest('.view-resident-btn');
-        var data = btn.getAttribute('data-resident');
-        var residentId = null;
-        if(data) {
-            try {
-                var row = JSON.parse(data.replace(/&#39;/g, "'"));
-                residentId = row.id || row.ID || row.resident_id || row.individual_id;
-            } catch(err) {
-                residentId = null;
+        function handleDuplicate(residentId) {
+            console.log('Duplicate resident:', residentId);
+            // TODO: Implement resident duplication functionality
+            alert('Duplicate resident functionality will be implemented here.');
+        }
+
+        // View Resident Details Modal (Preview Only)
+        function viewResidentDetails(residentId) {
+            // Fetch resident details via AJAX
+            const modal = document.getElementById('viewResidentModal');
+            const content = document.getElementById('viewResidentContent');
+            // Show loading
+            content.innerHTML = `<div class="text-center py-10"><div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto"></div><p class="mt-3 text-gray-600">Loading resident details...</p></div>`;
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.querySelector('.modal-container').style.transform = 'scale(1)';
+            }, 10);
+
+            fetch('fetch_individual_detail.php?id=' + encodeURIComponent(residentId))
+                .then(response => response.json())
+                .then(data => {
+                    if (!data || data.error) {
+                        content.innerHTML = `<div class='text-center text-red-500'>Unable to load resident details.</div>`;
+                        return;
+                    }
+                    // Build preview form
+                    let fields = [
+                        { label: 'First Name', name: 'first_name' },
+                        { label: 'Middle Name', name: 'middle_name' },
+                        { label: 'Last Name', name: 'last_name' },
+                        { label: 'Suffix', name: 'suffix' },
+                        { label: 'Gender', name: 'gender' },
+                        { label: 'Birthdate', name: 'birthdate' },
+                        { label: 'Civil Status', name: 'civil_status' },
+                        { label: 'Purok', name: 'purok' },
+                        { label: 'Religion', name: 'religion' },
+                        { label: 'Contact', name: 'contact' },
+                        { label: 'Address', name: 'address' },
+                        { label: 'Voter', name: 'is_voter', type: 'checkbox' },
+                        { label: 'PWD', name: 'is_pwd', type: 'checkbox' },
+                        { label: '4Ps', name: 'is_4ps', type: 'checkbox' },
+                        { label: 'Solo Parent', name: 'is_solo_parent', type: 'checkbox' },
+                        { label: 'Pregnant', name: 'is_pregnant', type: 'checkbox' }
+                    ];
+                    let html = `<form class='grid grid-cols-1 md:grid-cols-2 gap-4 edit-modal-style'>`;
+                    fields.forEach(f => {
+                        let val = data[f.name] !== undefined && data[f.name] !== null ? data[f.name] : '';
+                        if (f.type === 'checkbox') {
+                            html += `<div><label class='resident-info-label mb-1'>${f.label}</label><input type='checkbox' disabled ${val == 1 ? 'checked' : ''} class='form-checkbox' /></div>`;
+                        } else {
+                            html += `<div><label class='resident-info-label mb-1'>${f.label}</label><input type='text' class='form-input w-full' value='${val}' readonly /></div>`;
+                        }
+                    });
+                    html += `</form>`;
+                    content.innerHTML = html;
+                })
+                .catch(() => {
+                    content.innerHTML = `<div class='text-center text-red-500'>Unable to load resident details.</div>`;
+                });
+        }
+
+        // Modal initialization and event handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load dropdown options
+            fetchPuroks();
+            fetchReligions();
+            
+            // Initialize event handlers after table is loaded
+            setTimeout(function() {
+                initializeModalHandlers();
+            }, 1000); // Small delay to ensure table is fully loaded
+            
+            // Add Resident button
+            document.getElementById('add-resident-btn').addEventListener('click', function() {
+                // Show modal
+                const modal = document.getElementById('addResidentModal');
+                modal.style.display = 'flex';
+                setTimeout(() => {
+                    modal.classList.add('show');
+                    modal.querySelector('.modal-container').style.transform = 'scale(1)';
+                }, 10);
+            });
+            
+            // Add Resident form submission
+            document.getElementById('addResidentForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', 'add_individual.php', true);
+                xhr.onload = function() {
+                    const msgElement = document.getElementById('addResidentMsg');
+                    
+                    if (this.status === 200) {
+                        try {
+                            const response = JSON.parse(this.responseText);
+                            
+                            if (response.success) {
+                                msgElement.innerHTML = `<div class="text-green-600">${response.message}</div>`;
+                                
+                                // Reset form
+                                document.getElementById('addResidentForm').reset();
+                                
+                                // Refresh the table after a short delay
+                                setTimeout(() => {
+                                    window.table.setData("fetch_individuals.php");
+                                    
+                                    // Close modal after data refresh
+                                    setTimeout(() => {
+                                        closeAddResidentModal();
+                                    }, 500);
+                                }, 1000);
+                            } else {
+                                msgElement.innerHTML = `<div class="text-red-600">${response.message}</div>`;
+                            }
+                        } catch (e) {
+                            msgElement.innerHTML = `<div class="text-red-600">Error processing response</div>`;
+                            console.error("Error parsing response:", this.responseText);
+                        }
+                    } else {
+                        msgElement.innerHTML = `<div class="text-red-600">Server error (${this.status})</div>`;
+                    }
+                };
+                xhr.send(formData);
+            });
+            
+            // Close Add Resident modal
+            document.getElementById('closeAddResidentModal').addEventListener('click', closeAddResidentModal);
+            document.getElementById('cancelAddResident').addEventListener('click', closeAddResidentModal);
+            
+            function closeAddResidentModal() {
+                const modal = document.getElementById('addResidentModal');
+                modal.classList.remove('show');
+                modal.querySelector('.modal-container').style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
             }
-        }
-        if(!residentId) {
-            alert('Resident ID not found.');
-            return;
-        }
-        // Fetch full resident details from backend
-        fetch('fetch_individual_detail.php?id=' + encodeURIComponent(residentId))
-            .then(res => res.json())
-            .then(data => {
-                if(data && (data.success || data.first_name)) {
-                    var resident = data.resident || data;
-                    document.getElementById('view_first_name').value = resident.first_name || '';
-                    document.getElementById('view_middle_name').value = resident.middle_name || '';
-                    document.getElementById('view_last_name').value = resident.last_name || '';
-                    document.getElementById('view_suffix').value = resident.suffix || '';
-                    document.getElementById('view_gender').value = resident.gender || '';
-                    document.getElementById('view_birthdate').value = resident.birthdate || '';
-                    document.getElementById('view_civil_status').value = resident.civil_status || '';
-                    document.getElementById('view_blood_type').value = resident.blood_type || '';
-                    document.getElementById('view_religion').value = resident.religion || '';
-                    // Format Residing Purok as 'Purok X'
-                    let purokValue = resident.purok || resident.purok_id || '';
-                    if (purokValue) {
-                        // Remove any parentheses and trim
-                        purokValue = purokValue.toString().replace(/\s*\([^)]*\)/g, '').trim();
-                        // Extract number if only number is present
-                        let match = purokValue.match(/(\d+)/);
-                        if (match) {
-                            purokValue = 'Purok ' + match[1];
-                        } else if (!/^Purok/i.test(purokValue)) {
-                            purokValue = 'Purok ' + purokValue;
+            
+            // Close Edit Resident modal (only if elements exist)
+            const closeEditBtn = document.getElementById('closeEditResidentModal');
+            if (closeEditBtn) {
+                closeEditBtn.addEventListener('click', closeEditResidentModal);
+            }
+            const cancelEditBtn = document.getElementById('cancelEditResident');
+            if (cancelEditBtn) {
+                cancelEditBtn.addEventListener('click', closeEditResidentModal);
+            }
+            
+            // Edit Resident form submission
+            const editForm = document.getElementById('editResidentForm');
+            if (editForm) {
+                editForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(this);
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', 'edit_individual.php', true);
+                    xhr.onload = function() {
+                        const msgElement = document.getElementById('editResidentMsg');
+                        
+                        if (this.status === 200) {
+                            try {
+                                const response = JSON.parse(this.responseText);
+                                
+                                if (response.success) {
+                                    msgElement.innerHTML = `<div class="text-green-600">${response.message}</div>`;
+                                    
+                                    // Refresh the table after a short delay
+                                    setTimeout(() => {
+                                        window.table.setData("fetch_individuals.php");
+                                        
+                                        // Close modal after data refresh
+                                        setTimeout(() => {
+                                            closeEditResidentModal();
+                                        }, 500);
+                                    }, 1000);
+                                } else {
+                                    msgElement.innerHTML = `<div class="text-red-600">${response.message}</div>`;
+                                }
+                            } catch (e) {
+                                msgElement.innerHTML = `<div class="text-red-600">Error processing response</div>`;
+                                console.error("Error parsing response:", this.responseText);
+                            }
+                        } else {
+                            msgElement.innerHTML = `<div class="text-red-600">Server error (${this.status})</div>`;
+                        }
+                    };
+                    xhr.send(formData);
+                });
+            }
+            
+            // Advanced Filter modal
+            document.getElementById('advanced-filter-btn').addEventListener('click', function() {
+                const modal = document.getElementById('advancedFilterModal');
+                modal.style.display = 'flex';
+                setTimeout(() => {
+                    modal.classList.add('show');
+                    modal.querySelector('.modal-container').style.transform = 'scale(1)';
+                }, 10);
+            });
+            
+            document.getElementById('closeAdvancedFilterModal').addEventListener('click', function() {
+                const modal = document.getElementById('advancedFilterModal');
+                modal.classList.remove('show');
+                modal.querySelector('.modal-container').style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
+            });
+            
+            document.getElementById('cancelAdvancedFilter').addEventListener('click', function() {
+                const modal = document.getElementById('advancedFilterModal');
+                modal.classList.remove('show');
+                modal.querySelector('.modal-container').style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
+            });
+            
+            // Advanced Filter form submission
+            document.getElementById('advancedFilterForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Build filter array based on form values
+                const filters = [];
+                const formData = new FormData(this);
+                
+                // Gender filter - convert text to M/F format
+                const gender = formData.get('gender_filter');
+                if (gender) {
+                    const genderValue = gender.toLowerCase() === 'male' ? 'M' : (gender.toLowerCase() === 'female' ? 'F' : gender);
+                    filters.push({field: 'gender', type: '=', value: genderValue});
+                }
+                
+                // Age range filter - this would need server-side implementation
+                // For now, we'll skip age filtering as it requires date calculations
+                const ageFrom = formData.get('age_from');
+                const ageTo = formData.get('age_to');
+                if (ageFrom || ageTo) {
+                    console.log('Age filtering not implemented - requires server-side date calculations');
+                    // Could be implemented by sending age filters to the backend
+                }
+                
+                // Civil status filter
+                const civilStatus = formData.get('civil_status_filter');
+                if (civilStatus) {
+                    filters.push({field: 'civil_status', type: 'like', value: civilStatus.toLowerCase()});
+                }
+                
+                // Purok filter
+                const purok = formData.get('purok_filter');
+                if (purok) {
+                    filters.push({field: 'purok_id', type: '=', value: purok});
+                }
+                
+                // Special status filters
+                if (formData.get('filter_voter')) {
+                    filters.push({field: 'is_voter', type: '=', value: 1});
+                }
+                
+                if (formData.get('filter_pwd')) {
+                    filters.push({field: 'is_pwd', type: '=', value: 1});
+                }
+                
+                if (formData.get('filter_4ps')) {
+                    filters.push({field: 'is_4ps', type: '=', value: 1});
+                }
+                
+                if (formData.get('filter_solo_parent')) {
+                    filters.push({field: 'is_solo_parent', type: '=', value: 1});
+                }
+                
+                // Apply filters to table
+                if (filters.length > 0) {
+                    window.table.setFilter(filters);
+                } else {
+                    window.table.clearFilter();
+                }
+                
+                // Close the modal
+                const modal = document.getElementById('advancedFilterModal');
+                modal.classList.remove('show');
+                modal.querySelector('.modal-container').style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
+            });
+            
+            // Clear filters button
+            document.getElementById('clearFilters').addEventListener('click', function() {
+                document.getElementById('advancedFilterForm').reset();
+            });
+            
+            // Export modal
+            document.getElementById('export-btn').addEventListener('click', function() {
+                const modal = document.getElementById('exportModal');
+                modal.style.display = 'flex';
+                setTimeout(() => {
+                    modal.classList.add('show');
+                    modal.querySelector('.modal-container').style.transform = 'scale(1)';
+                }, 10);
+            });
+            
+            document.getElementById('closeExportModal').addEventListener('click', function() {
+                const modal = document.getElementById('exportModal');
+                modal.classList.remove('show');
+                modal.querySelector('.modal-container').style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
+            });
+            
+            document.getElementById('cancelExport').addEventListener('click', function() {
+                const modal = document.getElementById('exportModal');
+                modal.classList.remove('show');
+                modal.querySelector('.modal-container').style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
+            });
+            
+            // Export buttons
+            document.getElementById('exportCsv').addEventListener('click', function() {
+                exportData('csv');
+            });
+            
+            document.getElementById('exportExcel').addEventListener('click', function() {
+                exportData('xlsx');
+            });
+            
+            document.getElementById('exportPdf').addEventListener('click', function() {
+                exportData('pdf');
+            });
+            
+            function exportData(format) {
+                const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                const filename = `residents_export_${timestamp}`;
+                
+                // Configure export options based on format
+                const options = {
+                    downloadReady: function(fileContents, blob) {
+                        closeExportModal();
+                        return blob;
+                    }
+                };
+                
+                switch(format) {
+                    case 'csv':
+                        options.delimiter = ',';
+                        window.table.download("csv", `${filename}.csv`, options);
+                        break;
+                        
+                    case 'xlsx':
+                        options.sheetName = "Residents Data";
+                        options.documentProcessing = function(workbook) {
+                            // Add metadata to Excel file
+                            workbook.Props = {
+                                Title: "Residents Data Export",
+                                Subject: "Barangay Residents Information",
+                                Author: "<?php echo htmlspecialchars($user_full_name); ?>",
+                                CreatedDate: new Date()
+                            };
+                            return workbook;
+                        };
+                        window.table.download("xlsx", `${filename}.xlsx`, options);
+                        break;
+                        
+                    case 'pdf':
+                        options.orientation = "landscape";
+                        options.title = "Residents Information Report";
+                        options.autoTable = {
+                            styles: {
+                                fontSize: 8,
+                                cellPadding: 2
+                            },
+                            headStyles: {
+                                fillColor: [59, 130, 246],
+                                textColor: 255,
+                                fontSize: 9,
+                                fontStyle: 'bold'
+                            },
+                            margin: {top: 30}
+                        };
+                        options.documentProcessing = function(doc) {
+                            // Add header to PDF
+                            doc.setFontSize(16);
+                            doc.text("<?php echo htmlspecialchars($system_title); ?>", 14, 22);
+                            doc.setFontSize(12);
+                            doc.text("Residents Information Report", 14, 28);
+                            doc.setFontSize(10);
+                            doc.text(`Generated on: ${new Date().toLocaleDateString()} by <?php echo htmlspecialchars($user_full_name); ?>`, 14, 34);
+                            
+                            // Add footer with page numbers
+                            const pageCount = doc.internal.getNumberOfPages();
+                            for (let i = 1; i <= pageCount; i++) {
+                                doc.setPage(i);
+                                doc.setFontSize(8);
+                                doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width - 30, doc.internal.pageSize.height - 10);
+                            }
+                            
+                            return doc;
+                        };
+                        window.table.download("pdf", `${filename}.pdf`, options);
+                        break;
+                }
+            }
+            
+            function closeExportModal() {
+                const modal = document.getElementById('exportModal');
+                modal.classList.remove('show');
+                modal.querySelector('.modal-container').style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
+            }
+            
+            // Fetch Puroks and Religions for dropdowns
+            fetchPuroks();
+            fetchReligions();
+        });
+        
+        function initializeModalHandlers() {
+            // Use event delegation for dynamically generated buttons
+            // This will work for all pages of the table
+            document.addEventListener('click', function(e) {
+                // Handle View Resident button clicks
+                if (e.target.closest('.view-resident-btn')) {
+                    e.preventDefault();
+                    const btn = e.target.closest('.view-resident-btn');
+                    const residentId = btn.getAttribute('data-id');
+                    if (residentId) {
+                        viewResidentDetails(residentId);
+                    }
+                }
+                
+                // Handle Edit Resident button clicks
+                if (e.target.closest('.edit-resident-btn')) {
+                    e.preventDefault();
+                    const btn = e.target.closest('.edit-resident-btn');
+                    const residentId = btn.getAttribute('data-id');
+                    if (residentId) {
+                        editResident(residentId);
+                    }
+                }
+                
+                // Handle Delete Resident button clicks
+                if (e.target.closest('.delete-resident-btn')) {
+                    e.preventDefault();
+                    const btn = e.target.closest('.delete-resident-btn');
+                    const residentId = btn.getAttribute('data-id');
+                    if (residentId) {
+                        showDeleteConfirmation(residentId);
+                    }
+                }
+            });
+            
+            // Close View Resident Modal (only attach once)
+            const closeViewBtn = document.getElementById('closeViewResidentModal');
+            if (closeViewBtn && !closeViewBtn.hasAttribute('data-listener-attached')) {
+                closeViewBtn.addEventListener('click', function() {
+                    closeViewResidentModal();
+                });
+                closeViewBtn.setAttribute('data-listener-attached', 'true');
+            }
+            
+            // Add ESC key support to close modals (only attach once)
+            if (!document.body.hasAttribute('data-esc-listener-attached')) {
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        const viewModal = document.getElementById('viewResidentModal');
+                        if (viewModal && !viewModal.classList.contains('hidden')) {
+                            closeViewResidentModal();
+                        }
+                        const editModal = document.getElementById('editResidentModal');
+                        if (editModal && !editModal.classList.contains('hidden')) {
+                            closeEditResidentModal();
+                        }
+                        const deleteModal = document.getElementById('deleteResidentModal');
+                        if (deleteModal && !deleteModal.classList.contains('hidden')) {
+                            closeDeleteResidentModal();
                         }
                     }
-                    document.getElementById('view_purok').value = purokValue;
-                    document.getElementById('view_is_pwd').checked = !!(resident.is_pwd == 1 || resident.is_pwd === true || resident.is_pwd === '1');
-                    document.getElementById('view_is_voter').checked = !!(resident.is_voter == 1 || resident.is_voter === true || resident.is_voter === '1');
-                    document.getElementById('view_is_4ps').checked = !!(resident.is_4ps == 1 || resident.is_4ps === true || resident.is_4ps === '1');
-                    document.getElementById('view_is_pregnant').checked = !!(resident.is_pregnant == 1 || resident.is_pregnant === true || resident.is_pregnant === '1');
-                    document.getElementById('view_is_solo_parent').checked = !!(resident.is_solo_parent == 1 || resident.is_solo_parent === true || resident.is_solo_parent === '1');
-                    openViewResidentModal();
-                } else {
-                    alert('Failed to load resident info.');
-                }
-            })
-            .catch(() => {
-                alert('Failed to load resident info.');
-            });
-    }
-});
-</script>
-
-<!-- Delete Resident Modal -->
-<div id="deleteResidentModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden opacity-0 transition-opacity duration-300">
-    <div class="bg-white shadow-lg w-full max-w-sm mx-4 p-6 relative scale-95 transition-transform duration-300 border border-gray-300 delete-modal-style" style="border-radius:0.75rem; box-shadow:0 8px 32px 0 rgba(60,60,60,0.13); font-size:0.97rem;">
-        <button id="closeDeleteResidentModal" class="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl focus:outline-none" title="Close" style="transition: color 0.2s;">
-            <i class="fas fa-times"></i>
-        </button>
-        <h2 class="text-lg font-bold mb-4 text-red-700 text-center w-full">Delete Resident</h2>
-        <div class="mb-6 text-center text-gray-700 text-base">Are you sure you want to <span class="font-semibold text-red-600">delete</span> this resident?<br>This action <span class="font-semibold">cannot be undone</span>.</div>
-        <div class="flex justify-center gap-4 mt-2">
-            <button type="button" id="cancelDeleteResident" class="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold text-sm shadow-sm transition">Cancel</button>
-            <button type="button" id="confirmDeleteResident" class="px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-sm transition">Delete</button>
-        </div>
-        <div id="deleteResidentMsg" class="mt-4 text-center text-sm"></div>
-    </div>
-</div>
-<style>
-.delete-modal-style {
-    border-radius: 0.75rem !important;
-    box-shadow: 0 8px 32px 0 rgba(60,60,60,0.13) !important;
-    font-size: 0.97rem !important;
-    padding-top: 2.5rem !important;
-    padding-bottom: 2.5rem !important;
-}
-#deleteResidentModal .bg-white {
-    animation: modalPopIn 0.25s cubic-bezier(.4,2,.6,1) 1;
-}
-@keyframes modalPopIn {
-    0% { transform: scale(0.95); opacity: 0.7; }
-    100% { transform: scale(1); opacity: 1; }
-}
-#deleteResidentModal button:focus {
-    outline: 2px solid #2563eb;
-    outline-offset: 2px;
-}
-#deleteResidentModal .text-red-700 {
-    color: #b91c1c !important;
-}
-#deleteResidentModal .text-red-600 {
-    color: #dc2626 !important;
-}
-#deleteResidentModal .bg-red-600 {
-    background-color: #dc2626 !important;
-}
-#deleteResidentModal .bg-red-700:hover {
-    background-color: #b91c1c !important;
-}
-</style>
-<script>
-// Delete Resident Modal logic
-let deleteResidentId = null;
-let deleteCountdownTimer = null;
-function openDeleteResidentModal(residentId) {
-    deleteResidentId = residentId;
-    const modal = document.getElementById('deleteResidentModal');
-    const deleteBtn = document.getElementById('confirmDeleteResident');
-    deleteBtn.disabled = true;
-    let countdown = 3;
-    deleteBtn.textContent = `Delete (${countdown})`;
-    deleteBtn.classList.add('opacity-60', 'cursor-not-allowed');
-    deleteCountdownTimer = setInterval(() => {
-        countdown--;
-        if (countdown > 0) {
-            deleteBtn.textContent = `Delete (${countdown})`;
-        } else {
-            clearInterval(deleteCountdownTimer);
-            deleteBtn.textContent = 'Delete';
-            deleteBtn.disabled = false;
-            deleteBtn.classList.remove('opacity-60', 'cursor-not-allowed');
-        }
-    }, 1000);
-    modal.classList.remove('hidden');
-    setTimeout(() => {
-        modal.classList.add('opacity-100');
-        modal.classList.remove('opacity-0');
-        const inner = modal.querySelector('div.bg-white');
-        if(inner) inner.classList.add('scale-100');
-        if(inner) inner.classList.remove('scale-95');
-    }, 10);
-}
-function closeDeleteResidentModal() {
-    const modal = document.getElementById('deleteResidentModal');
-    modal.classList.remove('opacity-100');
-    modal.classList.add('opacity-0');
-    const inner = modal.querySelector('div.bg-white');
-    if(inner) inner.classList.remove('scale-100');
-    if(inner) inner.classList.add('scale-95');
-    setTimeout(() => {
-        modal.classList.add('hidden');
-        document.getElementById('deleteResidentMsg').textContent = '';
-        deleteResidentId = null;
-        const deleteBtn = document.getElementById('confirmDeleteResident');
-        deleteBtn.disabled = false;
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.classList.remove('opacity-60', 'cursor-not-allowed');
-        if(deleteCountdownTimer) clearInterval(deleteCountdownTimer);
-    }, 300);
-}
-document.getElementById('closeDeleteResidentModal').addEventListener('click', closeDeleteResidentModal);
-document.getElementById('cancelDeleteResident').addEventListener('click', closeDeleteResidentModal);
-document.getElementById('confirmDeleteResident').addEventListener('click', function() {
-    if(!deleteResidentId || this.disabled) return;
-    const msg = document.getElementById('deleteResidentMsg');
-    msg.textContent = 'Deleting...';
-    msg.className = 'mt-2 text-center text-gray-600 text-sm';
-    fetch('delete_individual.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'id=' + encodeURIComponent(deleteResidentId)
-    })
-    .then(res => res.json())
-    .then(data => {
-        if(data.success) {
-            msg.textContent = 'Resident deleted successfully!';
-            msg.className = 'mt-2 text-center text-green-600 text-sm';
-            setTimeout(() => { closeDeleteResidentModal(); location.reload(); }, 1200);
-        } else {
-            msg.textContent = data.error || 'Failed to delete resident.';
-            msg.className = 'mt-2 text-center text-red-600 text-sm';
-        }
-    })
-    .catch(() => {
-        msg.textContent = 'Failed to delete resident.';
-        msg.className = 'mt-2 text-center text-red-600 text-sm';
-    });
-});
-// Delegate click for all delete buttons
-// This works for dynamically generated rows
-// It finds the resident id from the data-resident attribute of the view button in the same row
-// and opens the modal
-//
-document.addEventListener('click', function(e) {
-    if(e.target.closest('.delete-resident-btn')) {
-        e.preventDefault();
-        var btn = e.target.closest('.delete-resident-btn');
-        var data = btn.closest('div').querySelector('.view-resident-btn')?.getAttribute('data-resident');
-        var residentId = null;
-        if(data) {
-            try {
-                var row = JSON.parse(data.replace(/&#39;/g, "'"));
-                residentId = row.id || row.ID || row.resident_id || row.individual_id;
-            } catch(err) {
-                residentId = null;
+                });
+                document.body.setAttribute('data-esc-listener-attached', 'true');
+            }
+            
+            // Handle "Add First Resident" button in empty state (only attach once)
+            const addFirstResidentBtn = document.getElementById('add-resident-link-empty');
+            if (addFirstResidentBtn && !addFirstResidentBtn.hasAttribute('data-listener-attached')) {
+                addFirstResidentBtn.addEventListener('click', function() {
+                    const modal = document.getElementById('addResidentModal');
+                    modal.style.display = 'flex';
+                    setTimeout(() => {
+                        modal.classList.add('show');
+                        modal.querySelector('.modal-container').style.transform = 'scale(1)';
+                    }, 10);
+                });
+                addFirstResidentBtn.setAttribute('data-listener-attached', 'true');
             }
         }
-        if(!residentId) {
-            alert('Resident ID not found.');
-            return;
+        
+        function viewResidentDetails(residentId) {
+            // Show loading in the view modal
+            const viewModal = document.getElementById('viewResidentModal');
+            viewModal.style.display = 'flex';
+            setTimeout(() => {
+                viewModal.classList.remove('hidden');
+                viewModal.classList.add('flex');
+                viewModal.classList.remove('opacity-0');
+                if (viewModal.querySelector('.modal-container')) {
+                    viewModal.querySelector('.modal-container').classList.remove('scale-95');
+                }
+            }, 10);
+            document.getElementById('viewResidentContent').innerHTML = `
+                <div class="text-center py-10">
+                    <div class="text-blue-500 text-3xl mb-3">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <p class="text-gray-600">Loading resident details...</p>
+                </div>
+            `;
+
+            // Fetch resident details
+            fetch(`fetch_individual_detail.php?id=${residentId}`)
+                .then(res => res.json())
+                .then(resident => {
+                    if (resident.error) {
+                        document.getElementById('viewResidentContent').innerHTML = `
+                            <div class="text-center py-10">
+                                <div class="text-red-500 text-5xl mb-3">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <p class="text-gray-700 font-medium">Error loading resident details</p>
+                                <p class="text-gray-500 mt-2">${resident.error}</p>
+                                <div class="mt-4">
+                                    <button onclick="closeViewResidentModal()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        return;
+                    }
+            // Modal content with category separation like Add Resident modal
+            let html = `
+                <form class="space-y-6">
+                    <!-- Personal Information Section -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-user text-blue-600"></i>
+                            Personal Information
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="resident-info-label mb-1">First Name</label>
+                                <input type="text" class="form-input w-full" value="${resident.first_name || ''}" readonly />
+                            </div>
+                            <div>
+                                <label class="resident-info-label mb-1">Last Name</label>
+                                <input type="text" class="form-input w-full" value="${resident.last_name || ''}" readonly />
+                            </div>
+                            <div>
+                                <label class="resident-info-label mb-1">Middle Name</label>
+                                <input type="text" class="form-input w-full" value="${resident.middle_name || ''}" readonly />
+                            </div>
+                            <div>
+                                <label class="resident-info-label mb-1">Suffix</label>
+                                <input type="text" class="form-input w-full" value="${resident.suffix || ''}" readonly />
+                            </div>
+                            <div>
+                                <label class="resident-info-label mb-1">Gender</label>
+                                <input type="text" class="form-input w-full" value="${resident.gender || ''}" readonly />
+                            </div>
+                            <div>
+                                <label class="resident-info-label mb-1">Birthdate</label>
+                                <input type="text" class="form-input w-full" value="${resident.birthdate || ''}" readonly />
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Basic Details Section -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-id-card text-green-600"></i>
+                            Basic Details
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="resident-info-label mb-1">Civil Status</label>
+                                <input type="text" class="form-input w-full" value="${resident.civil_status || ''}" readonly />
+                            </div>
+                            <div>
+                                <label class="resident-info-label mb-1">Purok</label>
+                                <input type="text" class="form-input w-full" value="${resident.purok_name || ''}" readonly />
+                            </div>
+                            <div>
+                                <label class="resident-info-label mb-1">Religion</label>
+                                <input type="text" class="form-input w-full" value="${resident.religion_name || ''}" readonly />
+                            </div>
+                            <div>
+                                <label class="resident-info-label mb-1">Email</label>
+                                <input type="text" class="form-input w-full" value="${resident.email || ''}" readonly />
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Status Information -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-tags text-purple-600"></i>
+                            Status Information
+                        </h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <div><label class="resident-info-label mb-1">Voter</label><input type="checkbox" disabled ${resident.is_voter == 1 ? 'checked' : ''} class="form-checkbox" /></div>
+                            <div><label class="resident-info-label mb-1">PWD</label><input type="checkbox" disabled ${resident.is_pwd == 1 ? 'checked' : ''} class="form-checkbox" /></div>
+                            <div><label class="resident-info-label mb-1">4Ps</label><input type="checkbox" disabled ${resident.is_4ps == 1 ? 'checked' : ''} class="form-checkbox" /></div>
+                            <div><label class="resident-info-label mb-1">Solo Parent</label><input type="checkbox" disabled ${resident.is_solo_parent == 1 ? 'checked' : ''} class="form-checkbox" /></div>
+                            <div><label class="resident-info-label mb-1">Pregnant</label><input type="checkbox" disabled ${resident.is_pregnant == 1 ? 'checked' : ''} class="form-checkbox" /></div>
+                        </div>
+                    </div>
+                    <div class='flex justify-end gap-3 pt-4 border-t mt-4'>
+                        <button type='button' onclick='closeViewResidentModal()' class='px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600'>Close</button>
+                    </div>
+                </form>
+            `;
+            document.getElementById('viewResidentContent').innerHTML = html;
+                })
+                .catch(() => {
+                    document.getElementById('viewResidentContent').innerHTML = `
+                        <div class="text-center py-10">
+                            <div class="text-red-500 text-5xl mb-3">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <p class="text-gray-700 font-medium">Failed to load resident details</p>
+                            <p class="text-gray-500 mt-2">Network error</p>
+                            <div class="mt-4">
+                                <button onclick="closeViewResidentModal()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
         }
-        openDeleteResidentModal(residentId);
-    }
-});
-</script>
+        
+        // Close the view resident modal
+        function closeViewResidentModal() {
+            const modal = document.getElementById('viewResidentModal');
+            // Hide with transition if present, else fallback
+            if (modal.querySelector('.modal-container')) {
+                modal.querySelector('.modal-container').style.transform = 'scale(0.95)';
+            }
+            modal.style.opacity = '0';
+            setTimeout(() => {
+                modal.style.display = 'none';
+                modal.style.opacity = '';
+                if (modal.querySelector('.modal-container')) {
+                    modal.querySelector('.modal-container').style.transform = '';
+                }
+                document.getElementById('viewResidentContent').innerHTML = '';
+            }, 300);
+        }
+        
+        // Close the edit resident modal
+        function closeEditResidentModal() {
+            const modal = document.getElementById('editResidentModal');
+            if (modal) {
+                modal.classList.remove('show');
+                if (modal.querySelector('.modal-container')) {
+                    modal.querySelector('.modal-container').style.transform = 'scale(0.95)';
+                }
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
+            }
+        }
+        
+        function editResident(residentId) {
+            // Get the edit modal
+            const modal = document.getElementById('editResidentModal');
+            
+            // Show loading state
+            modal.querySelector('.p-6').innerHTML = `
+                <div class="text-center py-10">
+                    <div class="text-blue-500 text-3xl mb-3">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <p class="text-gray-600">Loading resident data...</p>
+                </div>
+            `;
+            
+            // Show the modal
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.add('show');
+                modal.querySelector('.modal-container').style.transform = 'scale(1)';
+            }, 10);
+            
+            // Fetch resident details for editing
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `fetch_individual_detail.php?id=${residentId}`, true);
+            xhr.onload = function() {
+                if (this.status === 200) {
+                    try {
+                        const resident = JSON.parse(this.responseText);
+                        
+                        if (resident.error) {
+                            modal.querySelector('.p-6').innerHTML = `
+                                <div class="text-center py-10">
+                                    <div class="text-red-500 text-5xl mb-3">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                    <p class="text-gray-700 font-medium">Error loading resident data</p>
+                                    <p class="text-gray-500 mt-2">${resident.error}</p>
+                                    <div class="mt-4">
+                                        <button onclick="closeEditResidentModal()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                                            Close
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            // Debug: Log the resident data to see what we're getting
+                            console.log('Resident data from database:', resident);
+                            
+                            // Populate edit form with resident data
+                            modal.querySelector('.p-6').innerHTML = `
+                                <form id="editResidentForm" class="space-y-4">
+                                    <input type="hidden" name="id" value="${resident.id}">
+                                    
+                                    <!-- Personal Information Section -->
+                                    <div class="mb-6">
+                                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                            <i class="fas fa-user text-blue-600"></i>
+                                            Personal Information
+                                        </h3>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="form-label">First Name <span class="text-red-500">*</span></label>
+                                                <input type="text" name="first_name" value="${resident.first_name || ''}" required class="form-input">
+                                            </div>
+                                            <div>
+                                                <label class="form-label">Last Name <span class="text-red-500">*</span></label>
+                                                <input type="text" name="last_name" value="${resident.last_name || ''}" required class="form-input">
+                                            </div>
+                                            <div>
+                                                <label class="form-label">Middle Name</label>
+                                                <input type="text" name="middle_name" value="${resident.middle_name || ''}" class="form-input">
+                                            </div>
+                                            <div>
+                                                <label class="form-label">Gender <span class="text-red-500">*</span></label>
+                                                <select name="gender" required class="form-select">
+                                                    <option value="">Select Gender</option>
+                                                    <option value="M" ${(resident.gender === 'M' || resident.gender === 'Male' || resident.gender === 'male') ? 'selected' : ''}>Male</option>
+                                                    <option value="F" ${(resident.gender === 'F' || resident.gender === 'Female' || resident.gender === 'female') ? 'selected' : ''}>Female</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="form-label">Date of Birth</label>
+                                                <input type="date" name="birthdate" value="${resident.birthdate || ''}" class="form-input">
+                                            </div>
+                                            <div>
+                                                <label class="form-label">Civil Status</label>
+                                                <select name="civil_status" class="form-select">
+                                                    <option value="">Select Civil Status</option>
+                                                    <option value="single" ${(resident.civil_status && resident.civil_status.toLowerCase() === 'single') ? 'selected' : ''}>Single</option>
+                                                    <option value="married" ${(resident.civil_status && resident.civil_status.toLowerCase() === 'married') ? 'selected' : ''}>Married</option>
+                                                    <option value="widowed" ${(resident.civil_status && resident.civil_status.toLowerCase() === 'widowed') ? 'selected' : ''}>Widowed</option>
+                                                    <option value="divorced" ${(resident.civil_status && resident.civil_status.toLowerCase() === 'divorced') ? 'selected' : ''}>Divorced</option>
+                                                    <option value="separated" ${(resident.civil_status && resident.civil_status.toLowerCase() === 'separated') ? 'selected' : ''}>Separated</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Contact Information Section -->
+                                    <div class="mb-6">
+                                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                            <i class="fas fa-address-book text-green-600"></i>
+                                            Contact Information
+                                        </h3>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="form-label">Email</label>
+                                                <input type="email" name="email" value="${resident.email || ''}" class="form-input">
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                            <div>
+                                                <label class="form-label">Purok</label>
+                                                <select name="purok_id" id="edit_purok" class="form-select">
+                                                    <option value="">Select Purok</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="form-label">Religion</label>
+                                                <select name="religion" id="edit_religion" class="form-select">
+                                                    <option value="">Select Religion</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Classification Section -->
+                                    <div class="mb-6">
+                                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                            <i class="fas fa-tags text-purple-600"></i>
+                                            Classification
+                                        </h3>
+                                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                            <label class="flex items-center gap-2">
+                                                <input type="checkbox" name="is_senior_citizen" value="1" ${(resident.is_senior_citizen == 1 || resident.is_senior_citizen == '1' || resident.is_senior_citizen === true) ? 'checked' : ''} class="form-checkbox">
+                                                <span class="text-sm">Senior Citizen</span>
+                                            </label>
+                                            <label class="flex items-center gap-2">
+                                                <input type="checkbox" name="is_pwd" value="1" ${(resident.is_pwd == 1 || resident.is_pwd == '1' || resident.is_pwd === true) ? 'checked' : ''} class="form-checkbox">
+                                                <span class="text-sm">PWD</span>
+                                            </label>
+                                            <label class="flex items-center gap-2">
+                                                <input type="checkbox" name="is_4ps" value="1" ${(resident.is_4ps == 1 || resident.is_4ps == '1' || resident.is_4ps === true) ? 'checked' : ''} class="form-checkbox">
+                                                <span class="text-sm">4Ps Beneficiary</span>
+                                            </label>
+                                            <label class="flex items-center gap-2">
+                                                <input type="checkbox" name="is_solo_parent" value="1" ${(resident.is_solo_parent == 1 || resident.is_solo_parent == '1' || resident.is_solo_parent === true) ? 'checked' : ''} class="form-checkbox">
+                                                <span class="text-sm">Solo Parent</span>
+                                            </label>
+                                            <label class="flex items-center gap-2">
+                                                <input type="checkbox" name="is_pregnant" value="1" ${(resident.is_pregnant == 1 || resident.is_pregnant == '1' || resident.is_pregnant === true) ? 'checked' : ''} class="form-checkbox">
+                                                <span class="text-sm">Pregnant</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Form Messages -->
+                                    <div id="editResidentMsg" class="mt-4"></div>
+                                    
+                                    <!-- Form Actions -->
+                                    <div class="flex justify-end gap-3 pt-6 border-t">
+                                        <button type="button" id="cancelEditResident" class="btn-secondary">
+                                            <i class="fas fa-times"></i>
+                                            Cancel
+                                        </button>
+                                        <button type="submit" class="btn-primary">
+                                            <i class="fas fa-save"></i>
+                                            Save Changes
+                                        </button>
+                                    </div>
+                                </form>
+                            `;
+                            
+                            // Load dropdown options and select current values
+                            fetchPuroks(() => {
+                                const purokSelect = document.getElementById('edit_purok');
+                                if (purokSelect && resident.purok_id) {
+                                    purokSelect.value = resident.purok_id;
+                                }
+                            });
+                            
+                            fetchReligions(() => {
+                                const religionSelect = document.getElementById('edit_religion');
+                                if (religionSelect && resident.religion) {
+                                    religionSelect.value = resident.religion;
+                                }
+                            });
+                            
+                            // Re-attach form event handlers
+                            attachEditFormHandlers();
+                        }
+                    } catch (e) {
+                        modal.querySelector('.p-6').innerHTML = `
+                            <div class="text-center py-10">
+                                <div class="text-red-500 text-5xl mb-3">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <p class="text-gray-700 font-medium">Error parsing resident data</p>
+                                <p class="text-gray-500 mt-2">Please try again later</p>
+                                <div class="mt-4">
+                                    <button onclick="closeEditResidentModal()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                } else {
+                    modal.querySelector('.p-6').innerHTML = `
+                        <div class="text-center py-10">
+                            <div class="text-red-500 text-5xl mb-3">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <p class="text-gray-700 font-medium">Failed to load resident data</p>
+                            <p class="text-gray-500 mt-2">Server error (${this.status})</p>
+                            <div class="mt-4">
+                                <button onclick="closeEditResidentModal()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+            };
+            xhr.send();
+            
+            // Re-attach close event handler
+            setTimeout(() => {
+                const closeBtn = document.getElementById('closeEditResidentModal');
+                if (closeBtn) {
+                    closeBtn.onclick = closeEditResidentModal;
+                }
+                const cancelBtn = document.getElementById('cancelEditResident');
+                if (cancelBtn) {
+                    cancelBtn.onclick = closeEditResidentModal;
+                }
+            }, 100);
+        }
+        
+        function attachEditFormHandlers() {
+            // Cancel button
+            document.getElementById('cancelEditResident').addEventListener('click', closeEditResidentModal);
+            
+            // Form submission
+            document.getElementById('editResidentForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const msgElement = document.getElementById('editResidentMsg');
+                
+                // Show loading
+                msgElement.innerHTML = `<div class="text-blue-600"><i class="fas fa-spinner fa-spin mr-2"></i>Updating resident...</div>`;
+                
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', 'edit_individual.php', true);
+                xhr.onload = function() {
+                    if (this.status === 200) {
+                        try {
+                            const response = JSON.parse(this.responseText);
+                            
+                            if (response.success) {
+                                msgElement.innerHTML = `<div class="text-green-600">${response.message}</div>`;
+                                
+                                // Refresh the table after a short delay
+                                setTimeout(() => {
+                                    window.table.setData("fetch_individuals.php");
+                                    
+                                    // Close modal after data refresh
+                                    setTimeout(() => {
+                                        closeEditResidentModal();
+                                    }, 500);
+                                }, 1000);
+                            } else {
+                                msgElement.innerHTML = `<div class="text-red-600">${response.message}</div>`;
+                            }
+                        } catch (e) {
+                            msgElement.innerHTML = `<div class="text-red-600">Error processing response</div>`;
+                            console.error("Error parsing response:", this.responseText);
+                        }
+                    } else {
+                        msgElement.innerHTML = `<div class="text-red-600">Server error (${this.status})</div>`;
+                    }
+                };
+                xhr.send(formData);
+            });
+        }
+        
+        function showDeleteConfirmation(residentId) {
+            const modal = document.getElementById('deleteResidentModal');
+            const confirmBtn = document.getElementById('confirmDeleteResident');
+            const deleteButtonText = document.getElementById('deleteButtonText');
+            
+            // Store the resident ID for later use
+            modal.setAttribute('data-resident-id', residentId);
+            
+            // Reset any previous messages
+            document.getElementById('deleteResidentMsg').innerHTML = '';
+            
+            // Reset button state
+            confirmBtn.disabled = true;
+            confirmBtn.classList.add('disabled:bg-gray-400', 'disabled:cursor-not-allowed');
+            confirmBtn.classList.remove('hover:bg-red-600');
+            
+            // Start countdown timer
+            let countdown = 4;
+            deleteButtonText.textContent = `Delete (${countdown})`;
+            
+            const countdownTimer = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    deleteButtonText.textContent = `Delete (${countdown})`;
+                } else {
+                    // Enable the button after countdown
+                    clearInterval(countdownTimer);
+                    confirmBtn.disabled = false;
+                    confirmBtn.classList.remove('disabled:bg-gray-400', 'disabled:cursor-not-allowed');
+                    confirmBtn.classList.add('hover:bg-red-600');
+                    deleteButtonText.textContent = 'Delete';
+                }
+            }, 1000);
+            
+            // Store timer reference to clear it if modal is closed
+            modal.countdownTimer = countdownTimer;
+            
+            // Show the modal
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.add('flex');
+                modal.classList.remove('opacity-0');
+                modal.querySelector('.modal-container').classList.remove('scale-95');
+            }, 10);
+            
+            // Attach event handlers
+            document.getElementById('cancelDeleteResident').onclick = closeDeleteResidentModal;
+            document.getElementById('closeDeleteResidentModal').onclick = closeDeleteResidentModal;
+            confirmBtn.onclick = function() {
+                if (!confirmBtn.disabled) {
+                    deleteResident(residentId);
+                }
+            };
+        }
+        
+        function closeDeleteResidentModal() {
+            const modal = document.getElementById('deleteResidentModal');
+            const confirmBtn = document.getElementById('confirmDeleteResident');
+            const deleteButtonText = document.getElementById('deleteButtonText');
+            
+            // Clear countdown timer if it exists
+            if (modal.countdownTimer) {
+                clearInterval(modal.countdownTimer);
+                modal.countdownTimer = null;
+            }
+            
+            // Reset button state
+            confirmBtn.disabled = true;
+            confirmBtn.classList.add('disabled:bg-gray-400', 'disabled:cursor-not-allowed');
+            confirmBtn.classList.remove('hover:bg-red-600');
+            deleteButtonText.textContent = 'Delete (4)';
+            
+            modal.classList.add('opacity-0');
+            modal.querySelector('.modal-container').classList.add('scale-95');
+            
+            // Hide the modal after the transition
+            setTimeout(() => {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+                document.getElementById('deleteResidentMsg').innerHTML = ''; // Clear any messages
+            }, 300);
+        }
+
+        function deleteResident(residentId) {
+            const msgElement = document.getElementById('deleteResidentMsg');
+            const confirmBtn = document.getElementById('confirmDeleteResident');
+            const cancelBtn = document.getElementById('cancelDeleteResident');
+            
+            // Show loading state
+            msgElement.innerHTML = `<div class="text-blue-600"><i class="fas fa-spinner fa-spin mr-2"></i>Deleting resident...</div>`;
+            confirmBtn.disabled = true;
+            cancelBtn.disabled = true;
+            
+            // Send delete request
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'delete_individual.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onload = function() {
+                if (this.status === 200) {
+                    try {
+                        const response = JSON.parse(this.responseText);
+                        
+                        if (response.success) {
+                            msgElement.innerHTML = `<div class="text-green-600">${response.message}</div>`;
+                            
+                            // Refresh the table after a short delay
+                            setTimeout(() => {
+                                window.table.setData("fetch_individuals.php");
+                                
+                                // Close modal after data refresh
+                                setTimeout(() => {
+                                    closeDeleteResidentModal();
+                                }, 500);
+                            }, 1000);
+                        } else {
+                            msgElement.innerHTML = `<div class="text-red-600">${response.message}</div>`;
+                            // Re-enable buttons on error
+                            confirmBtn.disabled = false;
+                            cancelBtn.disabled = false;
+                        }
+                    } catch (e) {
+                        msgElement.innerHTML = `<div class="text-red-600">Error processing response</div>`;
+                        console.error("Error parsing response:", this.responseText);
+                        // Re-enable buttons on error
+                        confirmBtn.disabled = false;
+                        cancelBtn.disabled = false;
+                    }
+                } else {
+                    msgElement.innerHTML = `<div class="text-red-600">Server error (${this.status})</div>`;
+                    // Re-enable buttons on error
+                    confirmBtn.disabled = false;
+                    cancelBtn.disabled = false;
+                }
+            };
+            xhr.send(`id=${encodeURIComponent(residentId)}`);
+        }
+        
+        // Fetch functions for dropdowns
+        function fetchPuroks(callback) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', 'fetch_puroks.php', true);
+            xhr.onload = function() {
+                if (this.status === 200) {
+                    const puroks = JSON.parse(this.responseText);
+                    const addSelect = document.getElementById('purokSelect');
+                    const editSelect = document.getElementById('edit_purok');
+                    const filterSelect = document.getElementById('purokFilterSelect');
+                    
+                    // Clear existing options except the first one
+                    if (addSelect) {
+                        addSelect.innerHTML = '<option value="">Select Purok</option>';
+                    }
+                    if (editSelect) {
+                        editSelect.innerHTML = '<option value="">Select Purok</option>';
+                    }
+                    if (filterSelect) {
+                        filterSelect.innerHTML = '<option value="">All Puroks</option>';
+                    }
+                    
+                    puroks.forEach(purok => {
+                        if (addSelect) {
+                            addSelect.innerHTML += `<option value="${purok.id}">${purok.name}</option>`;
+                        }
+                        if (editSelect) {
+                            editSelect.innerHTML += `<option value="${purok.id}">${purok.name}</option>`;
+                        }
+                        if (filterSelect) {
+                            filterSelect.innerHTML += `<option value="${purok.id}">${purok.name}</option>`;
+                        }
+                    });
+                    
+                    // Execute callback if provided
+                    if (callback && typeof callback === 'function') {
+                        callback();
+                    }
+                }
+            };
+            xhr.send();
+        }
+        
+        function fetchReligions(callback) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', 'fetch_religions.php', true);
+            xhr.onload = function() {
+                if (this.status === 200) {
+                    const religions = JSON.parse(this.responseText);
+                    const addSelect = document.getElementById('religionSelect');
+                    const editSelect = document.getElementById('edit_religion');
+                    
+                    // Clear existing options except the first one
+                    if (addSelect) {
+                        addSelect.innerHTML = '<option value="">Select Religion</option>';
+                    }
+                    if (editSelect) {
+                        editSelect.innerHTML = '<option value="">Select Religion</option>';
+                    }
+                    
+                    religions.forEach(religion => {
+                        if (addSelect) {
+                            addSelect.innerHTML += `<option value="${religion.id}">${religion.name}</option>`;
+                        }
+                        if (editSelect) {
+                            editSelect.innerHTML += `<option value="${religion.id}">${religion.name}</option>`;
+                        }
+                    });
+                    
+                    // Execute callback if provided
+                    if (callback && typeof callback === 'function') {
+                        callback();
+                    }
+                }
+            };
+            xhr.send();
+        }
+    </script>
 </body>
 </html>

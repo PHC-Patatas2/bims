@@ -116,7 +116,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 </div>
             </div>
             <?php
-            $settingsActive = navActive(['officials.php', 'users.php', 'settings.php', 'logs.php']);
+            $settingsActive = navActive(['officials.php', 'settings.php', 'logs.php']);
             $settingsId = 'settingsSubNav';
             ?>
             <div class="mt-2">
@@ -125,8 +125,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 </button>
                 <div id="<?php echo $settingsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $settingsActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
                     <?php echo navLink('officials.php', 'fas fa-user-tie', 'Officials', navActive('officials.php'));
-                    ?>
-                    <?php echo navLink('users.php', 'fas fa-users-cog', 'User Accounts', navActive('users.php'));
                     ?>
                     <?php echo navLink('settings.php', 'fas fa-cog', 'General Settings', navActive('settings.php'));
                     ?>
@@ -159,13 +157,161 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
     </nav>
     <div class="flex-1 transition-all duration-300 ease-in-out p-2 md:px-0 md:pt-4 mt-16 flex flex-col items-center">
         <div class="w-full px-4 md:px-8">
-            <div class="flex items-center mb-4">
-                <h1 class="text-2xl font-bold">Officials Management</h1>
+            <!-- Header with Add Button -->
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Officials Management</h1>
+                    <p class="text-gray-600">Manage barangay officials and their positions</p>
+                </div>
+                <button onclick="openOfficialModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Add Official
+                </button>
             </div>
-            <div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-                <i class="fas fa-user-tie text-5xl mb-4 text-blue-400"></i>
-                <div class="text-xl font-semibold mb-2">This is a placeholder for the Officials Management page.</div>
-                <div class="mb-4">You can implement officials management features here.</div>
+
+            <!-- Officials Grid (Cards) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6" id="officialsGrid">
+                <?php
+                // Fetch officials from barangay_officials table (using your actual structure)
+                $officials = [];
+                $officials_result = $conn->query("SELECT id, first_name, middle_initial, last_name, suffix, position FROM barangay_officials ORDER BY FIELD(position, 'Punong Barangay', 'Barangay Secretary', 'Barangay Treasurer', 'Sangguniang Barangay Member'), id ASC");
+                if ($officials_result) {
+                    while ($row = $officials_result->fetch_assoc()) {
+                        $officials[] = $row;
+                    }
+                }
+                foreach ($officials as $official) {
+                    // Build full name
+                    $full_name = htmlspecialchars($official['first_name']);
+                    if (!empty($official['middle_initial'])) $full_name .= ' ' . htmlspecialchars($official['middle_initial']) . '.';
+                    $full_name .= ' ' . htmlspecialchars($official['last_name']);
+                    if (!empty($official['suffix'])) $full_name .= ', ' . htmlspecialchars($official['suffix']);
+                    // Icon by position
+                    $icon = 'fa-user';
+                    if (stripos($official['position'], 'Punong Barangay') !== false) $icon = 'fa-user-tie';
+                    elseif (stripos($official['position'], 'Secretary') !== false) $icon = 'fa-user-pen';
+                    elseif (stripos($official['position'], 'Treasurer') !== false) $icon = 'fa-coins';
+                    elseif (stripos($official['position'], 'Kagawad') !== false || stripos($official['position'], 'Sangguniang Barangay Member') !== false) $icon = 'fa-user-friends';
+                    // Card
+                ?>
+                <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 flex flex-col justify-between">
+                    <div class="flex items-center mb-4">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas <?php echo $icon; ?> text-blue-600 text-2xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-gray-900"><?php echo $full_name; ?></h3>
+                            <p class="text-sm text-gray-600"><?php echo htmlspecialchars($official['position']); ?></p>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-2 mt-2">
+                        <button onclick="editOfficial(<?php echo (int)$official['id']; ?>)" class="text-blue-600 hover:text-blue-800 p-2" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteOfficial(<?php echo (int)$official['id']; ?>)" class="text-red-600 hover:text-red-800 p-2" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <?php } ?>
+                <?php if (empty($officials)) { ?>
+                    <div class="col-span-full text-center text-gray-500 py-12">No officials found.</div>
+                <?php } ?>
+            </div>
+
+            <!-- Officials Table removed as requested -->
+
+            <!-- Add/Edit Official Modal -->
+            <div id="officialModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+                <div class="flex items-center justify-center min-h-screen p-4">
+                    <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                        <div class="flex items-center justify-between p-6 border-b">
+                            <h3 class="text-lg font-semibold" id="modalTitle">Add Official</h3>
+                            <button onclick="closeOfficialModal()" class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <form id="officialForm" class="p-6">
+                            <input type="hidden" id="officialId">
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                                <input type="text" id="officialName" required 
+                                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Position</label>
+                                <select id="officialPosition" required 
+                                        class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Position</option>
+                                    <option value="Barangay Captain">Barangay Captain</option>
+                                    <option value="Barangay Kagawad">Barangay Kagawad</option>
+                                    <option value="Barangay Secretary">Barangay Secretary</option>
+                                    <option value="Barangay Treasurer">Barangay Treasurer</option>
+                                    <option value="SK Chairman">SK Chairman</option>
+                                    <option value="SK Kagawad">SK Kagawad</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Term Start</label>
+                                <input type="date" id="termStart" required 
+                                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Term End</label>
+                                <input type="date" id="termEnd" required 
+                                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Contact Number</label>
+                                <input type="tel" id="contactNumber" 
+                                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                                <select id="officialStatus" 
+                                        class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                </select>
+                            </div>
+                        </form>
+                        <div class="flex justify-end gap-3 p-6 border-t">
+                            <button onclick="closeOfficialModal()" type="button" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                                Cancel
+                            </button>
+                            <button onclick="saveOfficial()" type="button" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                Save Official
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delete Confirmation Modal -->
+            <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+                <div class="flex items-center justify-center min-h-screen p-4">
+                    <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                        <div class="p-6">
+                            <div class="flex items-center mb-4">
+                                <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
+                                    <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900">Confirm Delete</h3>
+                                    <p class="text-sm text-gray-600">Are you sure you want to delete this official?</p>
+                                </div>
+                            </div>
+                            <p class="text-gray-700 mb-6" id="deleteOfficialName"></p>
+                        </div>
+                        <div class="flex justify-end gap-3 p-6 border-t">
+                            <button onclick="closeDeleteModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                                Cancel
+                            </button>
+                            <button onclick="confirmDelete()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -204,6 +350,248 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 }
             });
         }
+
+        // Fill officials from PHP (database)
+        let officials = [
+            <?php
+            $officials_result = $conn->query("SELECT id, first_name, middle_initial, last_name, suffix, position FROM barangay_officials ORDER BY FIELD(position, 'Punong Barangay', 'Barangay Secretary', 'Barangay Treasurer', 'Sangguniang Barangay Member'), id ASC");
+            if ($officials_result) {
+                $first = true;
+                while ($row = $officials_result->fetch_assoc()) {
+                    if (!$first) echo ",\n"; else $first = false;
+                    $full_name = addslashes($row['first_name']);
+                    if (!empty($row['middle_initial'])) $full_name .= ' ' . addslashes($row['middle_initial']) . '.';
+                    $full_name .= ' ' . addslashes($row['last_name']);
+                    if (!empty($row['suffix'])) $full_name .= ', ' . addslashes($row['suffix']);
+                    echo json_encode([
+                        'id' => (int)$row['id'],
+                        'name' => $full_name,
+                        'position' => $row['position'],
+                        // No term_start, term_end, contact_number, status in schema
+                    ]);
+                }
+            }
+            ?>
+        ];
+
+        let officialsTable;
+        let editingOfficialId = null;
+        let deletingOfficialId = null;
+
+        // Initialize Tabulator table
+        function initializeTable() {
+            officialsTable = new Tabulator("#officialsTable", {
+                data: officials,
+                layout: "fitColumns",
+                pagination: "local",
+                paginationSize: 10,
+                paginationSizeSelector: [5, 10, 20],
+                movableColumns: true,
+                resizableColumns: true,
+                columns: [
+                    {title: "Name", field: "name", width: 200, sorter: "string"},
+                    {title: "Position", field: "position", width: 180, sorter: "string"},
+                    {title: "Term Start", field: "term_start", width: 120, sorter: "date", 
+                     formatter: function(cell) {
+                         return new Date(cell.getValue()).toLocaleDateString();
+                     }
+                    },
+                    {title: "Term End", field: "term_end", width: 120, sorter: "date", 
+                     formatter: function(cell) {
+                         return new Date(cell.getValue()).toLocaleDateString();
+                     }
+                    },
+                    {title: "Contact", field: "contact_number", width: 150, sorter: "string"},
+                    {title: "Status", field: "status", width: 100, sorter: "string",
+                     formatter: function(cell) {
+                         const status = cell.getValue();
+                         const color = status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                         return `<span class="px-2 py-1 rounded-full text-xs ${color}">${status}</span>`;
+                     }
+                    },
+                    {title: "Actions", formatter: function(cell) {
+                        const id = cell.getRow().getData().id;
+                        return `
+                            <button onclick="editOfficial(${id})" class="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600 mr-1">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="deleteOfficial(${id})" class="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        `;
+                     }, width: 120, hozAlign: "center", headerSort: false}
+                ]
+            });
+        }
+
+        // Render officials grid
+        function renderOfficialsGrid() {
+            const grid = document.getElementById('officialsGrid');
+            grid.innerHTML = '';
+
+            officials.forEach(official => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6';
+                card.innerHTML = `
+                    <div class="flex items-center mb-4">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-user text-blue-600 text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-gray-900">${official.name}</h3>
+                            <p class="text-sm text-gray-600">${official.position}</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-2">
+                        <button onclick="editOfficial(${official.id})" class="text-blue-600 hover:text-blue-800 p-2">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteOfficial(${official.id})" class="text-red-600 hover:text-red-800 p-2">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Modal functions
+        function openOfficialModal(id = null) {
+            editingOfficialId = id;
+            const modal = document.getElementById('officialModal');
+            const title = document.getElementById('modalTitle');
+            const form = document.getElementById('officialForm');
+
+            if (id) {
+                // Edit mode
+                title.textContent = 'Edit Official';
+                const official = officials.find(o => o.id === id);
+                if (official) {
+                    document.getElementById('officialId').value = official.id;
+                    document.getElementById('officialName').value = official.name;
+                    document.getElementById('officialPosition').value = official.position;
+                    document.getElementById('termStart').value = official.term_start;
+                    document.getElementById('termEnd').value = official.term_end;
+                    document.getElementById('contactNumber').value = official.contact_number;
+                    document.getElementById('officialStatus').value = official.status;
+                }
+            } else {
+                // Add mode
+                title.textContent = 'Add Official';
+                form.reset();
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeOfficialModal() {
+            document.getElementById('officialModal').classList.add('hidden');
+            document.getElementById('officialForm').reset();
+            editingOfficialId = null;
+        }
+
+        function saveOfficial() {
+            const name = document.getElementById('officialName').value;
+            const position = document.getElementById('officialPosition').value;
+            const termStart = document.getElementById('termStart').value;
+            const termEnd = document.getElementById('termEnd').value;
+            const contactNumber = document.getElementById('contactNumber').value;
+            const status = document.getElementById('officialStatus').value;
+
+            if (!name || !position || !termStart || !termEnd) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            if (editingOfficialId) {
+                // Update existing official
+                const index = officials.findIndex(o => o.id === editingOfficialId);
+                if (index !== -1) {
+                    officials[index] = {
+                        ...officials[index],
+                        name,
+                        position,
+                        term_start: termStart,
+                        term_end: termEnd,
+                        contact_number: contactNumber,
+                        status
+                    };
+                }
+            } else {
+                // Add new official
+                const newId = Math.max(...officials.map(o => o.id)) + 1;
+                officials.push({
+                    id: newId,
+                    name,
+                    position,
+                    term_start: termStart,
+                    term_end: termEnd,
+                    contact_number: contactNumber,
+                    status
+                });
+            }
+
+            // Refresh displays
+            renderOfficialsGrid();
+            officialsTable.setData(officials);
+            closeOfficialModal();
+            showNotification(editingOfficialId ? 'Official updated successfully!' : 'Official added successfully!', 'success');
+        }
+
+        function editOfficial(id) {
+            openOfficialModal(id);
+        }
+
+        function deleteOfficial(id) {
+            deletingOfficialId = id;
+            const official = officials.find(o => o.id === id);
+            if (official) {
+                document.getElementById('deleteOfficialName').textContent = `${official.name} (${official.position})`;
+                document.getElementById('deleteModal').classList.remove('hidden');
+            }
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+            deletingOfficialId = null;
+        }
+
+        function confirmDelete() {
+            if (deletingOfficialId) {
+                officials = officials.filter(o => o.id !== deletingOfficialId);
+                renderOfficialsGrid();
+                officialsTable.setData(officials);
+                closeDeleteModal();
+                showNotification('Official deleted successfully!', 'success');
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-20 right-4 p-4 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-500 text-white' : 
+                type === 'error' ? 'bg-red-500 text-white' : 
+                'bg-blue-500 text-white'
+            }`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation' : 'info'} mr-2"></i>
+                    ${message}
+                </div>
+            `;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 3000);
+        }
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTable();
+            renderOfficialsGrid();
+        });
         // Dropdown open/close effect styles
         const style = document.createElement('style');
         style.innerHTML = `

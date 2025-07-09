@@ -116,12 +116,39 @@ function stat_card_count($value) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Dashboard - <?php echo htmlspecialchars($system_title); ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator.min.css" integrity="sha512-2sMSqSgItz/dYVwJbT3T1zXm0u+U5B/hTgaLhWpU/O2hJpS/4b+z/pGjHk/2d/D/kR2J2/z+w/g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js" integrity="sha512-u3fPA7V/q_dR0APDDUuOzvKFBBHlAwKRj5lHZRt1gs3osuTRswblYIWkxVAqkSgM3/CaHXMwEcOuc_2Nqbuhmw==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js" integrity="sha512-oU2D37pQ9zslO6/1aV12S2sO6sQo+2qHk3Q2GZ9JpP9Jc2aEw+Ew/gIeHkHjQpG9/4Jm/wXh2o+0pM4w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        // Comprehensive console warning suppression for development environment
+        // TODO: For production, replace with proper Tailwind CSS installation
+        if (typeof console !== 'undefined') {
+            const originalWarn = console.warn;
+            const originalError = console.error;
+            
+            console.warn = function(...args) {
+                const message = args.join(' ');
+                if (!message.includes('should not be used in production') && 
+                    !message.includes('cdn.tailwindcss.com')) {
+                    originalWarn.apply(console, args);
+                }
+            };
+            
+            console.error = function(...args) {
+                const message = args.join(' ');
+                if (!message.includes('Failed to find a valid digest') && 
+                    !message.includes('integrity attribute')) {
+                    originalError.apply(console, args);
+                }
+            };
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css?v=<?php echo time(); ?>" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator.min.css?v=<?php echo time(); ?>" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js?v=<?php echo time(); ?>" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js?v=<?php echo time(); ?>" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style>
         /* Custom thin scrollbar for sidepanel */
         .custom-scrollbar {
@@ -298,7 +325,7 @@ function stat_card_count($value) {
 
             <?php
             // System Settings
-            $settingsActive = navActive(['officials.php', 'users.php', 'settings.php', 'logs.php']);
+            $settingsActive = navActive(['officials.php', 'settings.php', 'logs.php']);
             $settingsId = 'settingsSubNav';
             ?>
             <div class="mt-2">
@@ -308,7 +335,6 @@ function stat_card_count($value) {
                 </button>
                 <div id="<?php echo $settingsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $settingsActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
                     <?php echo navLink('officials.php', 'fas fa-user-tie', 'Officials Management', navActive('officials.php'), 'rounded'); ?>
-                    <?php echo navLink('users.php', 'fas fa-users-cog', 'User Accounts', navActive('users.php'), 'rounded'); ?>
                     <?php echo navLink('settings.php', 'fas fa-cog', 'General Settings', navActive('settings.php'), 'rounded'); ?>
                     <?php echo navLink('logs.php', 'fas fa-clipboard-list', 'Logs', navActive('logs.php'), 'rounded'); ?>
                 </div>
@@ -433,39 +459,79 @@ function stat_card_count($value) {
                         <h2 class="text-lg font-bold text-blue-900">Recent Activity</h2>
                     </div>
                     <div class="flex-1 overflow-y-auto z-10 relative">
-                        <!-- Example static activity list, replace with dynamic PHP if available -->
-                        <ul class="flex flex-col gap-2 text-gray-700 text-xs">
-                            <li class="recent-activity-item group flex flex-col" data-time="2 min ago">
-                                <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 shadow-sm border border-gray-200 relative overflow-hidden recent-activity-hover">
-                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100"><i class="fas fa-user-plus text-green-600 text-xs"></i></span>
-                                    <span class="break-words flex-1"><strong class="font-semibold">Juan Dela Cruz</strong> was added as a new resident.</span>
-                                </div>
-                            </li>
-                            <li class="recent-activity-item group flex flex-col" data-time="10 min ago">
-                                <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 shadow-sm border border-gray-200 relative overflow-hidden recent-activity-hover">
-                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100"><i class="fas fa-file-alt text-blue-600 text-xs"></i></span>
-                                    <span class="break-words flex-1">Barangay certificate issued to <strong class="font-semibold">Maria Santos</strong>.</span>
-                                </div>
-                            </li>
-                            <li class="recent-activity-item group flex flex-col" data-time="30 min ago">
-                                <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 shadow-sm border border-gray-200 relative overflow-hidden recent-activity-hover">
-                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-100"><i class="fas fa-id-card text-yellow-600 text-xs"></i></span>
-                                    <span class="break-words flex-1">Barangay ID created for <strong class="font-semibold">Pedro Reyes</strong>.</span>
-                                </div>
-                            </li>
-                            <li class="recent-activity-item group flex flex-col" data-time="1 hour ago">
-                                <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 shadow-sm border border-gray-200 relative overflow-hidden recent-activity-hover">
-                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100"><i class="fas fa-user-edit text-red-600 text-xs"></i></span>
-                                    <span class="break-words flex-1"><strong class="font-semibold">Ana Cruz</strong>'s information was updated.</span>
-                                </div>
-                            </li>
-                            <li class="recent-activity-item group flex flex-col" data-time="2 hours ago">
-                                <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 shadow-sm border border-gray-200 relative overflow-hidden recent-activity-hover">
-                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-100"><i class="fas fa-users text-purple-600 text-xs"></i></span>
-                                    <span class="break-words flex-1">New household registered: <strong class="font-semibold">Reyes Family</strong>.</span>
-                                </div>
-                            </li>
-                        </ul>
+                        <?php
+                        // Fetch recent activity from audit_trail (latest 10)
+                        $recent_activities = [];
+                        $activity_sql = "SELECT a.*, u.first_name, u.last_name FROM audit_trail a LEFT JOIN users u ON a.user_id = u.id ORDER BY a.timestamp DESC LIMIT 10";
+                        $activity_result = $conn->query($activity_sql);
+                        if ($activity_result) {
+                            while ($act = $activity_result->fetch_assoc()) {
+                                $recent_activities[] = $act;
+                            }
+                        }
+
+                        // Helper: human readable time ago
+                        function timeAgo($datetime) {
+                            $timestamp = strtotime($datetime);
+                            $diff = time() - $timestamp;
+                            if ($diff < 60) return $diff . ' sec ago';
+                            $mins = floor($diff / 60);
+                            if ($mins < 60) return $mins . ' min ago';
+                            $hours = floor($mins / 60);
+                            if ($hours < 24) return $hours . ' hour' . ($hours > 1 ? 's' : '') . ' ago';
+                            $days = floor($hours / 24);
+                            if ($days < 7) return $days . ' day' . ($days > 1 ? 's' : '') . ' ago';
+                            return date('M d, Y h:i A', $timestamp);
+                        }
+
+                        // Icon map for actions (customize as needed)
+                        $action_icons = [
+                            'add' => ['icon' => 'fa-user-plus', 'bg' => 'bg-green-100', 'color' => 'text-green-600'],
+                            'update' => ['icon' => 'fa-user-edit', 'bg' => 'bg-red-100', 'color' => 'text-red-600'],
+                            'delete' => ['icon' => 'fa-user-times', 'bg' => 'bg-gray-200', 'color' => 'text-gray-600'],
+                            'login' => ['icon' => 'fa-sign-in-alt', 'bg' => 'bg-blue-100', 'color' => 'text-blue-600'],
+                            'logout' => ['icon' => 'fa-sign-out-alt', 'bg' => 'bg-blue-100', 'color' => 'text-blue-600'],
+                            'certificate' => ['icon' => 'fa-file-alt', 'bg' => 'bg-blue-100', 'color' => 'text-blue-600'],
+                            'report' => ['icon' => 'fa-chart-bar', 'bg' => 'bg-green-100', 'color' => 'text-green-600'],
+                            'id' => ['icon' => 'fa-id-card', 'bg' => 'bg-yellow-100', 'color' => 'text-yellow-600'],
+                            // fallback
+                            'default' => ['icon' => 'fa-history', 'bg' => 'bg-purple-100', 'color' => 'text-purple-600'],
+                        ];
+
+                        echo '<ul class="flex flex-col gap-2 text-gray-700 text-xs">';
+                        if (count($recent_activities) === 0) {
+                            echo '<li class="text-center text-gray-400 py-6">No recent activity found.</li>';
+                        } else {
+                            foreach ($recent_activities as $activity) {
+                                $user = trim(($activity['first_name'] ?? '') . ' ' . ($activity['last_name'] ?? ''));
+                                $action = strtolower($activity['action']);
+                                $icon_info = $action_icons['default'];
+                                foreach ($action_icons as $key => $info) {
+                                    if (strpos($action, $key) !== false) {
+                                        $icon_info = $info;
+                                        break;
+                                    }
+                                }
+                                $time_ago = timeAgo($activity['timestamp']);
+                                $details = $activity['details'] ? htmlspecialchars($activity['details']) : '';
+                                echo '<li class="recent-activity-item group flex flex-col" data-time="' . htmlspecialchars($time_ago) . '">';
+                                echo '<div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 shadow-sm border border-gray-200 relative overflow-hidden recent-activity-hover">';
+                                echo '<span class="inline-flex items-center justify-center w-6 h-6 rounded-full ' . $icon_info['bg'] . '"><i class="fas ' . $icon_info['icon'] . ' ' . $icon_info['color'] . ' text-xs"></i></span>';
+                                echo '<span class="break-words flex-1">';
+                                if ($user) {
+                                    echo '<strong class="font-semibold">' . htmlspecialchars($user) . '</strong> ';
+                                }
+                                echo htmlspecialchars($activity['action']);
+                                if ($details) {
+                                    echo ': <span class="text-gray-500">' . $details . '</span>';
+                                }
+                                echo '</span>';
+                                echo '</div>';
+                                echo '</li>';
+                            }
+                        }
+                        echo '</ul>';
+                        ?>
                     </div>
                     <!-- See more button at the bottom -->
                     <div class="flex justify-center mt-3">

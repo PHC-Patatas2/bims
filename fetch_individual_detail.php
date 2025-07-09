@@ -17,12 +17,34 @@ if ($conn->connect_error) {
 }
 
 $id = intval($_GET['id']);
-$sql = "SELECT first_name, middle_name, last_name, suffix, gender, birthdate, civil_status, blood_type, religion, is_pwd, is_voter, is_4ps, is_pregnant, created_at, is_solo_parent, purok_id FROM individuals WHERE id = ? LIMIT 1";
+$sql = "SELECT i.*, p.name AS purok_name, i.religion AS religion_name
+        FROM individuals i 
+        LEFT JOIN purok p ON i.purok_id = p.id 
+        WHERE i.id = ? LIMIT 1";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param('i', $id);
 $stmt->execute();
 $result = $stmt->get_result();
 if ($row = $result->fetch_assoc()) {
+    // Always include the id field in the response
+    $row['id'] = $id;
+    
+    // Format some values for display
+    $row['is_voter'] = $row['is_voter'] ? 1 : 0;
+    $row['is_pwd'] = $row['is_pwd'] ? 1 : 0;
+    $row['is_4ps'] = $row['is_4ps'] ? 1 : 0;
+    $row['is_solo_parent'] = $row['is_solo_parent'] ? 1 : 0;
+    $row['is_pregnant'] = $row['is_pregnant'] ? 1 : 0;
+    $row['is_senior_citizen'] = isset($row['is_senior_citizen']) ? ($row['is_senior_citizen'] ? 1 : 0) : 0;
+    
+    // Calculate age if birthdate is available
+    if (!empty($row['birthdate'])) {
+        $birthDate = new DateTime($row['birthdate']);
+        $today = new DateTime('today');
+        $row['age'] = $birthDate->diff($today)->y;
+        $row['date_of_birth'] = $row['birthdate']; // Alias for consistency
+    }
+    
     echo json_encode($row);
 } else {
     http_response_code(404);

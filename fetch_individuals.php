@@ -8,8 +8,59 @@ if ($conn->connect_error) {
     echo json_encode(["error" => "Database connection failed."]);
     exit();
 }
+$where = [];
+$params = [];
+
+// Server-side filtering based on filter_type
+if (isset($_GET['filter_type'])) {
+    $type = $_GET['filter_type'];
+    switch ($type) {
+        case 'male':
+            $where[] = "LOWER(i.gender) = 'male'";
+            break;
+        case 'female':
+            $where[] = "LOWER(i.gender) = 'female'";
+            break;
+        case 'voter':
+            $where[] = "i.is_voter = 1";
+            break;
+        case '4ps':
+            $where[] = "i.is_4ps = 1";
+            break;
+        case 'senior':
+            $where[] = "i.birthdate IS NOT NULL AND i.birthdate != '' AND TIMESTAMPDIFF(YEAR, i.birthdate, CURDATE()) >= 60";
+            break;
+        case 'pwd':
+            $where[] = "i.is_pwd = 1";
+            break;
+        case 'solo_parent':
+            $where[] = "i.is_solo_parent = 1";
+            break;
+        case 'minor':
+            $where[] = "i.birthdate IS NOT NULL AND i.birthdate != '' AND TIMESTAMPDIFF(YEAR, i.birthdate, CURDATE()) <= 17";
+            break;
+        case 'children_and_youth':
+            // Children & Youth: age 0-30 (example, adjust as needed)
+            $where[] = "i.birthdate IS NOT NULL AND i.birthdate != '' AND TIMESTAMPDIFF(YEAR, i.birthdate, CURDATE()) BETWEEN 0 AND 30";
+            break;
+        // Add more cases as needed
+    }
+}
+
 $sql = "SELECT i.id, i.first_name, i.middle_name, i.last_name, i.suffix, i.gender, i.birthdate, i.civil_status, i.blood_type, i.religion, i.is_pwd, i.is_voter, i.is_4ps, i.is_pregnant, i.is_solo_parent, p.name AS purok FROM individuals i LEFT JOIN purok p ON i.purok_id = p.id";
-$result = $conn->query($sql);
+if (!empty($where)) {
+    $sql .= " WHERE " . implode(' AND ', $where);
+}
+
+if (!empty($params)) {
+    $stmt = $conn->prepare($sql);
+    $types = str_repeat('s', count($params));
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    $result = $stmt->get_result();
+} else {
+    $result = $conn->query($sql);
+}
 $data = [];
 if ($result) {
     while ($row = $result->fetch_assoc()) {
