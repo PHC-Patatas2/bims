@@ -368,7 +368,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 width: 100%;
                 margin-bottom: 10px;
             }
-            #advanced-filter-btn, #export-btn {
+            #export-btn {
                 align-self: flex-start;
             }
         }
@@ -520,101 +520,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         </div>
     </div>
 
-    <!-- Advanced Filter Modal -->
-    <div id="advancedFilterModal" class="fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-40 hidden opacity-0 transition-opacity duration-300" style="display: none;">
-        <div class="modal-container w-full max-w-lg mx-4 relative scale-95 transition-transform duration-300">
-            <div class="modal-header">
-                <h2 class="text-xl font-bold">Advanced Filters</h2>
-                <button id="closeAdvancedFilterModal" class="modal-close-btn" title="Close">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="p-6">
-                <form id="advancedFilterForm" class="space-y-4">
-                    <!-- Gender Filter -->
-                    <div>
-                        <label class="form-label">Gender</label>
-                        <select name="gender_filter" class="form-select">
-                            <option value="">All Genders</option>
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                        </select>
-                    </div>
-
-                    <!-- Age Range Filter -->
-                    <div>
-                        <label class="form-label">Age Range</label>
-                        <div class="grid grid-cols-2 gap-3">
-                            <input type="number" name="age_from" placeholder="From" class="form-input" min="0" max="120">
-                            <input type="number" name="age_to" placeholder="To" class="form-input" min="0" max="120">
-                        </div>
-                    </div>
-
-                    <!-- Civil Status Filter -->
-                    <div>
-                        <label class="form-label">Civil Status</label>
-                        <select name="civil_status_filter" class="form-select">
-                            <option value="">All Status</option>
-                            <option value="Single">Single</option>
-                            <option value="Married">Married</option>
-                            <option value="Widowed">Widowed</option>
-                            <option value="Separated">Separated</option>
-                            <option value="Divorced">Divorced</option>
-                            <option value="Annulled">Annulled</option>
-                        </select>
-                    </div>
-
-                    <!-- Purok Filter -->
-                    <div>
-                        <label class="form-label">Purok</label>
-                        <select name="purok_filter" id="purokFilterSelect" class="form-select">
-                            <option value="">All Puroks</option>
-                        </select>
-                    </div>
-
-                    <!-- Status Filters -->
-                    <div>
-                        <label class="form-label">Special Status</label>
-                        <div class="grid grid-cols-2 gap-3">
-                            <label class="flex items-center gap-2">
-                                <input type="checkbox" name="filter_voter" value="1" class="form-checkbox">
-                                <span class="text-sm">Registered Voter</span>
-                            </label>
-                            <label class="flex items-center gap-2">
-                                <input type="checkbox" name="filter_pwd" value="1" class="form-checkbox">
-                                <span class="text-sm">PWD</span>
-                            </label>
-                            <label class="flex items-center gap-2">
-                                <input type="checkbox" name="filter_4ps" value="1" class="form-checkbox">
-                                <span class="text-sm">4Ps Beneficiary</span>
-                            </label>
-                            <label class="flex items-center gap-2">
-                                <input type="checkbox" name="filter_solo_parent" value="1" class="form-checkbox">
-                                <span class="text-sm">Solo Parent</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                        <button type="button" id="clearFilters" class="btn-secondary">
-                            <i class="fas fa-eraser"></i>
-                            Clear All
-                        </button>
-                        <button type="button" id="cancelAdvancedFilter" class="btn-secondary">
-                            <i class="fas fa-times"></i>
-                            Cancel
-                        </button>
-                        <button type="submit" class="btn-primary">
-                            <i class="fas fa-filter"></i>
-                            Apply Filters
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
     <!-- Export Options Modal -->
     <div id="exportModal" class="fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-40 hidden opacity-0 transition-opacity duration-300" style="display: none;">
         <div class="modal-container w-full max-w-md mx-4 relative scale-95 transition-transform duration-300">
@@ -730,6 +635,61 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             </div>
         </div>
     </div>
+    
+    <!-- More Options Modal -->
+    <div id="moreOptionsModal" class="fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-40 hidden opacity-0 transition-opacity duration-300" style="display: none;">
+        <div class="modal-overlay absolute inset-0" onclick="closeMoreOptionsModal()"></div>
+        <div class="modal-container w-full max-w-md mx-4 relative scale-95 transition-transform duration-300">
+            <div class="bg-white rounded-xl shadow-xl overflow-hidden">
+                <div class="modal-header bg-gray-600 text-white p-4 flex items-center justify-between">
+                    <h3 class="text-lg font-bold">More Options</h3>
+                    <button id="closeMoreOptionsModal" class="text-white hover:text-gray-200 focus:outline-none" onclick="closeMoreOptionsModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-3">
+                        <button id="printCertificateBtn" class="w-full flex items-center gap-3 px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
+                            <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-print"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium text-gray-900">Print Certificate</div>
+                                <div class="text-sm text-gray-500">Generate and print resident certificate</div>
+                            </div>
+                        </button>
+                        
+                        <button id="exportDataBtn" class="w-full flex items-center gap-3 px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
+                            <div class="w-10 h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-download"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium text-gray-900">Export Data</div>
+                                <div class="text-sm text-gray-500">Download resident information</div>
+                            </div>
+                        </button>
+                        
+                        <button id="duplicateBtn" class="w-full flex items-center gap-3 px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
+                            <div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-copy"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium text-gray-900">Duplicate</div>
+                                <div class="text-sm text-gray-500">Create a copy of this resident</div>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 mt-6">
+                        <button onclick="closeMoreOptionsModal()" class="btn-secondary">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <style>
     .edit-modal-style input[readonly], .edit-modal-style select[disabled], .edit-modal-style textarea[readonly] {
         background-color: #f3f4f6 !important;
@@ -795,9 +755,96 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         font-weight: 500;
     }
     </style>
+    <!-- Sidepanel -->
+    <div id="sidepanel" class="fixed top-0 left-0 h-full w-80 shadow-lg z-40 transform -translate-x-full transition-transform duration-300 ease-in-out sidebar-border overflow-hidden" style="background-color: #454545;">
+        <div class="flex flex-col items-center justify-center min-h-[90px] px-4 pt-3 pb-3 relative" style="border-bottom: 4px solid #FFD700;">
+            <button id="closeSidepanel" class="absolute right-2 top-2 text-white hover:text-blue-400 focus:outline-none text-2xl md:hidden" aria-label="Close menu">
+                <i class="fas fa-times"></i>
+            </button>
+            <?php
+            // Fetch barangay logo from 'system_settings' table (correct column: setting_value)
+            $barangay_logo = 'img/logo.png'; // default
+            $logo_result = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key='barangay_logo_path' LIMIT 1");
+            if ($logo_result && $logo_row = $logo_result->fetch_assoc()) {
+                if (!empty($logo_row['setting_value'])) {
+                    $barangay_logo = $logo_row['setting_value'];
+                }
+            }
+            ?>
+            <img src="<?php echo htmlspecialchars($barangay_logo); ?>" alt="Barangay Logo" class="w-28 h-28 object-cover rounded-full mb-1 border-2 border-white bg-white p-1" style="aspect-ratio:1/1;" onerror="this.onerror=null;this.src='img/logo.png';">
+        </div>
+        <nav class="flex flex-col p-4 gap-2 text-white">
+            <?php
+            // --- Sidepanel Navigation Refactored ---
+            $current = basename($_SERVER['PHP_SELF']);
+            function navActive($pages) {
+                global $current;
+                return in_array($current, (array)$pages);
+            }
+            function navLink($href, $icon, $label, $active, $extra = '') {
+                $classes = $active ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-white';
+                return '<a href="' . $href . '" class="py-2 px-3 rounded-lg flex items-center gap-2 ' . $classes . ' hover:bg-blue-500 hover:text-white ' . $extra . '"><i class="' . $icon . '"></i> ' . $label . '</a>';
+            }
+            echo navLink('dashboard.php', 'fas fa-tachometer-alt', 'Dashboard', navActive('dashboard.php'));
+
+            // People Management
+            $peopleActive = navActive(['individuals.php']);
+            $peopleId = 'peopleSubNav';
+            ?>
+            <div class="mt-2">
+                <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $peopleActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $peopleId; ?>')">
+                    <i class="fas fa-users"></i> People Management
+                    <i class="fas fa-chevron-down ml-auto text-xs transition-transform duration-300 dropdown-arrow <?php echo $peopleActive ? 'rotate-180' : ''; ?>" data-arrow="<?php echo $peopleId; ?>"></i>
+                </button>
+                <div id="<?php echo $peopleId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $peopleActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
+                    <?php echo navLink('individuals.php', 'fas fa-user', 'Residents', navActive('individuals.php'), 'rounded'); ?>
+                </div>
+            </div>
+
+            <?php
+            // Barangay Documents
+            $docsActive = navActive(['certificate.php', 'reports.php', 'issued_documents.php']);
+            $docsId = 'docsSubNav';
+            ?>
+            <div class="mt-2">
+                <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $docsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $docsId; ?>')">
+                    <i class="fas fa-file-alt"></i> Barangay Documents
+                    <i class="fas fa-chevron-down ml-auto text-xs transition-transform duration-300 dropdown-arrow <?php echo $docsActive ? 'rotate-180' : ''; ?>" data-arrow="<?php echo $docsId; ?>"></i>
+                </button>
+                <div id="<?php echo $docsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $docsActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
+                    <?php echo navLink('certificate.php', 'fas fa-stamp', 'Issue Certificate', navActive('certificate.php'), 'rounded'); ?>
+                    <?php echo navLink('reports.php', 'fas fa-chart-bar', 'Generate Reports', navActive('reports.php'), 'rounded'); ?>
+                    <?php echo navLink('issued_documents.php', 'fas fa-history', 'Issued Documents Log', navActive('issued_documents.php'), 'rounded'); ?>
+                </div>
+            </div>
+
+            <?php
+            // System Settings
+            $settingsActive = navActive(['officials.php', 'settings.php', 'logs.php']);
+            $settingsId = 'settingsSubNav';
+            ?>
+            <div class="mt-2">
+                <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $settingsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $settingsId; ?>')">
+                    <i class="fas fa-cogs"></i> System Settings
+                    <i class="fas fa-chevron-down ml-auto text-xs transition-transform duration-300 dropdown-arrow <?php echo $settingsActive ? 'rotate-180' : ''; ?>" data-arrow="<?php echo $settingsId; ?>"></i>
+                </button>
+                <div id="<?php echo $settingsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $settingsActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
+                    <?php echo navLink('officials.php', 'fas fa-user-tie', 'Officials Management', navActive('officials.php'), 'rounded'); ?>
+                    <?php echo navLink('settings.php', 'fas fa-cog', 'General Settings', navActive('settings.php'), 'rounded'); ?>
+                    <?php echo navLink('logs.php', 'fas fa-clipboard-list', 'Logs', navActive('logs.php'), 'rounded'); ?>
+                </div>
+            </div>
+            
+        </nav>
+    </div>
+    <!-- Overlay -->
+    <div id="sidepanelOverlay" class="fixed inset-0 bg-black bg-opacity-30 z-30 hidden"></div>
     <!-- Navbar -->
     <nav class="fixed top-0 left-0 right-0 z-30 bg-white shadow flex items-center justify-between h-16 px-4 md:px-8">
         <div class="flex items-center gap-2">
+            <button id="menuBtn" class="h-8 w-8 mr-2 flex items-center justify-center text-blue-700 focus:outline-none">
+                <i class="fas fa-bars text-2xl"></i>
+            </button>
             <span class="font-bold text-lg text-blue-700"><?php echo htmlspecialchars($system_title); ?></span>
         </div>
         <div class="relative flex items-center gap-2">
@@ -811,22 +858,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             </div>
         </div>
     </nav>
-    <script>
-        // User dropdown
-        const userDropdownBtn = document.getElementById('userDropdownBtn');
-        const userDropdownMenu = document.getElementById('userDropdownMenu');
-
-        userDropdownBtn.addEventListener('click', () => {
-            userDropdownMenu.classList.toggle('show');
-        });
-
-        // Close user dropdown if clicked outside
-        document.addEventListener('click', (e) => {
-            if (!userDropdownBtn.contains(e.target) && !userDropdownMenu.contains(e.target)) {
-                userDropdownMenu.classList.remove('show');
-            }
-        });
-    </script>
     <div style="height:64px;"></div>
     <!-- Main content -->
     <div class="flex-1 p-4 md:p-8 bg-gray-50">
@@ -860,10 +891,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                             <input type="text" id="resident-search" placeholder="Search residents..." class="search-input">
                             <i class="fas fa-search search-icon"></i>
                         </div>
-                        <button id="advanced-filter-btn" class="btn-secondary">
-                            <i class="fas fa-filter"></i>
-                            Filters
-                        </button>
                         <button id="export-btn" class="btn-secondary">
                             <i class="fas fa-download"></i>
                             Export
@@ -895,6 +922,84 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
         
         <script>
+        // Sidepanel toggle
+        const menuBtn = document.getElementById('menuBtn');
+        const sidepanel = document.getElementById('sidepanel');
+        const sidepanelOverlay = document.getElementById('sidepanelOverlay');
+        const closeSidepanel = document.getElementById('closeSidepanel');
+
+        function openSidepanel() {
+            sidepanel.classList.remove('-translate-x-full');
+            sidepanelOverlay.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+        function closeSidepanelFn() {
+            sidepanel.classList.add('-translate-x-full');
+            sidepanelOverlay.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+        menuBtn.addEventListener('click', openSidepanel);
+        closeSidepanel.addEventListener('click', closeSidepanelFn);
+        sidepanelOverlay.addEventListener('click', closeSidepanelFn);
+
+        // Dropdown logic for sidepanel (only one open at a time)
+        function toggleDropdown(id) {
+            const dropdowns = ['peopleSubNav', 'docsSubNav', 'settingsSubNav'];
+            dropdowns.forEach(function(dropId) {
+                const el = document.getElementById(dropId);
+                const arrow = document.querySelector('.dropdown-arrow[data-arrow="' + dropId + '"]');
+                if (el) {
+                    if (dropId === id) {
+                        if (el.classList.contains('dropdown-open')) {
+                            el.classList.remove('dropdown-open');
+                            el.classList.add('dropdown-closed');
+                            if (arrow) arrow.classList.remove('rotate-180');
+                        } else {
+                            el.classList.remove('dropdown-closed');
+                            el.classList.add('dropdown-open');
+                            if (arrow) arrow.classList.add('rotate-180');
+                        }
+                    } else {
+                        el.classList.remove('dropdown-open');
+                        el.classList.add('dropdown-closed');
+                        if (arrow) arrow.classList.remove('rotate-180');
+                    }
+                }
+            });
+        }
+        // Dropdown open/close effect styles
+        const style = document.createElement('style');
+        style.innerHTML = `
+        .dropdown-open {
+            max-height: 500px;
+            opacity: 1;
+            pointer-events: auto;
+            overflow: hidden;
+        }
+        .dropdown-closed {
+            max-height: 0;
+            opacity: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        `;
+        document.head.appendChild(style);
+
+        // User dropdown
+        const userDropdownBtn = document.getElementById('userDropdownBtn');
+        const userDropdownMenu = document.getElementById('userDropdownMenu');
+
+        userDropdownBtn.addEventListener('click', () => {
+            userDropdownMenu.classList.toggle('show');
+        });
+
+        // Close user dropdown if clicked outside
+        document.addEventListener('click', (e) => {
+            if (!userDropdownBtn.contains(e.target) && !userDropdownMenu.contains(e.target)) {
+                userDropdownMenu.classList.remove('show');
+            }
+        });
+
         document.addEventListener('DOMContentLoaded', function() {
             console.log("DOM Content Loaded - Starting table initialization");
             
@@ -1157,20 +1262,9 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                                         <i class="fas fa-trash" style="font-size: 11px;"></i>
                                     </a>
                                     <div class="relative">
-                                        <button title="More Options" class="action-btn more-btn" style="width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #6b7280, #4b5563); color: white; border-radius: 4px; border: none; cursor: pointer;" onclick="toggleActionMenu(this, '${row.id || row.ID || 0}')">
+                                        <button title="More Options" class="action-btn more-btn" style="width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #6b7280, #4b5563); color: white; border-radius: 4px; border: none; cursor: pointer;" onclick="showMoreOptionsModal('${row.id || row.ID || 0}')">
                                             <i class="fas fa-ellipsis-v" style="font-size: 11px;"></i>
                                         </button>
-                                        <div class="action-menu hidden absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[150px]">
-                                            <a href="#" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 print-cert-btn">
-                                                <i class="fas fa-print text-xs mr-2"></i>Print Certificate
-                                            </a>
-                                            <a href="#" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 export-data-btn">
-                                                <i class="fas fa-download text-xs mr-2"></i>Export Data
-                                            </a>
-                                            <a href="#" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 duplicate-btn">
-                                                <i class="fas fa-copy text-xs mr-2"></i>Duplicate
-                                            </a>
-                                        </div>
                                     </div>
                                 </div>
                             `;
@@ -1328,58 +1422,54 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
     </div>
     
     <script>
-        // Action menu dropdown functionality
-        function toggleActionMenu(button, residentId) {
-            // Make sure we have the event object
-            if (typeof event !== 'undefined') {
-                event.stopPropagation();
-            }
-            
-            // Close all other open menus
-            document.querySelectorAll('.action-menu').forEach(menu => {
-                if (menu !== button.nextElementSibling) {
-                    menu.classList.add('hidden');
+        // More Options Modal functionality
+        let currentResidentId = null;
+        
+        function showMoreOptionsModal(residentId) {
+            currentResidentId = residentId;
+            const modal = document.getElementById('moreOptionsModal');
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.add('show');
+                modal.querySelector('.modal-container').style.transform = 'scale(1)';
+            }, 10);
+        }
+        
+        function closeMoreOptionsModal() {
+            const modal = document.getElementById('moreOptionsModal');
+            modal.classList.remove('show');
+            modal.querySelector('.modal-container').style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+            currentResidentId = null;
+        }
+        
+        // More Options Modal event handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            // Print Certificate button
+            document.getElementById('printCertificateBtn').addEventListener('click', function() {
+                if (currentResidentId) {
+                    handlePrintCertificate(currentResidentId);
+                    closeMoreOptionsModal();
                 }
             });
             
-            // Toggle current menu
-            const menu = button.nextElementSibling;
-            menu.classList.toggle('hidden');
+            // Export Data button
+            document.getElementById('exportDataBtn').addEventListener('click', function() {
+                if (currentResidentId) {
+                    handleExportData(currentResidentId);
+                    closeMoreOptionsModal();
+                }
+            });
             
-            // Set up event listeners for menu items
-            const printBtn = menu.querySelector('.print-cert-btn');
-            const exportBtn = menu.querySelector('.export-data-btn');
-            const duplicateBtn = menu.querySelector('.duplicate-btn');
-            
-            printBtn.onclick = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                handlePrintCertificate(residentId);
-                menu.classList.add('hidden');
-            };
-            
-            exportBtn.onclick = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                handleExportData(residentId);
-                menu.classList.add('hidden');
-            };
-            
-            duplicateBtn.onclick = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                handleDuplicate(residentId);
-                menu.classList.add('hidden');
-            };
-        }
-        
-        // Close menus when clicking outside
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.more-btn') && !e.target.closest('.action-menu')) {
-                document.querySelectorAll('.action-menu').forEach(menu => {
-                    menu.classList.add('hidden');
-                });
-            }
+            // Duplicate button
+            document.getElementById('duplicateBtn').addEventListener('click', function() {
+                if (currentResidentId) {
+                    handleDuplicate(currentResidentId);
+                    closeMoreOptionsModal();
+                }
+            });
         });
         
         // Action handlers
@@ -1476,6 +1566,19 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     modal.classList.add('show');
                     modal.querySelector('.modal-container').style.transform = 'scale(1)';
                 }, 10);
+            });
+            
+            // Handle "Add First Resident" button using event delegation
+            document.addEventListener('click', function(e) {
+                if (e.target && e.target.id === 'add-resident-link-empty') {
+                    e.preventDefault();
+                    const modal = document.getElementById('addResidentModal');
+                    modal.style.display = 'flex';
+                    setTimeout(() => {
+                        modal.classList.add('show');
+                        modal.querySelector('.modal-container').style.transform = 'scale(1)';
+                    }, 10);
+                }
             });
             
             // Add Resident form submission
@@ -1586,108 +1689,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     xhr.send(formData);
                 });
             }
-            
-            // Advanced Filter modal
-            document.getElementById('advanced-filter-btn').addEventListener('click', function() {
-                const modal = document.getElementById('advancedFilterModal');
-                modal.style.display = 'flex';
-                setTimeout(() => {
-                    modal.classList.add('show');
-                    modal.querySelector('.modal-container').style.transform = 'scale(1)';
-                }, 10);
-            });
-            
-            document.getElementById('closeAdvancedFilterModal').addEventListener('click', function() {
-                const modal = document.getElementById('advancedFilterModal');
-                modal.classList.remove('show');
-                modal.querySelector('.modal-container').style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    modal.style.display = 'none';
-                }, 300);
-            });
-            
-            document.getElementById('cancelAdvancedFilter').addEventListener('click', function() {
-                const modal = document.getElementById('advancedFilterModal');
-                modal.classList.remove('show');
-                modal.querySelector('.modal-container').style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    modal.style.display = 'none';
-                }, 300);
-            });
-            
-            // Advanced Filter form submission
-            document.getElementById('advancedFilterForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                // Build filter array based on form values
-                const filters = [];
-                const formData = new FormData(this);
-                
-                // Gender filter - convert text to M/F format
-                const gender = formData.get('gender_filter');
-                if (gender) {
-                    const genderValue = gender.toLowerCase() === 'male' ? 'M' : (gender.toLowerCase() === 'female' ? 'F' : gender);
-                    filters.push({field: 'gender', type: '=', value: genderValue});
-                }
-                
-                // Age range filter - this would need server-side implementation
-                // For now, we'll skip age filtering as it requires date calculations
-                const ageFrom = formData.get('age_from');
-                const ageTo = formData.get('age_to');
-                if (ageFrom || ageTo) {
-                    console.log('Age filtering not implemented - requires server-side date calculations');
-                    // Could be implemented by sending age filters to the backend
-                }
-                
-                // Civil status filter
-                const civilStatus = formData.get('civil_status_filter');
-                if (civilStatus) {
-                    filters.push({field: 'civil_status', type: 'like', value: civilStatus.toLowerCase()});
-                }
-                
-                // Purok filter
-                const purok = formData.get('purok_filter');
-                if (purok) {
-                    filters.push({field: 'purok_id', type: '=', value: purok});
-                }
-                
-                // Special status filters
-                if (formData.get('filter_voter')) {
-                    filters.push({field: 'is_voter', type: '=', value: 1});
-                }
-                
-                if (formData.get('filter_pwd')) {
-                    filters.push({field: 'is_pwd', type: '=', value: 1});
-                }
-                
-                if (formData.get('filter_4ps')) {
-                    filters.push({field: 'is_4ps', type: '=', value: 1});
-                }
-                
-                if (formData.get('filter_solo_parent')) {
-                    filters.push({field: 'is_solo_parent', type: '=', value: 1});
-                }
-                
-                // Apply filters to table
-                if (filters.length > 0) {
-                    window.table.setFilter(filters);
-                } else {
-                    window.table.clearFilter();
-                }
-                
-                // Close the modal
-                const modal = document.getElementById('advancedFilterModal');
-                modal.classList.remove('show');
-                modal.querySelector('.modal-container').style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    modal.style.display = 'none';
-                }, 300);
-            });
-            
-            // Clear filters button
-            document.getElementById('clearFilters').addEventListener('click', function() {
-                document.getElementById('advancedFilterForm').reset();
-            });
             
             // Export modal
             document.getElementById('export-btn').addEventListener('click', function() {
@@ -1880,20 +1881,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     }
                 });
                 document.body.setAttribute('data-esc-listener-attached', 'true');
-            }
-            
-            // Handle "Add First Resident" button in empty state (only attach once)
-            const addFirstResidentBtn = document.getElementById('add-resident-link-empty');
-            if (addFirstResidentBtn && !addFirstResidentBtn.hasAttribute('data-listener-attached')) {
-                addFirstResidentBtn.addEventListener('click', function() {
-                    const modal = document.getElementById('addResidentModal');
-                    modal.style.display = 'flex';
-                    setTimeout(() => {
-                        modal.classList.add('show');
-                        modal.querySelector('.modal-container').style.transform = 'scale(1)';
-                    }, 10);
-                });
-                addFirstResidentBtn.setAttribute('data-listener-attached', 'true');
             }
         }
         
@@ -2506,7 +2493,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     const puroks = JSON.parse(this.responseText);
                     const addSelect = document.getElementById('purokSelect');
                     const editSelect = document.getElementById('edit_purok');
-                    const filterSelect = document.getElementById('purokFilterSelect');
                     
                     // Clear existing options except the first one
                     if (addSelect) {
@@ -2515,9 +2501,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     if (editSelect) {
                         editSelect.innerHTML = '<option value="">Select Purok</option>';
                     }
-                    if (filterSelect) {
-                        filterSelect.innerHTML = '<option value="">All Puroks</option>';
-                    }
                     
                     puroks.forEach(purok => {
                         if (addSelect) {
@@ -2525,9 +2508,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                         }
                         if (editSelect) {
                             editSelect.innerHTML += `<option value="${purok.id}">${purok.name}</option>`;
-                        }
-                        if (filterSelect) {
-                            filterSelect.innerHTML += `<option value="${purok.id}">${purok.name}</option>`;
                         }
                     });
                     
