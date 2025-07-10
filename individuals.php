@@ -423,8 +423,8 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                                 <label class="form-label">Gender <span class="text-red-500">*</span></label>
                                 <select name="gender" required class="form-select">
                                     <option value="">Select Gender</option>
-                                    <option value="male">Male</option>
-                                    <option value="female">Female</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
                                 </select>
                             </div>
                             <div>
@@ -469,6 +469,20 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                                 <select name="purok_id" id="purokSelect" required class="form-select">
                                     <option value="">Loading...</option>
                                 </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Information Section -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-address-book text-green-600"></i>
+                            Contact Information
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="form-label">Email Address</label>
+                                <input type="email" name="email" class="form-input" placeholder="e.g., juan.delacruz@email.com">
                             </div>
                         </div>
                     </div>
@@ -1235,12 +1249,29 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                         }
                     },
                     {
+                        title: "Email", 
+                        field: "email", 
+                        headerSort: true, 
+                        hozAlign: "center", 
+                        vertAlign: "middle", 
+                        width: 200,
+                        minWidth: 150,
+                        responsive: 3, // Changed from 5 to 3 for better visibility
+                        download: true, // Explicitly ensure it's included in downloads
+                        formatter: function(cell, formatterParams, onRendered) {
+                            var value = cell.getValue() || '';
+                            if (!value) return '<span class="text-gray-400 text-xs">—</span>';
+                            return `<div class="text-sm text-gray-700 truncate" title="${value}">${value}</div>`;
+                        }
+                    },
+                    {
                         title: "Status", 
                         field: "status", 
                         headerSort: false, 
                         hozAlign: "center", 
                         vertAlign: "middle", 
                         width: 250,
+                        download: false, // Exclude from exports
                         formatter: function(cell, formatterParams, onRendered) {
                             var row = cell.getRow().getData();
                             var badges = [];
@@ -1268,6 +1299,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                         minWidth: 130,
                         resizable: false,
                         responsive: 0,
+                        download: false, // Exclude from exports
                         formatter: function(cell, formatterParams, onRendered) {
                             var row = cell.getRow().getData();
                             return `
@@ -1840,11 +1872,53 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 switch(format) {
                     case 'csv':
                         options.delimiter = ',';
+                        // Explicitly define columns for CSV export
+                        options.columns = ["first_name", "middle_name", "last_name", "suffix", "gender", "birthdate", "civil_status", "purok", "email"];
+                        options.columnHeaders = {
+                            "first_name": "First Name",
+                            "middle_name": "Middle Name",
+                            "last_name": "Last Name", 
+                            "suffix": "Suffix",
+                            "gender": "Gender",
+                            "birthdate": "Birthdate",
+                            "civil_status": "Civil Status",
+                            "purok": "Purok",
+                            "email": "Email"
+                        };
+                        // Clean data for CSV export
+                        options.mutateData = function(data) {
+                            return data.map(row => {
+                                if (row.purok) row.purok = row.purok.replace(/\s*\([^)]*\)/g, '').trim();
+                                if (!row.email || row.email === null || row.email === 'null') row.email = '';
+                                return row;
+                            });
+                        };
                         window.table.download("csv", `${filename}.csv`, options);
                         break;
                         
                     case 'xlsx':
                         options.sheetName = "Residents Data";
+                        // Explicitly define columns for Excel export
+                        options.columns = ["first_name", "middle_name", "last_name", "suffix", "gender", "birthdate", "civil_status", "purok", "email"];
+                        options.columnHeaders = {
+                            "first_name": "First Name",
+                            "middle_name": "Middle Name",
+                            "last_name": "Last Name", 
+                            "suffix": "Suffix",
+                            "gender": "Gender",
+                            "birthdate": "Birthdate",
+                            "civil_status": "Civil Status",
+                            "purok": "Purok",
+                            "email": "Email"
+                        };
+                        // Clean data for Excel export
+                        options.mutateData = function(data) {
+                            return data.map(row => {
+                                if (row.purok) row.purok = row.purok.replace(/\s*\([^)]*\)/g, '').trim();
+                                if (!row.email || row.email === null || row.email === 'null') row.email = '';
+                                return row;
+                            });
+                        };
                         options.documentProcessing = function(workbook) {
                             // Add metadata to Excel file
                             workbook.Props = {
@@ -1861,18 +1935,46 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     case 'pdf':
                         options.orientation = "landscape";
                         options.title = "Residents Information Report";
+                        // Explicitly define columns to include in PDF export
+                        options.columns = ["first_name", "middle_name", "last_name", "suffix", "gender", "birthdate", "civil_status", "purok", "email"];
+                        options.columnHeaders = {
+                            "first_name": "First Name",
+                            "middle_name": "Middle Name",
+                            "last_name": "Last Name", 
+                            "suffix": "Suffix",
+                            "gender": "Gender",
+                            "birthdate": "Birthdate",
+                            "civil_status": "Civil Status",
+                            "purok": "Purok",
+                            "email": "Email"
+                        };
                         options.autoTable = {
                             styles: {
-                                fontSize: 8,
-                                cellPadding: 2
+                                fontSize: 7,
+                                cellPadding: 1.5,
+                                overflow: 'linebreak',
+                                halign: 'center'
                             },
                             headStyles: {
                                 fillColor: [59, 130, 246],
                                 textColor: 255,
-                                fontSize: 9,
-                                fontStyle: 'bold'
+                                fontSize: 8,
+                                fontStyle: 'bold',
+                                halign: 'center'
                             },
-                            margin: {top: 30}
+                            columnStyles: {
+                                0: {cellWidth: 50},  // First Name
+                                1: {cellWidth: 45},  // Middle Name
+                                2: {cellWidth: 50},  // Last Name
+                                3: {cellWidth: 25},  // Suffix
+                                4: {cellWidth: 30},  // Gender
+                                5: {cellWidth: 45},  // Birthdate
+                                6: {cellWidth: 40},  // Civil Status
+                                7: {cellWidth: 35},  // Purok
+                                8: {cellWidth: 70}   // Email - adequate space for email addresses
+                            },
+                            margin: {top: 35, left: 8, right: 8},
+                            pageBreak: 'auto'
                         };
                         options.documentProcessing = function(doc) {
                             // Add header to PDF
@@ -1892,6 +1994,33 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                             }
                             
                             return doc;
+                        };
+                        // Format data for better PDF display
+                        options.mutateData = function(data) {
+                            return data.map(row => {
+                                // Clean purok name for PDF
+                                if (row.purok) {
+                                    row.purok = row.purok.replace(/\s*\([^)]*\)/g, '').trim();
+                                }
+                                // Ensure email is properly formatted
+                                if (!row.email || row.email === null || row.email === 'null') {
+                                    row.email = '';
+                                }
+                                // Format birthdate for better display
+                                if (row.birthdate) {
+                                    try {
+                                        const date = new Date(row.birthdate);
+                                        row.birthdate = date.toLocaleDateString('en-US', { 
+                                            year: 'numeric', 
+                                            month: 'short', 
+                                            day: 'numeric' 
+                                        });
+                                    } catch (e) {
+                                        // Keep original if formatting fails
+                                    }
+                                }
+                                return row;
+                            });
                         };
                         window.table.download("pdf", `${filename}.pdf`, options);
                         break;
@@ -2093,6 +2222,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                             <div><label class="resident-info-label mb-1">4Ps</label><input type="checkbox" disabled ${resident.is_4ps == 1 ? 'checked' : ''} class="form-checkbox" /></div>
                             <div><label class="resident-info-label mb-1">Solo Parent</label><input type="checkbox" disabled ${resident.is_solo_parent == 1 ? 'checked' : ''} class="form-checkbox" /></div>
                             <div><label class="resident-info-label mb-1">Pregnant</label><input type="checkbox" disabled ${resident.is_pregnant == 1 ? 'checked' : ''} class="form-checkbox" /></div>
+                            <div><label class="resident-info-label mb-1">Senior Citizen</label><input type="checkbox" disabled ${resident.is_senior_citizen == 1 ? 'checked' : ''} class="form-checkbox" /></div>
                         </div>
                     </div>
                     <div class='flex justify-end gap-3 pt-4 border-t mt-4'>
@@ -2226,11 +2356,12 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                                             </div>
                                             <div>
                                                 <label class="form-label">Gender <span class="text-red-500">*</span></label>
-                                                <select name="gender" required class="form-select">
-                                                    <option value="">Select Gender</option>
-                                                    <option value="M" ${(resident.gender === 'M' || resident.gender === 'Male' || resident.gender === 'male') ? 'selected' : ''}>Male</option>
-                                                    <option value="F" ${(resident.gender === 'F' || resident.gender === 'Female' || resident.gender === 'female') ? 'selected' : ''}>Female</option>
+                                                <select name="gender" required class="form-select ${(!resident.gender || resident.gender === '') ? 'border-orange-300 bg-orange-50' : ''}">
+                                                    <option value="">${(!resident.gender || resident.gender === '') ? 'Please Select Gender (Required)' : 'Select Gender'}</option>
+                                                    <option value="Male" ${(resident.gender === 'M' || resident.gender === 'Male' || resident.gender === 'male') ? 'selected' : ''}>Male</option>
+                                                    <option value="Female" ${(resident.gender === 'F' || resident.gender === 'Female' || resident.gender === 'female') ? 'selected' : ''}>Female</option>
                                                 </select>
+                                                ${(!resident.gender || resident.gender === '') ? '<p class="text-orange-600 text-xs mt-1"><i class="fas fa-exclamation-triangle"></i> Gender information is missing and needs to be selected</p>' : ''}
                                             </div>
                                             <div>
                                                 <label class="form-label">Date of Birth</label>
@@ -2278,32 +2409,32 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                                         </div>
                                     </div>
                                     
-                                    <!-- Classification Section -->
+                                    <!-- Status Information Section -->
                                     <div class="mb-6">
                                         <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                                             <i class="fas fa-tags text-purple-600"></i>
-                                            Classification
+                                            Status Information
                                         </h3>
                                         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                            <label class="flex items-center gap-2">
-                                                <input type="checkbox" name="is_senior_citizen" value="1" ${(resident.is_senior_citizen == 1 || resident.is_senior_citizen == '1' || resident.is_senior_citizen === true) ? 'checked' : ''} class="form-checkbox">
-                                                <span class="text-sm">Senior Citizen</span>
+                                            <label class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                                <input type="checkbox" name="is_voter" value="1" ${(resident.is_voter == 1 || resident.is_voter == '1' || resident.is_voter === true) ? 'checked' : ''} class="form-checkbox">
+                                                <span class="text-sm font-medium">Registered Voter</span>
                                             </label>
-                                            <label class="flex items-center gap-2">
+                                            <label class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                                                 <input type="checkbox" name="is_pwd" value="1" ${(resident.is_pwd == 1 || resident.is_pwd == '1' || resident.is_pwd === true) ? 'checked' : ''} class="form-checkbox">
-                                                <span class="text-sm">PWD</span>
+                                                <span class="text-sm font-medium">PWD</span>
                                             </label>
-                                            <label class="flex items-center gap-2">
+                                            <label class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                                                 <input type="checkbox" name="is_4ps" value="1" ${(resident.is_4ps == 1 || resident.is_4ps == '1' || resident.is_4ps === true) ? 'checked' : ''} class="form-checkbox">
-                                                <span class="text-sm">4Ps Beneficiary</span>
+                                                <span class="text-sm font-medium">4Ps Beneficiary</span>
                                             </label>
-                                            <label class="flex items-center gap-2">
-                                                <input type="checkbox" name="is_solo_parent" value="1" ${(resident.is_solo_parent == 1 || resident.is_solo_parent == '1' || resident.is_solo_parent === true) ? 'checked' : ''} class="form-checkbox">
-                                                <span class="text-sm">Solo Parent</span>
-                                            </label>
-                                            <label class="flex items-center gap-2">
+                                            <label class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                                                 <input type="checkbox" name="is_pregnant" value="1" ${(resident.is_pregnant == 1 || resident.is_pregnant == '1' || resident.is_pregnant === true) ? 'checked' : ''} class="form-checkbox">
-                                                <span class="text-sm">Pregnant</span>
+                                                <span class="text-sm font-medium">Pregnant</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                                <input type="checkbox" name="is_solo_parent" value="1" ${(resident.is_solo_parent == 1 || resident.is_solo_parent == '1' || resident.is_solo_parent === true) ? 'checked' : ''} class="form-checkbox">
+                                                <span class="text-sm font-medium">Solo Parent</span>
                                             </label>
                                         </div>
                                     </div>

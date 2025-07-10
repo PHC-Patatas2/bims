@@ -29,7 +29,18 @@ $is_voter = isset($_POST['is_voter']) ? 1 : 0;
 $is_4ps = isset($_POST['is_4ps']) ? 1 : 0;
 $is_pregnant = isset($_POST['is_pregnant']) ? 1 : 0;
 $is_solo_parent = isset($_POST['is_solo_parent']) ? 1 : 0;
+
+// Automatically determine senior citizen status based on age (60+ years)
+$is_senior_citizen = 0;
+if (!empty($birthdate)) {
+    $birth_date = new DateTime($birthdate);
+    $today = new DateTime();
+    $age = $today->diff($birth_date)->y;
+    $is_senior_citizen = ($age >= 60) ? 1 : 0;
+}
+
 $purok_id = intval($_POST['purok_id']);
+$email = isset($_POST['email']) && !empty(trim($_POST['email'])) ? trim($_POST['email']) : null;
 // Check if purok_id exists
 $purok_check = $conn->prepare('SELECT id FROM purok WHERE id = ? LIMIT 1');
 $purok_check->bind_param('i', $purok_id);
@@ -43,15 +54,15 @@ if ($purok_check->num_rows === 0) {
 }
 $purok_check->close();
 // Insert
-$stmt = $conn->prepare("INSERT INTO individuals (first_name, middle_name, last_name, suffix, gender, birthdate, civil_status, blood_type, religion, is_pwd, is_voter, is_4ps, is_pregnant, is_solo_parent, purok_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+$stmt = $conn->prepare("INSERT INTO individuals (first_name, middle_name, last_name, suffix, gender, birthdate, civil_status, blood_type, religion, is_pwd, is_voter, is_4ps, is_pregnant, is_solo_parent, is_senior_citizen, purok_id, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 if (!$stmt) {
     echo json_encode(['success' => false, 'error' => 'Failed to prepare statement: ' . $conn->error]);
     $conn->close();
     exit();
 }
-// Corrected: 9 strings (first_name, middle_name, last_name, suffix, gender, birthdate, civil_status, blood_type, religion), 6 ints (is_pwd, is_voter, is_4ps, is_pregnant, is_solo_parent, purok_id)
+// Corrected: 10 strings (including email), 7 ints 
 $stmt->bind_param(
-    'sssssssssiiiiii',
+    'sssssssssiiiiiiii',
     $first_name,
     $middle_name,
     $last_name,
@@ -61,11 +72,13 @@ $stmt->bind_param(
     $civil_status,
     $blood_type,
     $religion,
+    $email,
     $is_pwd,
     $is_voter,
     $is_4ps,
     $is_pregnant,
     $is_solo_parent,
+    $is_senior_citizen,
     $purok_id
 );
 if ($stmt->execute()) {

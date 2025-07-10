@@ -580,9 +580,9 @@ function stat_card_count($value) {
                         <a href="print_individuals.php?export=excel" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-semibold transition">
                             <i class="fas fa-file-excel"></i> Export Resident List (Excel)
                         </a>
-                        <a href="certificate.php?type=barangay_id" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold transition">
-                            <i class="fas fa-id-card"></i> Create Barangay ID
-                        </a>
+                        <button onclick="openAnnouncementModal()" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold transition w-full text-left">
+                            <i class="fas fa-bullhorn"></i> Send Announcement
+                        </button>
                     </div>
                 </div>
             </div>
@@ -606,6 +606,61 @@ function stat_card_count($value) {
             <!-- Dynamic content goes here -->
         </div>
     </div>
+    <!-- Announcement Modal -->
+    <div id="announcementModalOverlay" class="fixed inset-0 bg-black bg-opacity-40 z-50 hidden"></div>
+    <div id="announcementModal" class="fixed left-1/2 top-1/2 z-50 bg-white rounded-xl shadow-2xl p-6 transform -translate-x-1/2 -translate-y-1/2 hidden modal-flat" style="width:600px;max-width:90vw;">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-purple-100">
+                    <i class="fas fa-bullhorn text-purple-500 text-lg"></i>
+                </span>
+                <div class="text-xl font-bold text-purple-800">Send Announcement</div>
+            </div>
+            <button id="closeAnnouncementModal" class="text-gray-500 hover:text-red-500 text-2xl font-bold focus:outline-none" aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="announcementForm" class="space-y-4">
+            <div>
+                <label for="emailSubject" class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                <input type="text" id="emailSubject" name="subject" required 
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
+                       placeholder="Enter email subject">
+            </div>
+            <div>
+                <label for="emailMessage" class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                <textarea id="emailMessage" name="message" required rows="6"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-vertical" 
+                          placeholder="Enter your announcement message"></textarea>
+            </div>
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div class="flex items-center gap-2 text-blue-700">
+                    <i class="fas fa-info-circle"></i>
+                    <span class="font-medium">Recipients:</span>
+                </div>
+                <p class="text-sm text-blue-600 mt-1">This announcement will be sent to all residents who have email addresses in the system.</p>
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+                <button type="button" onclick="closeAnnouncementModal()" 
+                        class="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition flex items-center gap-2">
+                    <i class="fas fa-paper-plane"></i>
+                    Send Announcement
+                </button>
+            </div>
+        </form>
+        <div id="announcementProgress" class="hidden">
+            <div class="text-center py-8">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                <p class="mt-2 text-gray-600">Sending emails...</p>
+                <div id="progressText" class="text-sm text-gray-500 mt-1"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script>
         // Floating tooltip for recent activity time
@@ -899,6 +954,70 @@ function openCardModal(type, title) {
 }
 
 // On page load, set default style
+
+// Announcement Modal Functions
+function openAnnouncementModal() {
+    document.getElementById('announcementModal').classList.remove('hidden');
+    document.getElementById('announcementModalOverlay').classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+}
+
+function closeAnnouncementModal() {
+    document.getElementById('announcementModal').classList.add('hidden');
+    document.getElementById('announcementModalOverlay').classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+    // Reset form
+    document.getElementById('announcementForm').reset();
+    document.getElementById('announcementForm').classList.remove('hidden');
+    document.getElementById('announcementProgress').classList.add('hidden');
+}
+
+// Close modal when clicking overlay
+document.getElementById('announcementModalOverlay').addEventListener('click', closeAnnouncementModal);
+
+// Handle form submission
+document.getElementById('announcementForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const subject = document.getElementById('emailSubject').value;
+    const message = document.getElementById('emailMessage').value;
+    
+    if (!subject.trim() || !message.trim()) {
+        alert('Please fill in all required fields.');
+        return;
+    }
+    
+    // Show progress
+    document.getElementById('announcementForm').classList.add('hidden');
+    document.getElementById('announcementProgress').classList.remove('hidden');
+    
+    // Send announcement
+    const formData = new FormData();
+    formData.append('subject', subject);
+    formData.append('message', message);
+    
+    fetch('send_announcement.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`Announcement sent successfully to ${data.count} recipients!`);
+            closeAnnouncementModal();
+        } else {
+            alert('Error sending announcement: ' + data.message);
+            document.getElementById('announcementForm').classList.remove('hidden');
+            document.getElementById('announcementProgress').classList.add('hidden');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while sending the announcement.');
+        document.getElementById('announcementForm').classList.remove('hidden');
+        document.getElementById('announcementProgress').classList.add('hidden');
+    });
+});
     </script>
 </body>
 </html>

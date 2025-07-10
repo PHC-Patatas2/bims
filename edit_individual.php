@@ -50,7 +50,18 @@ $is_4ps = isset($_POST['is_4ps']) ? 1 : 0;
 $is_pregnant = isset($_POST['is_pregnant']) ? 1 : 0;
 $is_solo_parent = isset($_POST['is_solo_parent']) ? 1 : 0;
 
-$stmt = $conn->prepare("UPDATE individuals SET first_name=?, middle_name=?, last_name=?, suffix=?, gender=?, birthdate=?, civil_status=?, blood_type=?, religion=?, purok_id=?, is_pwd=?, is_voter=?, is_4ps=?, is_pregnant=?, is_solo_parent=? WHERE id=?");
+// Automatically determine senior citizen status based on age (60+ years)
+$is_senior_citizen = 0;
+if (!empty($birthdate)) {
+    $birth_date = new DateTime($birthdate);
+    $today = new DateTime();
+    $age = $today->diff($birth_date)->y;
+    $is_senior_citizen = ($age >= 60) ? 1 : 0;
+}
+
+$email = isset($_POST['email']) && !empty(trim($_POST['email'])) ? trim($_POST['email']) : null;
+
+$stmt = $conn->prepare("UPDATE individuals SET first_name=?, middle_name=?, last_name=?, suffix=?, gender=?, birthdate=?, civil_status=?, blood_type=?, religion=?, purok_id=?, is_pwd=?, is_voter=?, is_4ps=?, is_pregnant=?, is_solo_parent=?, is_senior_citizen=?, email=? WHERE id=?");
 if (!$stmt) {
     echo json_encode(['success' => false, 'message' => 'Failed to prepare statement.']);
     exit();
@@ -63,7 +74,7 @@ $blood_type = !empty($blood_type) ? $blood_type : null;
 $religion = !empty($religion) ? $religion : null;
 
 $stmt->bind_param(
-    'sssssssssiiiiiii', // 16: 9 strings (1 can be null), 1 int (can be null), 6 integers
+    'sssssssssiiiiiiisi', // 9 strings, 1 int (purok_id), 6 integers (status fields), 1 string (email), 1 integer (id)
     $first_name,
     $middle_name,
     $last_name,
@@ -79,6 +90,8 @@ $stmt->bind_param(
     $is_4ps,
     $is_pregnant,
     $is_solo_parent,
+    $is_senior_citizen,
+    $email,
     $id
 );
 $success = $stmt->execute();
