@@ -1722,7 +1722,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                             const response = JSON.parse(this.responseText);
                             
                             if (response.success) {
-                                msgElement.innerHTML = `<div class="text-green-600">${response.message}</div>`;
+                                msgElement.innerHTML = `<div class="text-green-600">${response.message || 'Resident added successfully!'}</div>`;
                                 
                                 // Reset form
                                 document.getElementById('addResidentForm').reset();
@@ -1737,7 +1737,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                                     }, 500);
                                 }, 1000);
                             } else {
-                                msgElement.innerHTML = `<div class="text-red-600">${response.message}</div>`;
+                                msgElement.innerHTML = `<div class="text-red-600">${response.error || response.message || 'An error occurred'}</div>`;
                             }
                         } catch (e) {
                             msgElement.innerHTML = `<div class="text-red-600">Error processing response</div>`;

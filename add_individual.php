@@ -60,9 +60,9 @@ if (!$stmt) {
     $conn->close();
     exit();
 }
-// Corrected: 10 strings (including email), 7 ints 
+// 9 strings (first_name through religion), 6 ints (status fields), 1 int (purok_id), 1 string (email) = 17 parameters total
 $stmt->bind_param(
-    'sssssssssiiiiiiii',
+    'sssssssssiiiiiiis',
     $first_name,
     $middle_name,
     $last_name,
@@ -72,17 +72,17 @@ $stmt->bind_param(
     $civil_status,
     $blood_type,
     $religion,
-    $email,
     $is_pwd,
     $is_voter,
     $is_4ps,
     $is_pregnant,
     $is_solo_parent,
     $is_senior_citizen,
-    $purok_id
+    $purok_id,
+    $email
 );
 if ($stmt->execute()) {
-    echo json_encode(['success' => true]);
+    echo json_encode(['success' => true, 'message' => 'Resident added successfully.']);
 } else {
     $errorMsg = 'Failed to add resident.';
     $errorMsg .= ' SQL Error: ' . $stmt->error . ' | Religion: ' . $religion;
