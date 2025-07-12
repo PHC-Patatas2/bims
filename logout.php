@@ -1,25 +1,16 @@
 <?php
 // logout.php
 session_start();
-include 'config.php'; // Include your database configuration
+require_once 'config.php'; // Include your database configuration
+require_once 'audit_logger.php'; // Include audit logging functions
 
 // Log the logout action to audit_trail
 if (isset($_SESSION['user_id'])) {
     $user_id = $_SESSION['user_id'];
-    $action = "Logged out";
-    $timestamp = date("Y-m-d H:i:s");
-
-    // Prepare and execute the statement to log the action
-    // Ensure $pdo is your database connection object from config.php
-    if (isset($pdo)) {
-        $log_stmt = $pdo->prepare("INSERT INTO audit_trail (user_id, action, timestamp) VALUES (?, ?, ?)");
-        if ($log_stmt) {
-            $log_stmt->execute([$user_id, $action, $timestamp]);
-        }
-    } else {
-        // Handle error: Database connection not available
-        // This part depends on how you want to handle errors, e.g., log to a file or ignore
-    }
+    $username = $_SESSION['username'] ?? 'Unknown';
+    
+    // Use the centralized logging function
+    logLogout($user_id, $username);
 }
 
 // Unset all of the session variables

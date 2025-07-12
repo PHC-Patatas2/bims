@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once 'config.php';
+require_once 'audit_logger.php'; // Include audit logging functions
 require_once 'email_config.php';
 require_once 'vendor/autoload.php';
 
@@ -150,16 +151,19 @@ try {
         }
     }
 
-    // Log the activity
-    $details = "Sent announcement '{$subject}' to {$sent_count} recipients";
+    // Log the activity using centralized audit logger
+    $details = [
+        'subject' => $subject,
+        'sent_count' => $sent_count,
+        'failed_count' => count($failed_emails),
+        'total_recipients' => count($residents)
+    ];
+    
     if (!empty($failed_emails)) {
-        $details .= ". Failed: " . count($failed_emails) . " emails";
+        $details['failed_emails'] = $failed_emails;
     }
     
-    $log_stmt = $conn->prepare("INSERT INTO audit_trail (user_id, action, details, timestamp) VALUES (?, 'send_announcement', ?, NOW())");
-    $log_stmt->bind_param('is', $user_id, $details);
-    $log_stmt->execute();
-    $log_stmt->close();
+    logAuditTrail($user_id, 'Announcement Sent', $details);
 
     $conn->close();
 

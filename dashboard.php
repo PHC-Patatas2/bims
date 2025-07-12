@@ -460,9 +460,9 @@ function stat_card_count($value) {
                     </div>
                     <div class="flex-1 overflow-y-auto z-10 relative">
                         <?php
-                        // Fetch recent activity from audit_trail (latest 10)
+                        // Fetch recent activity from audit_trail (latest 10) with UTC timestamps
                         $recent_activities = [];
-                        $activity_sql = "SELECT a.*, u.first_name, u.last_name FROM audit_trail a LEFT JOIN users u ON a.user_id = u.id ORDER BY a.timestamp DESC LIMIT 10";
+                        $activity_sql = "SELECT a.*, u.first_name, u.last_name, UNIX_TIMESTAMP(a.timestamp) as unix_timestamp FROM audit_trail a LEFT JOIN users u ON a.user_id = u.id ORDER BY a.timestamp DESC LIMIT 10";
                         $activity_result = $conn->query($activity_sql);
                         if ($activity_result) {
                             while ($act = $activity_result->fetch_assoc()) {
@@ -470,18 +470,14 @@ function stat_card_count($value) {
                             }
                         }
 
-                        // Helper: human readable time ago
-                        function timeAgo($datetime) {
-                            $timestamp = strtotime($datetime);
-                            $diff = time() - $timestamp;
-                            if ($diff < 60) return $diff . ' sec ago';
-                            $mins = floor($diff / 60);
-                            if ($mins < 60) return $mins . ' min ago';
-                            $hours = floor($mins / 60);
-                            if ($hours < 24) return $hours . ' hour' . ($hours > 1 ? 's' : '') . ' ago';
-                            $days = floor($hours / 24);
-                            if ($days < 7) return $days . ' day' . ($days > 1 ? 's' : '') . ' ago';
-                            return date('M d, Y h:i A', $timestamp);
+                        // Helper: get timestamp for JavaScript processing (ensure UTC)
+                        function getTimestampForJS($unix_timestamp) {
+                            if (empty($unix_timestamp)) {
+                                return 'null';
+                            }
+                            
+                            // Unix timestamp is already in UTC, just convert to milliseconds for JavaScript
+                            return $unix_timestamp * 1000;
                         }
 
                         // Icon map for actions (customize as needed)
@@ -512,12 +508,14 @@ function stat_card_count($value) {
                                         break;
                                     }
                                 }
-                                $time_ago = timeAgo($activity['timestamp']);
+                                $timestamp_js = getTimestampForJS($activity['unix_timestamp']);
                                 $details = $activity['details'] ? htmlspecialchars($activity['details']) : '';
-                                echo '<li class="recent-activity-item group flex flex-col" data-time="' . htmlspecialchars($time_ago) . '">';
+                                echo '<li class="recent-activity-item group flex flex-col" data-timestamp="' . $timestamp_js . '">';
                                 echo '<div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 shadow-sm border border-gray-200 relative overflow-hidden recent-activity-hover">';
                                 echo '<span class="inline-flex items-center justify-center w-6 h-6 rounded-full ' . $icon_info['bg'] . '"><i class="fas ' . $icon_info['icon'] . ' ' . $icon_info['color'] . ' text-xs"></i></span>';
-                                echo '<span class="break-words flex-1">';
+                                echo '<div class="break-words flex-1">';
+                                echo '<div class="flex items-center justify-between">';
+                                echo '<span>';
                                 if ($user) {
                                     echo '<strong class="font-semibold">' . htmlspecialchars($user) . '</strong> ';
                                 }
@@ -526,6 +524,9 @@ function stat_card_count($value) {
                                     echo ': <span class="text-gray-500">' . $details . '</span>';
                                 }
                                 echo '</span>';
+                                echo '<span class="time-display text-xs text-gray-400 ml-2 whitespace-nowrap"></span>';
+                                echo '</div>';
+                                echo '</div>';
                                 echo '</div>';
                                 echo '</li>';
                             }
@@ -663,36 +664,114 @@ function stat_card_count($value) {
 
     <!-- Scripts -->
     <script>
-        // Floating tooltip for recent activity time
-        (function() {
+        // JavaScript-based time ago calculation for accurate timezone handling
+        function timeAgo(timestamp) {
+            if (!timestamp || timestamp === 'null') {
+                return 'Unknown time';
+            }
+            
+            const now = new Date().getTime();
+            const diff = Math.floor((now - timestamp) / 1000); // difference in seconds
+            
+            // Handle future timestamps (might be due to timezone differences)
+            if (diff < 0) {
+                const absDiff = Math.abs(diff);
+                if (absDiff <= 3600) { // within 1 hour, probably timezone issue
+                    return 'just now';
+                } else {
+                    // For larger differences, show the actual date
+                    return new Date(timestamp).toLocaleDateString() + ' ' + new Date(timestamp).toLocaleTimeString();
+                }
+            }
+            
+            if (diff < 60) {
+                return diff === 0 ? 'just now' : diff + ' sec ago';
+            }
+            
+            const mins = Math.floor(diff / 60);
+            if (mins < 60) {
+                return mins + ' min ago';
+            }
+            
+            const hours = Math.floor(mins / 60);
+            if (hours < 24) {
+                return hours + ' hour' + (hours > 1 ? 's' : '') + ' ago';
+            }
+            
+            const days = Math.floor(hours / 24);
+            if (days < 7) {
+                return days + ' day' + (days > 1 ? 's' : '') + ' ago';
+            }
+            
+            // For older dates, show formatted date
+            return new Date(timestamp).toLocaleDateString() + ' ' + new Date(timestamp).toLocaleTimeString();
+        }
+        
+        // Update recent activity times and setup tooltips
+        function updateRecentActivityTimes() {
             const tooltip = document.getElementById('recent-activity-tooltip');
             let active = false;
-            document.querySelectorAll('.recent-activity-item .recent-activity-hover').forEach(function(item) {
-                item.addEventListener('mouseenter', function(e) {
-                    const li = item.closest('.recent-activity-item');
-                    if (li && li.dataset.time) {
-                        tooltip.textContent = li.dataset.time;
-                        tooltip.style.display = 'block';
-                        tooltip.style.opacity = '1';
-                        active = true;
+            
+            document.querySelectorAll('.recent-activity-item').forEach(function(item) {
+                const timestamp = parseInt(item.dataset.timestamp);
+                if (timestamp && timestamp !== 'null') {
+                    const timeStr = timeAgo(timestamp);
+                    item.dataset.timeAgo = timeStr;
+                    
+                    // Update the visible time display
+                    const timeDisplay = item.querySelector('.time-display');
+                    if (timeDisplay) {
+                        timeDisplay.textContent = timeStr;
                     }
-                });
-                item.addEventListener('mousemove', function(e) {
-                    if (active) {
-                        // Offset tooltip so it doesn't cover the activity
-                        const offsetX = 18;
-                        const offsetY = 8;
-                        tooltip.style.left = (e.clientX + offsetX) + 'px';
-                        tooltip.style.top = (e.clientY + offsetY) + 'px';
+                    
+                    // Setup hover events for this item (for detailed tooltip)
+                    const hoverElement = item.querySelector('.recent-activity-hover');
+                    if (hoverElement) {
+                        // Remove existing listeners to avoid duplicates
+                        hoverElement.removeEventListener('mouseenter', hoverElement._mouseEnterHandler);
+                        hoverElement.removeEventListener('mousemove', hoverElement._mouseMoveHandler);
+                        hoverElement.removeEventListener('mouseleave', hoverElement._mouseLeaveHandler);
+                        
+                        // Create new handlers
+                        hoverElement._mouseEnterHandler = function(e) {
+                            const detailedTime = new Date(timestamp).toLocaleString();
+                            tooltip.textContent = detailedTime;
+                            tooltip.style.display = 'block';
+                            tooltip.style.opacity = '1';
+                            active = true;
+                        };
+                        
+                        hoverElement._mouseMoveHandler = function(e) {
+                            if (active) {
+                                const offsetX = 18;
+                                const offsetY = 8;
+                                tooltip.style.left = (e.clientX + offsetX) + 'px';
+                                tooltip.style.top = (e.clientY + offsetY) + 'px';
+                            }
+                        };
+                        
+                        hoverElement._mouseLeaveHandler = function() {
+                            tooltip.style.display = 'none';
+                            tooltip.style.opacity = '0';
+                            active = false;
+                        };
+                        
+                        // Add new listeners
+                        hoverElement.addEventListener('mouseenter', hoverElement._mouseEnterHandler);
+                        hoverElement.addEventListener('mousemove', hoverElement._mouseMoveHandler);
+                        hoverElement.addEventListener('mouseleave', hoverElement._mouseLeaveHandler);
                     }
-                });
-                item.addEventListener('mouseleave', function() {
-                    tooltip.style.display = 'none';
-                    tooltip.style.opacity = '0';
-                    active = false;
-                });
+                }
             });
-        })();
+        }
+        
+        // Initialize time calculations when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            updateRecentActivityTimes();
+            
+            // Update times every minute
+            setInterval(updateRecentActivityTimes, 60000);
+        });
         // Sidepanel toggle
         const menuBtn = document.getElementById('menuBtn');
         const sidepanel = document.getElementById('sidepanel');

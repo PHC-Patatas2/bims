@@ -10,6 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 require_once 'config.php';
+require_once 'audit_logger.php'; // Include audit logging functions
 
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) {
@@ -107,6 +108,14 @@ try {
         if ($suffix) {
             $full_name .= ', ' . $suffix;
         }
+        
+        // Log the official update action
+        $official_data = [
+            'official_id' => $id,
+            'name' => $full_name,
+            'position' => $position
+        ];
+        logAuditTrail($_SESSION['user_id'], 'Official Updated', $official_data);
         
         echo json_encode([
             'success' => true, 

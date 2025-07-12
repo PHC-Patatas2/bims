@@ -10,6 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 require_once 'config.php';
+require_once 'audit_logger.php'; // Include audit logging functions
 
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) {
@@ -81,6 +82,16 @@ try {
     
     $stmt->close();
     $conn->commit();
+    
+    // Log the settings changes
+    foreach ($input as $fieldName => $value) {
+        if (isset($settingsMap[$fieldName])) {
+            $settingKey = $settingsMap[$fieldName]['key'];
+            // Note: We don't have the old value easily accessible here, 
+            // but we log that the setting was changed
+            logSystemChange($_SESSION['user_id'], $settingKey, 'Previous Value', $value);
+        }
+    }
     
     echo json_encode([
         'success' => true, 

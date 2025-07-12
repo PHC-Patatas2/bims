@@ -5,6 +5,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 require_once 'config.php';
+require_once 'audit_logger.php'; // Include audit logging functions
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) {
     error_log('Database connection failed: ' . $conn->connect_error);
@@ -32,6 +33,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $conn->prepare('UPDATE users SET username=?, first_name=?, last_name=?, email=?, updated_at=NOW() WHERE id=?');
         $stmt->bind_param('ssssi', $new_username, $new_first_name, $new_last_name, $new_email, $user_id);
         if ($stmt->execute()) {
+            // Log the profile update
+            $changes = [
+                'old_username' => $username,
+                'new_username' => $new_username,
+                'old_first_name' => $first_name,
+                'new_first_name' => $new_first_name,
+                'old_last_name' => $last_name,
+                'new_last_name' => $new_last_name,
+                'old_email' => $email,
+                'new_email' => $new_email
+            ];
+            logAuditTrail($user_id, 'Profile Updated', $changes);
+            
             $success = 'Profile updated successfully!';
             $username = $new_username;
             $first_name = $new_first_name;

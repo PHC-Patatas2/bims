@@ -1,6 +1,14 @@
 <?php
 require_once 'config.php';
+require_once 'audit_logger.php'; // Include audit logging functions
 header('Content-Type: application/json');
+
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    echo json_encode(['success' => false, 'error' => 'Unauthorized. Please log in.']);
+    exit();
+}
+
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) {
     echo json_encode(['success' => false, 'error' => 'Database connection failed.']);
@@ -82,7 +90,29 @@ $stmt->bind_param(
     $email
 );
 if ($stmt->execute()) {
-    echo json_encode(['success' => true, 'message' => 'Resident added successfully.']);
+    $resident_id = $conn->insert_id;
+    
+    // Log the resident addition
+    $resident_name = trim($first_name . ' ' . ($middle_name ? $middle_name . ' ' : '') . $last_name);
+    logResidentAction(
+        $_SESSION['user_id'], 
+        'Resident Added', 
+        $resident_id, 
+        $resident_name, 
+        [
+            'gender' => $gender,
+            'purok_id' => $purok_id,
+            'birthdate' => $birthdate,
+            'civil_status' => $civil_status,
+            'is_pwd' => $is_pwd,
+            'is_voter' => $is_voter,
+            'is_4ps' => $is_4ps,
+            'is_solo_parent' => $is_solo_parent,
+            'is_senior_citizen' => $is_senior_citizen
+        ]
+    );
+    
+    echo json_encode(['success' => true, 'message' => 'Resident added successfully.', 'resident_id' => $resident_id]);
 } else {
     $errorMsg = 'Failed to add resident.';
     $errorMsg .= ' SQL Error: ' . $stmt->error . ' | Religion: ' . $religion;

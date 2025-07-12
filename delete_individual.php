@@ -6,6 +6,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 require_once 'config.php';
+require_once 'audit_logger.php'; // Include audit logging functions
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -25,6 +26,27 @@ if ($conn->connect_error) {
     echo json_encode(['error' => 'Database connection failed.']);
     exit();
 }
+// Get resident information before deleting for audit logging
+$resident_stmt = $conn->prepare('SELECT first_name, middle_name, last_name, suffix FROM individuals WHERE id = ?');
+if (!$resident_stmt) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Query preparation error.']);
+    exit();
+}
+$resident_stmt->bind_param('i', $id);
+$resident_stmt->execute();
+$resident_result = $resident_stmt->get_result();
+$resident = $resident_result->fetch_assoc();
+$resident_stmt->close();
+
+if (!$resident) {
+    http_response_code(404);
+    echo json_encode(['success' => false, 'message' => 'Resident not found.']);
+    exit();
+}
+
+$resident_name = trim($resident['first_name'] . ' ' . $resident['middle_name'] . ' ' . $resident['last_name'] . ' ' . $resident['suffix']);
+
 // You may want to add more related deletions here (e.g. certificates, logs, etc.)
 $stmt = $conn->prepare('DELETE FROM individuals WHERE id = ?');
 if (!$stmt) {
@@ -35,6 +57,9 @@ if (!$stmt) {
 $stmt->bind_param('i', $id);
 if ($stmt->execute()) {
     if ($stmt->affected_rows > 0) {
+        // Log the resident deletion action
+        logResidentAction($_SESSION['user_id'], 'Resident Deleted', $id, $resident_name);
+        
         echo json_encode(['success' => true, 'message' => 'Resident deleted successfully.']);
     } else {
         http_response_code(404);

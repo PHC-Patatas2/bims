@@ -10,6 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 require_once 'config.php';
+require_once 'audit_logger.php'; // Include audit logging functions
 
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) {
@@ -50,6 +51,14 @@ try {
     $delete_stmt->bind_param("i", $id);
     
     if ($delete_stmt->execute()) {
+        // Log the official deletion action
+        $official_data = [
+            'official_id' => $id,
+            'name' => $official['first_name'] . ' ' . $official['last_name'],
+            'position' => $official['position']
+        ];
+        logAuditTrail($_SESSION['user_id'], 'Official Deleted', $official_data);
+        
         echo json_encode([
             'success' => true, 
             'message' => 'Official deleted successfully',

@@ -19,6 +19,9 @@ try {
     }
 } catch (Exception $e) {}
 
+// Include audit logging functions
+require_once 'audit_logger.php';
+
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
@@ -33,14 +36,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['first_name'] = $user['first_name'];
             $_SESSION['last_name'] = $user['last_name'];
             $_SESSION['email'] = $user['email'];
+            
+            // Log successful login
+            logLogin($user['id'], $username, true, [
+                'login_method' => 'username_password',
+                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown'
+            ]);
+            
             // You can add role support here if you add a role column in the future
             header('Location: dashboard.php');
             exit();
         } else {
             $error = 'The username or password you entered is incorrect. Please try again.';
+            
+            // Log failed login attempt
+            logLogin($user['id'] ?? null, $username, false, [
+                'reason' => 'invalid_credentials',
+                'attempted_username' => $username
+            ]);
         }
     } else {
         $error = 'Please enter both username and password.';
+        
+        // Log incomplete login attempt
+        logLogin(null, $username, false, [
+            'reason' => 'missing_credentials',
+            'username_provided' => !empty($username),
+            'password_provided' => !empty($password)
+        ]);
     }
 }
 

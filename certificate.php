@@ -40,7 +40,8 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document Generation - <?php echo htmlspecialchars($system_title); ?></title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="lib/assets/tailwind.min.css">
+    <!-- CDN fallback: <script src="https://cdn.tailwindcss.com"></script> -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         /* Custom thin scrollbar for sidepanel */
@@ -144,6 +145,10 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             accent-color: #667eea;
             width: 1rem;
             height: 1rem;
+        }
+        .form-checkbox {
+            accent-color: #667eea;
+            transform: scale(1.1);
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -426,83 +431,138 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                         <p class="text-sm text-blue-700">
                             <i class="fas fa-info-circle mr-2"></i>
-                            Enter the resident information manually. This will generate the certificate without registering them in the system.
+                            Enter the resident information to register them in the system and generate the certificate.
                         </p>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="form-group">
-                            <label class="form-label" for="newFirstName">
-                                First Name <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text" class="form-input" id="newFirstName" name="first_name" placeholder="Enter first name">
+                    <!-- Personal Information Section -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-user text-blue-600"></i>
+                            Personal Information
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="form-label">First Name <span class="text-red-500">*</span></label>
+                                <input type="text" name="first_name" id="newFirstName" class="form-input" placeholder="e.g., Juan">
+                            </div>
+                            <div>
+                                <label class="form-label">Middle Name</label>
+                                <input type="text" name="middle_name" id="newMiddleName" class="form-input" placeholder="(optional)">
+                            </div>
+                            <div>
+                                <label class="form-label">Last Name <span class="text-red-500">*</span></label>
+                                <input type="text" name="last_name" id="newLastName" class="form-input" placeholder="e.g., Dela Cruz">
+                            </div>
+                            <div>
+                                <label class="form-label">Suffix</label>
+                                <input type="text" name="suffix" id="newSuffix" class="form-input" placeholder="e.g., III, Jr., Sr., II">
+                            </div>
                         </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label" for="newMiddleName">
-                                Middle Name
-                            </label>
-                            <input type="text" class="form-input" id="newMiddleName" name="middle_name" placeholder="Enter middle name">
+                    </div>
+
+                    <!-- Basic Details Section -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-info-circle text-blue-600"></i>
+                            Basic Details
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="form-label">Gender <span class="text-red-500">*</span></label>
+                                <select name="gender" id="newGender" class="form-input form-select">
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">Birthdate <span class="text-red-500">*</span></label>
+                                <input type="date" name="birthdate" id="newBirthdate" class="form-input">
+                            </div>
+                            <div>
+                                <label class="form-label">Civil Status <span class="text-red-500">*</span></label>
+                                <select name="civil_status" id="newCivilStatus" class="form-input form-select">
+                                    <option value="">Select Civil Status</option>
+                                    <option value="Single">Single</option>
+                                    <option value="Married">Married</option>
+                                    <option value="Widowed">Widowed</option>
+                                    <option value="Separated">Separated</option>
+                                    <option value="Divorced">Divorced</option>
+                                    <option value="Annulled">Annulled</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">Blood Type</label>
+                                <select name="blood_type" id="newBloodType" class="form-input form-select">
+                                    <option value="">Select Blood Type</option>
+                                    <option value="A+">A+</option>
+                                    <option value="A-">A-</option>
+                                    <option value="B+">B+</option>
+                                    <option value="B-">B-</option>
+                                    <option value="AB+">AB+</option>
+                                    <option value="AB-">AB-</option>
+                                    <option value="O+">O+</option>
+                                    <option value="O-">O-</option>
+                                    <option value="Unknown">Unknown</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">Religion <span class="text-red-500">*</span></label>
+                                <select name="religion" id="newReligionSelect" class="form-input form-select">
+                                    <option value="">Loading...</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">Residing Purok <span class="text-red-500">*</span></label>
+                                <select name="purok_id" id="newPurokSelect" class="form-input form-select">
+                                    <option value="">Loading...</option>
+                                </select>
+                            </div>
                         </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label" for="newLastName">
-                                Last Name <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text" class="form-input" id="newLastName" name="last_name" placeholder="Enter last name">
+                    </div>
+
+                    <!-- Contact Information Section -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-address-book text-green-600"></i>
+                            Contact Information
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="form-label">Email Address</label>
+                                <input type="email" name="email" id="newEmail" class="form-input" placeholder="e.g., juan.delacruz@email.com">
+                            </div>
                         </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label" for="newSuffix">
-                                Suffix
+                    </div>
+
+                    <!-- Status Information -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-tags text-blue-600"></i>
+                            Status Information
+                        </h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <label class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <input type="checkbox" name="is_pwd" value="1" class="form-checkbox">
+                                <span class="text-sm font-medium">PWD</span>
                             </label>
-                            <select class="form-input form-select" id="newSuffix" name="suffix">
-                                <option value="">None</option>
-                                <option value="Jr.">Jr.</option>
-                                <option value="Sr.">Sr.</option>
-                                <option value="II">II</option>
-                                <option value="III">III</option>
-                                <option value="IV">IV</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label" for="newBirthdate">
-                                Birthdate
+                            <label class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <input type="checkbox" name="is_voter" value="1" class="form-checkbox">
+                                <span class="text-sm font-medium">Registered Voter</span>
                             </label>
-                            <input type="date" class="form-input" id="newBirthdate" name="birthdate">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label" for="newGender">
-                                Gender
+                            <label class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <input type="checkbox" name="is_4ps" value="1" class="form-checkbox">
+                                <span class="text-sm font-medium">4Ps Beneficiary</span>
                             </label>
-                            <select class="form-input form-select" id="newGender" name="gender">
-                                <option value="">Select Gender</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label" for="newCivilStatus">
-                                Civil Status
+                            <label class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <input type="checkbox" name="is_pregnant" value="1" class="form-checkbox">
+                                <span class="text-sm font-medium">Pregnant</span>
                             </label>
-                            <select class="form-input form-select" id="newCivilStatus" name="civil_status">
-                                <option value="">Select Civil Status</option>
-                                <option value="Single">Single</option>
-                                <option value="Married">Married</option>
-                                <option value="Divorced">Divorced</option>
-                                <option value="Widowed">Widowed</option>
-                                <option value="Separated">Separated</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label" for="newPurok">
-                                Purok/Address
+                            <label class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <input type="checkbox" name="is_solo_parent" value="1" class="form-checkbox">
+                                <span class="text-sm font-medium">Solo Parent</span>
                             </label>
-                            <input type="text" class="form-input" id="newPurok" name="purok" placeholder="Enter purok or address">
                         </div>
                     </div>
                 </div>
@@ -512,7 +572,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     <label class="form-label" for="purpose">
                         <i class="fas fa-info-circle mr-2"></i>Purpose
                     </label>
-                    <input type="text" class="form-input" id="purpose" name="purpose" placeholder="Enter the purpose of the certificate" required>
+                    <input type="text" class="form-input" id="purpose" name="purpose" placeholder="Enter the purpose of the certificate">
                 </div>
 
                 <!-- Additional fields will be shown based on certificate type -->
@@ -671,6 +731,17 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             
             // Reset to existing resident option
             document.querySelector('input[name="resident_option"][value="existing"]').checked = true;
+            
+            // Re-enable all fields before toggling to prevent issues
+            document.getElementById('residentSelect').disabled = false;
+            document.getElementById('newFirstName').disabled = false;
+            document.getElementById('newLastName').disabled = false;
+            document.getElementById('newGender').disabled = false;
+            document.getElementById('newBirthdate').disabled = false;
+            document.getElementById('newCivilStatus').disabled = false;
+            document.getElementById('newReligionSelect').disabled = false;
+            document.getElementById('newPurokSelect').disabled = false;
+            
             toggleResidentSections();
         }
 
@@ -699,22 +770,32 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 existingSection.style.display = 'block';
                 newSection.style.display = 'none';
                 
-                // Make existing resident fields required
-                document.getElementById('residentSelect').required = true;
-                
-                // Remove required from new resident fields
-                document.getElementById('newFirstName').required = false;
-                document.getElementById('newLastName').required = false;
+                // Disable new resident fields to prevent submission
+                document.getElementById('newFirstName').disabled = true;
+                document.getElementById('newLastName').disabled = true;
+                document.getElementById('newGender').disabled = true;
+                document.getElementById('newBirthdate').disabled = true;
+                document.getElementById('newCivilStatus').disabled = true;
+                document.getElementById('newReligionSelect').disabled = true;
+                document.getElementById('newPurokSelect').disabled = true;
             } else {
                 existingSection.style.display = 'none';
                 newSection.style.display = 'block';
                 
-                // Remove required from existing resident field
-                document.getElementById('residentSelect').required = false;
+                // Disable existing resident field
+                document.getElementById('residentSelect').disabled = true;
                 
-                // Make new resident fields required
-                document.getElementById('newFirstName').required = true;
-                document.getElementById('newLastName').required = true;
+                // Enable new resident fields
+                document.getElementById('newFirstName').disabled = false;
+                document.getElementById('newLastName').disabled = false;
+                document.getElementById('newGender').disabled = false;
+                document.getElementById('newBirthdate').disabled = false;
+                document.getElementById('newCivilStatus').disabled = false;
+                document.getElementById('newReligionSelect').disabled = false;
+                document.getElementById('newPurokSelect').disabled = false;
+                
+                // Initialize dropdown data for new resident form
+                initializeNewResidentForm();
             }
         }
 
@@ -841,6 +922,14 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         document.getElementById('certificateForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
+            // Validate purpose field (required for all certificates)
+            const purpose = document.getElementById('purpose').value.trim();
+            if (!purpose) {
+                showNotification('Please enter the purpose of the certificate.', 'error');
+                document.getElementById('purpose').focus();
+                return;
+            }
+            
             // Validate form based on selected option
             const selectedOption = document.querySelector('input[name="resident_option"]:checked').value;
             
@@ -848,57 +937,228 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 const residentId = document.getElementById('residentSelect').value;
                 if (!residentId) {
                     showNotification('Please select a resident or switch to manual entry.', 'error');
+                    document.getElementById('residentSelect').focus();
                     return;
                 }
             } else {
                 const firstName = document.getElementById('newFirstName').value.trim();
                 const lastName = document.getElementById('newLastName').value.trim();
+                const gender = document.getElementById('newGender').value;
+                const birthdate = document.getElementById('newBirthdate').value;
+                const civilStatus = document.getElementById('newCivilStatus').value;
+                const religion = document.getElementById('newReligionSelect').value;
+                const purokId = document.getElementById('newPurokSelect').value;
                 
-                if (!firstName || !lastName) {
-                    showNotification('Please enter at least the first name and last name.', 'error');
+                if (!firstName) {
+                    showNotification('Please enter the first name.', 'error');
+                    document.getElementById('newFirstName').focus();
+                    return;
+                }
+                if (!lastName) {
+                    showNotification('Please enter the last name.', 'error');
+                    document.getElementById('newLastName').focus();
+                    return;
+                }
+                if (!gender) {
+                    showNotification('Please select a gender.', 'error');
+                    document.getElementById('newGender').focus();
+                    return;
+                }
+                if (!birthdate) {
+                    showNotification('Please enter the birthdate.', 'error');
+                    document.getElementById('newBirthdate').focus();
+                    return;
+                }
+                if (!civilStatus) {
+                    showNotification('Please select a civil status.', 'error');
+                    document.getElementById('newCivilStatus').focus();
+                    return;
+                }
+                if (!religion) {
+                    showNotification('Please select a religion.', 'error');
+                    document.getElementById('newReligionSelect').focus();
+                    return;
+                }
+                if (!purokId) {
+                    showNotification('Please select a purok.', 'error');
+                    document.getElementById('newPurokSelect').focus();
                     return;
                 }
             }
             
-            // Collect form data
-            const formData = new FormData(this);
-            
             // Show loading state
             const submitBtn = this.querySelector('button[type="submit"]');
             const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
             submitBtn.disabled = true;
             
-            // Submit to backend
-            fetch('generate_certificate.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Handle successful generation
-                    showNotification('Certificate generated successfully!', 'success');
-                    closeCertificateModal();
-                    
-                    // Download the certificate
-                    if (data.download_url) {
-                        window.open(data.download_url, '_blank');
+            if (selectedOption === 'new') {
+                // First register the new resident
+                const newResidentData = new FormData();
+                newResidentData.append('first_name', document.getElementById('newFirstName').value);
+                newResidentData.append('middle_name', document.getElementById('newMiddleName').value);
+                newResidentData.append('last_name', document.getElementById('newLastName').value);
+                newResidentData.append('suffix', document.getElementById('newSuffix').value);
+                newResidentData.append('gender', document.getElementById('newGender').value);
+                newResidentData.append('birthdate', document.getElementById('newBirthdate').value);
+                newResidentData.append('civil_status', document.getElementById('newCivilStatus').value);
+                newResidentData.append('blood_type', document.getElementById('newBloodType').value);
+                newResidentData.append('religion', document.getElementById('newReligionSelect').value);
+                newResidentData.append('purok_id', document.getElementById('newPurokSelect').value);
+                newResidentData.append('email', document.getElementById('newEmail').value);
+                
+                // Add status checkboxes
+                newResidentData.append('is_pwd', document.querySelector('input[name="is_pwd"]:checked') ? '1' : '0');
+                newResidentData.append('is_voter', document.querySelector('input[name="is_voter"]:checked') ? '1' : '0');
+                newResidentData.append('is_4ps', document.querySelector('input[name="is_4ps"]:checked') ? '1' : '0');
+                newResidentData.append('is_pregnant', document.querySelector('input[name="is_pregnant"]:checked') ? '1' : '0');
+                newResidentData.append('is_solo_parent', document.querySelector('input[name="is_solo_parent"]:checked') ? '1' : '0');
+                
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Registering resident...';
+                
+                // Register the new resident first
+                fetch('add_individual.php', {
+                    method: 'POST',
+                    body: newResidentData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Now generate certificate with the new resident ID
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating certificate...';
+                        
+                        const formData = new FormData(this);
+                        formData.set('resident_id', data.resident_id); // Use the newly created resident ID
+                        formData.delete('resident_option'); // Remove this as it's not needed by generate_certificate.php
+                        
+                        return fetch('generate_certificate.php', {
+                            method: 'POST',
+                            body: formData
+                        });
+                    } else {
+                        throw new Error(data.error || data.message || 'Failed to register resident');
                     }
-                } else {
-                    showNotification('Error generating certificate: ' + (data.error || data.message || 'Unknown error'), 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('An error occurred while generating the certificate.', 'error');
-            })
-            .finally(() => {
-                // Restore button state
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            });
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('Resident registered and certificate generated successfully!', 'success');
+                        closeCertificateModal();
+                        
+                        // Download the certificate
+                        if (data.download_url) {
+                            window.open(data.download_url, '_blank');
+                        }
+                    } else {
+                        showNotification('Error generating certificate: ' + (data.error || data.message || 'Unknown error'), 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('An error occurred: ' + error.message, 'error');
+                })
+                .finally(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+            } else {
+                // Generate certificate for existing resident
+                const formData = new FormData();
+                
+                // Only include the relevant fields for existing resident
+                formData.append('certificate_type', document.getElementById('certificateType').value);
+                formData.append('resident_id', document.getElementById('residentSelect').value);
+                formData.append('purpose', document.getElementById('purpose').value);
+                
+                // Add any additional fields that might be present
+                const additionalFields = document.getElementById('additionalFields');
+                const additionalInputs = additionalFields.querySelectorAll('input, select, textarea');
+                additionalInputs.forEach(input => {
+                    if (input.name && input.value) {
+                        formData.append(input.name, input.value);
+                    }
+                });
+                
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
+                
+                fetch('generate_certificate.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('Certificate generated successfully!', 'success');
+                        closeCertificateModal();
+                        
+                        // Download the certificate
+                        if (data.download_url) {
+                            window.open(data.download_url, '_blank');
+                        }
+                    } else {
+                        showNotification('Error generating certificate: ' + (data.error || data.message || 'Unknown error'), 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('An error occurred while generating the certificate.', 'error');
+                })
+                .finally(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+            }
         });
+
+        // Load Puroks for the new resident form
+        function loadNewResidentPuroks() {
+            const purokSelect = document.getElementById('newPurokSelect');
+            purokSelect.innerHTML = '<option value="">Loading...</option>';
+            
+            fetch('fetch_puroks.php')
+                .then(response => response.json())
+                .then(data => {
+                    purokSelect.innerHTML = '<option value="">Select Purok</option>';
+                    data.forEach(purok => {
+                        const option = document.createElement('option');
+                        option.value = purok.id;
+                        option.textContent = purok.name;
+                        purokSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading puroks:', error);
+                    purokSelect.innerHTML = '<option value="">Error loading puroks</option>';
+                });
+        }
+
+        // Load Religions for the new resident form
+        function loadNewResidentReligions() {
+            const religionSelect = document.getElementById('newReligionSelect');
+            religionSelect.innerHTML = '<option value="">Loading...</option>';
+            
+            fetch('fetch_religions.php')
+                .then(response => response.json())
+                .then(data => {
+                    religionSelect.innerHTML = '<option value="">Select Religion</option>';
+                    data.forEach(religion => {
+                        const option = document.createElement('option');
+                        option.value = religion.name;
+                        option.textContent = religion.name;
+                        religionSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading religions:', error);
+                    religionSelect.innerHTML = '<option value="">Error loading religions</option>';
+                });
+        }
+
+        // Initialize dropdown data when modal is opened
+        function initializeNewResidentForm() {
+            loadNewResidentPuroks();
+            loadNewResidentReligions();
+        }
 
         function showNotification(message, type = 'info') {
             const notification = document.createElement('div');

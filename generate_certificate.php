@@ -1,25 +1,45 @@
 <?php
 session_start();
+
+// Set error reporting to log errors but not display them
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+
+// Set JSON header early
+header('Content-Type: application/json');
+
 if (!isset($_SESSION['user_id'])) {
-    header('Content-Type: application/json');
     http_response_code(401);
     echo json_encode(['error' => 'Unauthorized']);
     exit();
 }
 
-require_once 'config.php';
-
-// Include FPDF - using local FPDF for better control and reliability
-if (!class_exists('FPDF')) {
-    require_once FPDF_PATH;
+try {
+    require_once 'config.php';
+    require_once 'audit_logger.php'; // Include audit logging functions
+    
+    // Include FPDF - using local FPDF for better control and reliability
+    if (!class_exists('FPDF')) {
+        if (!file_exists(FPDF_PATH)) {
+            throw new Exception('FPDF library not found at: ' . FPDF_PATH);
+        }
+        require_once FPDF_PATH;
+    }
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['error' => 'System initialization failed: ' . $e->getMessage()]);
+    exit();
 }
 
-header('Content-Type: application/json');
-
-$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-if ($conn->connect_error) {
+try {
+    $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    if ($conn->connect_error) {
+        throw new Exception('Database connection failed: ' . $conn->connect_error);
+    }
+} catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'Database connection failed']);
+    echo json_encode(['error' => $e->getMessage()]);
     exit();
 }
 
@@ -138,6 +158,14 @@ try {
     $stmt->execute();
     $stmt->close();
     
+    // Log the certificate generation action
+    $resident_name = trim($resident_data['first_name'] . ' ' . $resident_data['middle_name'] . ' ' . $resident_data['last_name'] . ' ' . $resident_data['suffix']);
+    $additional_info = [
+        'purpose' => $purpose ?? 'Not specified',
+        'certificate_id' => $certificate_id
+    ];
+    logCertificateGeneration($_SESSION['user_id'], $certificate_type, $resident_id, $resident_name, $additional_info);
+    
     echo json_encode([
         'success' => true,
         'certificate_id' => $certificate_id,
@@ -145,8 +173,10 @@ try {
     ]);
     
 } catch (Exception $e) {
+    error_log("Certificate generation error: " . $e->getMessage());
     http_response_code(500);
     echo json_encode(['error' => 'Certificate generation failed: ' . $e->getMessage()]);
+    exit();
 }
 
 $conn->close();
@@ -188,55 +218,73 @@ function validateResidentData($certificate_type, $resident_data, $age) {
 function generateCertificate($type, $resident_data, $age, $purpose) {
     global $conn;
     
-    // Get system settings
-    $settings = getSystemSettings();
-    
-    // Create PDF
-    $pdf = new FPDF();
-    $pdf->AddPage();
-    
-    // Header
-    addCertificateHeader($pdf, $settings);
-    
-    // Content based on certificate type
-    switch ($type) {
-        case 'clearance':
-            generateBarangayClearance($pdf, $resident_data, $age, $purpose, $settings);
-            break;
-        case 'residency':
-            generateResidencyCertificate($pdf, $resident_data, $age, $purpose, $settings);
-            break;
-        case 'indigency':
-            generateIndigencyCertificate($pdf, $resident_data, $age, $purpose, $settings);
-            break;
-        case 'first_time_job_seeker':
-            generateFirstTimeJobSeekerCertificate($pdf, $resident_data, $age, $purpose, $settings);
-            break;
-        case 'barangay_id':
-            generateBarangayID($pdf, $resident_data, $age, $settings);
-            break;
-        default:
-            throw new Exception('Invalid certificate type');
+    try {
+        // Get system settings
+        $settings = getSystemSettings();
+        
+        // Create PDF
+        $pdf = new FPDF();
+        $pdf->AddPage();
+        
+        // Header
+        addCertificateHeader($pdf, $settings);
+        
+        // Content based on certificate type
+        switch ($type) {
+            case 'clearance':
+                generateBarangayClearance($pdf, $resident_data, $age, $purpose, $settings);
+                break;
+            case 'residency':
+                generateResidencyCertificate($pdf, $resident_data, $age, $purpose, $settings);
+                break;
+            case 'indigency':
+                generateIndigencyCertificate($pdf, $resident_data, $age, $purpose, $settings);
+                break;
+            case 'first_time_job_seeker':
+                generateFirstTimeJobSeekerCertificate($pdf, $resident_data, $age, $purpose, $settings);
+                break;
+            case 'barangay_id':
+                generateBarangayID($pdf, $resident_data, $age, $settings);
+                break;
+            default:
+                throw new Exception('Invalid certificate type: ' . $type);
+        }
+        
+        // Footer
+        addCertificateFooter($pdf, $settings);
+        
+        // Generate unique certificate ID
+        $certificate_id = 'CERT-' . strtoupper($type) . '-' . date('Y') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+        
+        // Save PDF
+        $filename = $certificate_id . '.pdf';
+        $filepath = __DIR__ . '/certificates/' . $filename;
+        
+        // Create certificates directory if it doesn't exist
+        if (!file_exists(__DIR__ . '/certificates/')) {
+            if (!mkdir(__DIR__ . '/certificates/', 0755, true)) {
+                throw new Exception('Failed to create certificates directory');
+            }
+        }
+        
+        // Check if directory is writable
+        if (!is_writable(__DIR__ . '/certificates/')) {
+            throw new Exception('Certificates directory is not writable');
+        }
+        
+        $pdf->Output('F', $filepath);
+        
+        // Verify the file was created successfully
+        if (!file_exists($filepath)) {
+            throw new Exception('Failed to generate PDF file');
+        }
+        
+        return $certificate_id;
+        
+    } catch (Exception $e) {
+        error_log("PDF Generation Error: " . $e->getMessage());
+        throw new Exception('PDF generation failed: ' . $e->getMessage());
     }
-    
-    // Footer
-    addCertificateFooter($pdf, $settings);
-    
-    // Generate unique certificate ID
-    $certificate_id = 'CERT-' . strtoupper($type) . '-' . date('Y') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
-    
-    // Save PDF
-    $filename = $certificate_id . '.pdf';
-    $filepath = __DIR__ . '/certificates/' . $filename;
-    
-    // Create certificates directory if it doesn't exist
-    if (!file_exists(__DIR__ . '/certificates/')) {
-        mkdir(__DIR__ . '/certificates/', 0755, true);
-    }
-    
-    $pdf->Output('F', $filepath);
-    
-    return $certificate_id;
 }
 
 function getSystemSettings() {
@@ -251,11 +299,16 @@ function getSystemSettings() {
         'captain_title' => 'Punong Barangay'
     ];
     
-    $result = $conn->query("SELECT setting_key, setting_value FROM system_settings");
-    if ($result) {
-        while ($row = $result->fetch_assoc()) {
-            $settings[$row['setting_key']] = $row['setting_value'];
+    try {
+        $result = $conn->query("SELECT setting_key, setting_value FROM system_settings");
+        if ($result) {
+            while ($row = $result->fetch_assoc()) {
+                $settings[$row['setting_key']] = $row['setting_value'];
+            }
         }
+    } catch (Exception $e) {
+        // Log error but continue with default settings
+        error_log("System settings query error: " . $e->getMessage());
     }
     
     return $settings;
@@ -263,8 +316,17 @@ function getSystemSettings() {
 
 function addCertificateHeader($pdf, $settings) {
     // Logo
-    if (file_exists($settings['barangay_logo_path'])) {
-        $pdf->Image($settings['barangay_logo_path'], 20, 15, 25);
+    $logoPath = $settings['barangay_logo_path'] ?? 'img/logo.png';
+    if (file_exists($logoPath)) {
+        try {
+            $pdf->Image($logoPath, 20, 15, 25);
+        } catch (Exception $e) {
+            // Log error but continue without logo
+            error_log("Logo loading error: " . $e->getMessage());
+        }
+    } else {
+        // Log missing logo but continue
+        error_log("Logo file not found: " . $logoPath);
     }
     
     // Header text
