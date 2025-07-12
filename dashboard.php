@@ -480,16 +480,113 @@ function stat_card_count($value) {
                             return $unix_timestamp * 1000;
                         }
 
+                        // Helper: format audit log activity for user-friendly display
+                        function formatActivityMessage($action, $details, $user_name) {
+                            $action_lower = strtolower($action);
+                            $parsed_details = json_decode($details, true);
+                            
+                            // Handle different action types with user-friendly messages
+                            if (strpos($action_lower, 'login') !== false) {
+                                if ($parsed_details && isset($parsed_details['username'])) {
+                                    return "Logged in as " . htmlspecialchars($parsed_details['username']);
+                                }
+                                return "Logged in";
+                            }
+                            
+                            if (strpos($action_lower, 'logout') !== false) {
+                                return "Logged out";
+                            }
+                            
+                            if (strpos($action_lower, 'add') !== false && strpos($action_lower, 'individual') !== false) {
+                                if ($parsed_details && isset($parsed_details['resident_name'])) {
+                                    return "Added resident: " . htmlspecialchars($parsed_details['resident_name']);
+                                }
+                                return "Added a new resident";
+                            }
+                            
+                            if (strpos($action_lower, 'edit') !== false && strpos($action_lower, 'individual') !== false) {
+                                if ($parsed_details && isset($parsed_details['resident_name'])) {
+                                    return "Updated resident: " . htmlspecialchars($parsed_details['resident_name']);
+                                }
+                                return "Updated a resident";
+                            }
+                            
+                            if (strpos($action_lower, 'delete') !== false && strpos($action_lower, 'individual') !== false) {
+                                if ($parsed_details && isset($parsed_details['resident_name'])) {
+                                    return "Deleted resident: " . htmlspecialchars($parsed_details['resident_name']);
+                                }
+                                return "Deleted a resident";
+                            }
+                            
+                            if (strpos($action_lower, 'certificate') !== false && strpos($action_lower, 'generated') !== false) {
+                                if ($parsed_details && isset($parsed_details['resident_name'])) {
+                                    $cert_type = isset($parsed_details['certificate_type']) ? $parsed_details['certificate_type'] : 'Certificate';
+                                    return "Issued " . htmlspecialchars($cert_type) . " for: " . htmlspecialchars($parsed_details['resident_name']);
+                                }
+                                return "Issued a certificate";
+                            }
+                            
+                            if (strpos($action_lower, 'add') !== false && strpos($action_lower, 'official') !== false) {
+                                if ($parsed_details && isset($parsed_details['name'])) {
+                                    return "Added official: " . htmlspecialchars($parsed_details['name']);
+                                }
+                                return "Added a new official";
+                            }
+                            
+                            if (strpos($action_lower, 'update') !== false && strpos($action_lower, 'official') !== false) {
+                                if ($parsed_details && isset($parsed_details['name'])) {
+                                    return "Updated official: " . htmlspecialchars($parsed_details['name']);
+                                }
+                                return "Updated an official";
+                            }
+                            
+                            if (strpos($action_lower, 'delete') !== false && strpos($action_lower, 'official') !== false) {
+                                if ($parsed_details && isset($parsed_details['name'])) {
+                                    return "Deleted official: " . htmlspecialchars($parsed_details['name']);
+                                }
+                                return "Deleted an official";
+                            }
+                            
+                            if (strpos($action_lower, 'settings') !== false || strpos($action_lower, 'save') !== false) {
+                                return "Updated system settings";
+                            }
+                            
+                            if (strpos($action_lower, 'password') !== false && strpos($action_lower, 'reset') !== false) {
+                                return "Changed password";
+                            }
+                            
+                            if (strpos($action_lower, 'announcement') !== false) {
+                                if ($parsed_details && isset($parsed_details['title'])) {
+                                    return "Sent announcement: " . htmlspecialchars($parsed_details['title']);
+                                }
+                                return "Sent an announcement";
+                            }
+                            
+                            // For test entries and unknown actions, try to make them more readable
+                            if (strpos($action_lower, 'test') !== false) {
+                                return "System test performed";
+                            }
+                            
+                            // Default: clean up the action name and return it
+                            $clean_action = ucfirst(str_replace(['_', '-'], ' ', $action));
+                            return $clean_action;
+                        }
+
                         // Icon map for actions (customize as needed)
                         $action_icons = [
                             'add' => ['icon' => 'fa-user-plus', 'bg' => 'bg-green-100', 'color' => 'text-green-600'],
-                            'update' => ['icon' => 'fa-user-edit', 'bg' => 'bg-red-100', 'color' => 'text-red-600'],
-                            'delete' => ['icon' => 'fa-user-times', 'bg' => 'bg-gray-200', 'color' => 'text-gray-600'],
+                            'update' => ['icon' => 'fa-user-edit', 'bg' => 'bg-blue-100', 'color' => 'text-blue-600'],
+                            'edit' => ['icon' => 'fa-user-edit', 'bg' => 'bg-blue-100', 'color' => 'text-blue-600'],
+                            'delete' => ['icon' => 'fa-user-times', 'bg' => 'bg-red-100', 'color' => 'text-red-600'],
                             'login' => ['icon' => 'fa-sign-in-alt', 'bg' => 'bg-blue-100', 'color' => 'text-blue-600'],
                             'logout' => ['icon' => 'fa-sign-out-alt', 'bg' => 'bg-blue-100', 'color' => 'text-blue-600'],
-                            'certificate' => ['icon' => 'fa-file-alt', 'bg' => 'bg-blue-100', 'color' => 'text-blue-600'],
-                            'report' => ['icon' => 'fa-chart-bar', 'bg' => 'bg-green-100', 'color' => 'text-green-600'],
-                            'id' => ['icon' => 'fa-id-card', 'bg' => 'bg-yellow-100', 'color' => 'text-yellow-600'],
+                            'certificate' => ['icon' => 'fa-file-alt', 'bg' => 'bg-green-100', 'color' => 'text-green-600'],
+                            'report' => ['icon' => 'fa-chart-bar', 'bg' => 'bg-purple-100', 'color' => 'text-purple-600'],
+                            'announcement' => ['icon' => 'fa-bullhorn', 'bg' => 'bg-orange-100', 'color' => 'text-orange-600'],
+                            'password' => ['icon' => 'fa-key', 'bg' => 'bg-yellow-100', 'color' => 'text-yellow-600'],
+                            'settings' => ['icon' => 'fa-cog', 'bg' => 'bg-gray-100', 'color' => 'text-gray-600'],
+                            'official' => ['icon' => 'fa-user-tie', 'bg' => 'bg-indigo-100', 'color' => 'text-indigo-600'],
+                            'test' => ['icon' => 'fa-flask', 'bg' => 'bg-pink-100', 'color' => 'text-pink-600'],
                             // fallback
                             'default' => ['icon' => 'fa-history', 'bg' => 'bg-purple-100', 'color' => 'text-purple-600'],
                         ];
@@ -509,7 +606,10 @@ function stat_card_count($value) {
                                     }
                                 }
                                 $timestamp_js = getTimestampForJS($activity['unix_timestamp']);
-                                $details = $activity['details'] ? htmlspecialchars($activity['details']) : '';
+                                
+                                // Use the formatting function to get a clean, user-friendly message
+                                $formatted_message = formatActivityMessage($activity['action'], $activity['details'], $user);
+                                
                                 echo '<li class="recent-activity-item group flex flex-col" data-timestamp="' . $timestamp_js . '">';
                                 echo '<div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 shadow-sm border border-gray-200 relative overflow-hidden recent-activity-hover">';
                                 echo '<span class="inline-flex items-center justify-center w-6 h-6 rounded-full ' . $icon_info['bg'] . '"><i class="fas ' . $icon_info['icon'] . ' ' . $icon_info['color'] . ' text-xs"></i></span>';
@@ -519,10 +619,7 @@ function stat_card_count($value) {
                                 if ($user) {
                                     echo '<strong class="font-semibold">' . htmlspecialchars($user) . '</strong> ';
                                 }
-                                echo htmlspecialchars($activity['action']);
-                                if ($details) {
-                                    echo ': <span class="text-gray-500">' . $details . '</span>';
-                                }
+                                echo $formatted_message;
                                 echo '</span>';
                                 echo '<span class="time-display text-xs text-gray-400 ml-2 whitespace-nowrap"></span>';
                                 echo '</div>';
