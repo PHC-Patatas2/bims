@@ -830,7 +830,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     <i class="fas fa-users"></i> People Management <i class="fas fa-chevron-down ml-auto"></i>
                 </button>
                 <div id="<?php echo $peopleId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $peopleActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
-                    <?php echo navLink('individuals.php', 'fas fa-user', 'Individuals', navActive('individuals.php')); ?>
+                    <?php echo navLink('individuals.php', 'fas fa-user', 'Residents', navActive('individuals.php')); ?>
                 </div>
             </div>
 
@@ -846,9 +846,9 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 <div id="<?php echo $docsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out dropdown-closed">
                     <?php echo navLink('certificate.php', 'fas fa-stamp', 'Issue Certificate', navActive('certificate.php'));
                     ?>
-                    <?php echo navLink('reports.php', 'fas fa-chart-bar', 'Reports', navActive('reports.php'));
+                    <?php echo navLink('reports.php', 'fas fa-chart-bar', 'Generate Reports', navActive('reports.php'));
                     ?>
-                    <?php echo navLink('issued_documents.php', 'fas fa-history', 'Issued Documents', navActive('issued_documents.php'));
+                    <?php echo navLink('issued_documents.php', 'fas fa-history', 'Issued Documents Log', navActive('issued_documents.php'));
                     ?>
                 </div>
             </div>
@@ -863,7 +863,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     <i class="fas fa-cogs"></i> System Settings <i class="fas fa-chevron-down ml-auto"></i>
                 </button>
                 <div id="<?php echo $settingsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out dropdown-closed">
-                    <?php echo navLink('officials.php', 'fas fa-user-tie', 'Officials', navActive('officials.php'));
+                    <?php echo navLink('officials.php', 'fas fa-user-tie', 'Officials Management', navActive('officials.php'));
                     ?>
                     <?php echo navLink('settings.php', 'fas fa-cog', 'General Settings', navActive('settings.php'));
                     ?>
@@ -1174,6 +1174,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                         width: 80,
                         minWidth: 60,
                         responsive: 6,
+                        download: true, // Ensure it's included in exports
                         formatter: function(cell, formatterParams, onRendered) {
                             var value = cell.getValue() || '';
                             if (!value) return '<span class="text-gray-400 text-xs">—</span>';
@@ -1248,22 +1249,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                             return `<span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">${value}</span>`;
                         }
                     },
-                    {
-                        title: "Email", 
-                        field: "email", 
-                        headerSort: true, 
-                        hozAlign: "center", 
-                        vertAlign: "middle", 
-                        width: 200,
-                        minWidth: 150,
-                        responsive: 3, // Changed from 5 to 3 for better visibility
-                        download: true, // Explicitly ensure it's included in downloads
-                        formatter: function(cell, formatterParams, onRendered) {
-                            var value = cell.getValue() || '';
-                            if (!value) return '<span class="text-gray-400 text-xs">—</span>';
-                            return `<div class="text-sm text-gray-700 truncate" title="${value}">${value}</div>`;
-                        }
-                    },
+
                     {
                         title: "Status", 
                         field: "status", 
@@ -1873,23 +1859,21 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     case 'csv':
                         options.delimiter = ',';
                         // Explicitly define columns for CSV export
-                        options.columns = ["first_name", "middle_name", "last_name", "suffix", "gender", "birthdate", "civil_status", "purok", "email"];
+                        options.columns = ["first_name", "middle_name", "last_name", "suffix", "gender", "birthdate", "civil_status", "purok"];
                         options.columnHeaders = {
                             "first_name": "First Name",
                             "middle_name": "Middle Name",
-                            "last_name": "Last Name", 
-                            "suffix": "Suffix",
+                            "last_name": "Last Name",
+                            "suffix": "Suffix", 
                             "gender": "Gender",
                             "birthdate": "Birthdate",
                             "civil_status": "Civil Status",
-                            "purok": "Purok",
-                            "email": "Email"
+                            "purok": "Purok"
                         };
                         // Clean data for CSV export
                         options.mutateData = function(data) {
                             return data.map(row => {
                                 if (row.purok) row.purok = row.purok.replace(/\s*\([^)]*\)/g, '').trim();
-                                if (!row.email || row.email === null || row.email === 'null') row.email = '';
                                 return row;
                             });
                         };
@@ -1899,23 +1883,21 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     case 'xlsx':
                         options.sheetName = "Residents Data";
                         // Explicitly define columns for Excel export
-                        options.columns = ["first_name", "middle_name", "last_name", "suffix", "gender", "birthdate", "civil_status", "purok", "email"];
+                        options.columns = ["first_name", "middle_name", "last_name", "suffix", "gender", "birthdate", "civil_status", "purok"];
                         options.columnHeaders = {
                             "first_name": "First Name",
                             "middle_name": "Middle Name",
-                            "last_name": "Last Name", 
-                            "suffix": "Suffix",
+                            "last_name": "Last Name",
+                            "suffix": "Suffix", 
                             "gender": "Gender",
                             "birthdate": "Birthdate",
                             "civil_status": "Civil Status",
-                            "purok": "Purok",
-                            "email": "Email"
+                            "purok": "Purok"
                         };
                         // Clean data for Excel export
                         options.mutateData = function(data) {
                             return data.map(row => {
                                 if (row.purok) row.purok = row.purok.replace(/\s*\([^)]*\)/g, '').trim();
-                                if (!row.email || row.email === null || row.email === 'null') row.email = '';
                                 return row;
                             });
                         };
@@ -1936,17 +1918,16 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                         options.orientation = "landscape";
                         options.title = "Residents Information Report";
                         // Explicitly define columns to include in PDF export
-                        options.columns = ["first_name", "middle_name", "last_name", "suffix", "gender", "birthdate", "civil_status", "purok", "email"];
+                        options.columns = ["first_name", "middle_name", "last_name", "suffix", "gender", "birthdate", "civil_status", "purok"];
                         options.columnHeaders = {
                             "first_name": "First Name",
                             "middle_name": "Middle Name",
-                            "last_name": "Last Name", 
-                            "suffix": "Suffix",
+                            "last_name": "Last Name",
+                            "suffix": "Suffix", 
                             "gender": "Gender",
                             "birthdate": "Birthdate",
                             "civil_status": "Civil Status",
-                            "purok": "Purok",
-                            "email": "Email"
+                            "purok": "Purok"
                         };
                         options.autoTable = {
                             styles: {
@@ -1963,15 +1944,14 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                                 halign: 'center'
                             },
                             columnStyles: {
-                                0: {cellWidth: 50},  // First Name
-                                1: {cellWidth: 45},  // Middle Name
-                                2: {cellWidth: 50},  // Last Name
-                                3: {cellWidth: 25},  // Suffix
-                                4: {cellWidth: 30},  // Gender
-                                5: {cellWidth: 45},  // Birthdate
-                                6: {cellWidth: 40},  // Civil Status
-                                7: {cellWidth: 35},  // Purok
-                                8: {cellWidth: 70}   // Email - adequate space for email addresses
+                                0: {cellWidth: 40},  // First Name
+                                1: {cellWidth: 35},  // Middle Name
+                                2: {cellWidth: 40},  // Last Name
+                                3: {cellWidth: 20},  // Suffix
+                                4: {cellWidth: 25},  // Gender
+                                5: {cellWidth: 40},  // Birthdate
+                                6: {cellWidth: 35},  // Civil Status
+                                7: {cellWidth: 25},  // Purok
                             },
                             margin: {top: 35, left: 8, right: 8},
                             pageBreak: 'auto'
@@ -2001,10 +1981,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                                 // Clean purok name for PDF
                                 if (row.purok) {
                                     row.purok = row.purok.replace(/\s*\([^)]*\)/g, '').trim();
-                                }
-                                // Ensure email is properly formatted
-                                if (!row.email || row.email === null || row.email === 'null') {
-                                    row.email = '';
                                 }
                                 // Format birthdate for better display
                                 if (row.birthdate) {

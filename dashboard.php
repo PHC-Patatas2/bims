@@ -577,8 +577,8 @@ function stat_card_count($value) {
                         <a href="reports.php" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-50 hover:bg-green-100 text-green-700 font-semibold transition">
                             <i class="fas fa-chart-bar"></i> Generate Demographic Reports
                         </a>
-                        <a href="print_individuals.php?export=excel" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-semibold transition">
-                            <i class="fas fa-file-excel"></i> Export Resident List (Excel)
+                        <a href="individuals.php" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-semibold transition">
+                            <i class="fas fa-file-excel"></i> Export Resident List
                         </a>
                         <button onclick="openAnnouncementModal()" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold transition w-full text-left">
                             <i class="fas fa-bullhorn"></i> Send Announcement
