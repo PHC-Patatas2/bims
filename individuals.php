@@ -543,37 +543,39 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
     <!-- Export Options Modal -->
     <div id="exportModal" class="fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-40 hidden opacity-0 transition-opacity duration-300" style="display: none;">
         <div class="modal-container w-full max-w-md mx-4 relative scale-95 transition-transform duration-300">
-            <div class="modal-header">
-                <h2 class="text-xl font-bold">Export Residents Data</h2>
-                <button id="closeExportModal" class="modal-close-btn" title="Close">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="p-6">
-                <div class="space-y-4">
-                    <p class="text-gray-600 text-sm">Choose your preferred export format:</p>
-                    <div class="grid gap-3">
-                        <button type="button" id="exportCsv" class="btn-secondary justify-start">
-                            <i class="fas fa-file-csv text-green-600"></i>
-                            Export as CSV
-                            <span class="text-xs text-gray-500 ml-auto">Excel compatible</span>
-                        </button>
-                        <button type="button" id="exportExcel" class="btn-secondary justify-start">
-                            <i class="fas fa-file-excel text-green-600"></i>
-                            Export as Excel
-                            <span class="text-xs text-gray-500 ml-auto">.xlsx format</span>
-                        </button>
-                        <button type="button" id="exportPdf" class="btn-secondary justify-start">
-                            <i class="fas fa-file-pdf text-red-600"></i>
-                            Export as PDF
-                            <span class="text-xs text-gray-500 ml-auto">Print ready</span>
-                        </button>
-                    </div>
-                    <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                        <button type="button" id="cancelExport" class="btn-secondary">
-                            <i class="fas fa-times"></i>
-                            Cancel
-                        </button>
+            <div class="bg-white rounded-xl shadow-xl overflow-hidden">
+                <div class="modal-header bg-blue-600 text-white p-4 flex items-center justify-between">
+                    <h2 class="text-xl font-bold">Export Residents Data</h2>
+                    <button id="closeExportModal" class="text-white hover:text-blue-200 focus:outline-none" title="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        <p class="text-gray-600 text-sm">Choose your preferred export format:</p>
+                        <div class="grid gap-3">
+                            <button type="button" id="exportCsv" class="btn-secondary justify-start">
+                                <i class="fas fa-file-csv text-green-600"></i>
+                                Export as CSV
+                                <span class="text-xs text-gray-500 ml-auto">Excel compatible</span>
+                            </button>
+                            <button type="button" id="exportExcel" class="btn-secondary justify-start">
+                                <i class="fas fa-file-excel text-green-600"></i>
+                                Export as Excel
+                                <span class="text-xs text-gray-500 ml-auto">.xlsx format</span>
+                            </button>
+                            <button type="button" id="exportPdf" class="btn-secondary justify-start">
+                                <i class="fas fa-file-pdf text-red-600"></i>
+                                Export as PDF
+                                <span class="text-xs text-gray-500 ml-auto">Print ready</span>
+                            </button>
+                        </div>
+                        <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                            <button type="button" id="cancelExport" class="btn-secondary">
+                                <i class="fas fa-times"></i>
+                                Cancel
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1287,33 +1289,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
     </div>
     
     <script>
-        // More Options Modal functionality
-        let currentResidentId = null;
-        
-        function showMoreOptionsModal(residentId) {
-            currentResidentId = residentId;
-            const modal = document.getElementById('moreOptionsModal');
-            modal.style.display = 'flex';
-            setTimeout(() => {
-                modal.classList.add('show');
-                modal.querySelector('.modal-container').style.transform = 'scale(1)';
-            }, 10);
-        }
-        
-        function closeMoreOptionsModal() {
-            const modal = document.getElementById('moreOptionsModal');
-            modal.classList.remove('show');
-            modal.querySelector('.modal-container').style.transform = 'scale(0.95)';
-            
-            setTimeout(() => {
-                modal.style.display = 'none';
-                // Reset the modal content to original state when closing
-                resetModalContent();
-                // Reset state variables
-                currentResidentId = null;
-                isCertificateGenerating = false;
-            }, 300);
-        }
+        // More Options Modal functionality - moved below to avoid duplication
         
         // More Options Modal event handlers
         document.addEventListener('DOMContentLoaded', function() {
@@ -1323,6 +1299,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         // Global variable to track if certificate generation is in progress
         let isCertificateGenerating = false;
         let originalModalContent = null;
+        let currentResidentId = null;
 
         // Store original modal content when modal is first opened
         function showMoreOptionsModal(residentId) {
@@ -1339,10 +1316,33 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             }
             
             modal.style.display = 'flex';
+            modal.classList.remove('hidden');
             setTimeout(() => {
-                modal.classList.add('show');
-                modal.querySelector('.modal-container').style.transform = 'scale(1)';
+                modal.classList.remove('opacity-0');
+                modal.classList.add('opacity-100');
+                modal.querySelector('.modal-container').classList.remove('scale-95');
+                modal.querySelector('.modal-container').classList.add('scale-100');
             }, 10);
+        }
+
+        function closeMoreOptionsModal() {
+            const modal = document.getElementById('moreOptionsModal');
+            modal.classList.add('opacity-0');
+            modal.classList.remove('opacity-100');
+            modal.querySelector('.modal-container').classList.add('scale-95');
+            modal.querySelector('.modal-container').classList.remove('scale-100');
+            
+            setTimeout(() => {
+                modal.style.display = 'none';
+                modal.classList.add('hidden');
+                // Reset the modal content to original state when closing
+                if (originalModalContent) {
+                    modal.querySelector('.p-6').innerHTML = originalModalContent;
+                }
+                // Reset state variables
+                currentResidentId = null;
+                isCertificateGenerating = false;
+            }, 300);
         }
 
         // Enhanced certificate generation function
@@ -1579,12 +1579,15 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 // Clear any previous messages and reset form when opening modal
                 clearAddResidentModal();
                 
-                // Show modal
+                // Show modal with proper display and transition
                 const modal = document.getElementById('addResidentModal');
                 modal.style.display = 'flex';
                 setTimeout(() => {
-                    modal.classList.add('show');
-                    modal.querySelector('.modal-container').style.transform = 'scale(1)';
+                    modal.classList.remove('hidden');
+                    modal.classList.remove('opacity-0');
+                    if (modal.querySelector('.modal-container')) {
+                        modal.querySelector('.modal-container').classList.remove('scale-95');
+                    }
                 }, 10);
             });
             
@@ -1599,8 +1602,11 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     const modal = document.getElementById('addResidentModal');
                     modal.style.display = 'flex';
                     setTimeout(() => {
-                        modal.classList.add('show');
-                        modal.querySelector('.modal-container').style.transform = 'scale(1)';
+                        modal.classList.remove('hidden');
+                        modal.classList.remove('opacity-0');
+                        if (modal.querySelector('.modal-container')) {
+                            modal.querySelector('.modal-container').classList.remove('scale-95');
+                        }
                     }, 10);
                 }
             });
@@ -1680,8 +1686,11 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             
             function closeAddResidentModal() {
                 const modal = document.getElementById('addResidentModal');
-                modal.classList.remove('show');
-                modal.querySelector('.modal-container').style.transform = 'scale(0.95)';
+                modal.classList.add('hidden');
+                modal.classList.add('opacity-0');
+                if (modal.querySelector('.modal-container')) {
+                    modal.querySelector('.modal-container').classList.add('scale-95');
+                }
                 setTimeout(() => {
                     modal.style.display = 'none';
                     // Clear modal content when closing
@@ -1746,28 +1755,21 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             document.getElementById('export-btn').addEventListener('click', function() {
                 const modal = document.getElementById('exportModal');
                 modal.style.display = 'flex';
+                modal.classList.remove('hidden');
                 setTimeout(() => {
-                    modal.classList.add('show');
-                    modal.querySelector('.modal-container').style.transform = 'scale(1)';
+                    modal.classList.remove('opacity-0');
+                    modal.classList.add('opacity-100');
+                    modal.querySelector('.modal-container').classList.remove('scale-95');
+                    modal.querySelector('.modal-container').classList.add('scale-100');
                 }, 10);
             });
             
             document.getElementById('closeExportModal').addEventListener('click', function() {
-                const modal = document.getElementById('exportModal');
-                modal.classList.remove('show');
-                modal.querySelector('.modal-container').style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    modal.style.display = 'none';
-                }, 300);
+                closeExportModal();
             });
             
             document.getElementById('cancelExport').addEventListener('click', function() {
-                const modal = document.getElementById('exportModal');
-                modal.classList.remove('show');
-                modal.querySelector('.modal-container').style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    modal.style.display = 'none';
-                }, 300);
+                closeExportModal();
             });
             
             // Export buttons
@@ -1945,10 +1947,13 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             
             function closeExportModal() {
                 const modal = document.getElementById('exportModal');
-                modal.classList.remove('show');
-                modal.querySelector('.modal-container').style.transform = 'scale(0.95)';
+                modal.classList.add('opacity-0');
+                modal.classList.remove('opacity-100');
+                modal.querySelector('.modal-container').classList.add('scale-95');
+                modal.querySelector('.modal-container').classList.remove('scale-100');
                 setTimeout(() => {
                     modal.style.display = 'none';
+                    modal.classList.add('hidden');
                 }, 300);
             }
             
@@ -2065,7 +2070,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                         `;
                         return;
                     }
-            // Modal content with category separation like Add Resident modal
+            // Modal content with same structure as edit modal but readonly
             let html = `
                 <form class="space-y-6">
                     <!-- Personal Information Section -->
@@ -2076,73 +2081,111 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label class="resident-info-label mb-1">First Name</label>
-                                <input type="text" class="form-input w-full" value="${resident.first_name || ''}" readonly />
+                                <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50" value="${resident.first_name || ''}" readonly />
                             </div>
                             <div>
-                                <label class="resident-info-label mb-1">Last Name</label>
-                                <input type="text" class="form-input w-full" value="${resident.last_name || ''}" readonly />
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50" value="${resident.last_name || ''}" readonly />
                             </div>
                             <div>
-                                <label class="resident-info-label mb-1">Middle Name</label>
-                                <input type="text" class="form-input w-full" value="${resident.middle_name || ''}" readonly />
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Middle Name</label>
+                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50" value="${resident.middle_name || ''}" readonly />
                             </div>
                             <div>
-                                <label class="resident-info-label mb-1">Suffix</label>
-                                <input type="text" class="form-input w-full" value="${resident.suffix || ''}" readonly />
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Suffix</label>
+                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50" value="${resident.suffix || ''}" readonly />
                             </div>
                             <div>
-                                <label class="resident-info-label mb-1">Gender</label>
-                                <input type="text" class="form-input w-full" value="${resident.gender || ''}" readonly />
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50" value="${resident.gender || ''}" readonly />
                             </div>
                             <div>
-                                <label class="resident-info-label mb-1">Birthdate</label>
-                                <input type="text" class="form-input w-full" value="${resident.birthdate || ''}" readonly />
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Birthdate</label>
+                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50" value="${resident.birthdate || ''}" readonly />
                             </div>
                         </div>
                     </div>
+                    
                     <!-- Basic Details Section -->
                     <div class="mb-6">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                            <i class="fas fa-id-card text-green-600"></i>
+                            <i class="fas fa-info-circle text-green-600"></i>
                             Basic Details
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label class="resident-info-label mb-1">Civil Status</label>
-                                <input type="text" class="form-input w-full" value="${resident.civil_status || ''}" readonly />
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Civil Status</label>
+                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50" value="${resident.civil_status || ''}" readonly />
                             </div>
                             <div>
-                                <label class="resident-info-label mb-1">Purok</label>
-                                <input type="text" class="form-input w-full" value="${resident.purok_name || ''}" readonly />
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Blood Type</label>
+                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50" value="${resident.blood_type || ''}" readonly />
                             </div>
                             <div>
-                                <label class="resident-info-label mb-1">Religion</label>
-                                <input type="text" class="form-input w-full" value="${resident.religion || ''}" readonly />
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Religion</label>
+                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50" value="${resident.religion || ''}" readonly />
                             </div>
                             <div>
-                                <label class="resident-info-label mb-1">Email</label>
-                                <input type="text" class="form-input w-full" value="${resident.email || ''}" readonly />
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Residing Purok</label>
+                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50" value="${resident.purok_name || resident.purok || ''}" readonly />
                             </div>
                         </div>
                     </div>
-                    <!-- Status Information -->
+                    
+                    <!-- Contact Information Section -->
                     <div class="mb-6">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                            <i class="fas fa-tags text-purple-600"></i>
+                            <i class="fas fa-address-book text-purple-600"></i>
+                            Contact Information
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50" value="${resident.email || ''}" readonly />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Status Information Section -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-tags text-orange-600"></i>
                             Status Information
                         </h3>
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            <div><label class="resident-info-label mb-1">Voter</label><input type="checkbox" disabled ${resident.is_voter == 1 ? 'checked' : ''} class="form-checkbox" /></div>
-                            <div><label class="resident-info-label mb-1">PWD</label><input type="checkbox" disabled ${resident.is_pwd == 1 ? 'checked' : ''} class="form-checkbox" /></div>
-                            <div><label class="resident-info-label mb-1">4Ps</label><input type="checkbox" disabled ${resident.is_4ps == 1 ? 'checked' : ''} class="form-checkbox" /></div>
-                            <div><label class="resident-info-label mb-1">Solo Parent</label><input type="checkbox" disabled ${resident.is_solo_parent == 1 ? 'checked' : ''} class="form-checkbox" /></div>
-                            <div><label class="resident-info-label mb-1">Pregnant</label><input type="checkbox" disabled ${resident.is_pregnant == 1 ? 'checked' : ''} class="form-checkbox" /></div>
-                            <div><label class="resident-info-label mb-1">Senior Citizen</label><input type="checkbox" disabled ${resident.is_senior_citizen == 1 ? 'checked' : ''} class="form-checkbox" /></div>
+                            <div class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                                <input type="checkbox" disabled ${(resident.is_pwd == 1 || resident.is_pwd == '1' || resident.is_pwd === true) ? 'checked' : ''} class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                <span class="text-sm font-medium text-gray-700">PWD</span>
+                            </div>
+                            <div class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                                <input type="checkbox" disabled ${(resident.is_voter == 1 || resident.is_voter == '1' || resident.is_voter === true) ? 'checked' : ''} class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                <span class="text-sm font-medium text-gray-700">Registered Voter</span>
+                            </div>
+                            <div class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                                <input type="checkbox" disabled ${(resident.is_4ps == 1 || resident.is_4ps == '1' || resident.is_4ps === true) ? 'checked' : ''} class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                <span class="text-sm font-medium text-gray-700">4Ps Beneficiary</span>
+                            </div>
+                            <div class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                                <input type="checkbox" disabled ${(resident.is_pregnant == 1 || resident.is_pregnant == '1' || resident.is_pregnant === true) ? 'checked' : ''} class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                <span class="text-sm font-medium text-gray-700">Pregnant</span>
+                            </div>
+                            <div class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                                <input type="checkbox" disabled ${(resident.is_solo_parent == 1 || resident.is_solo_parent == '1' || resident.is_solo_parent === true) ? 'checked' : ''} class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                <span class="text-sm font-medium text-gray-700">Solo Parent</span>
+                            </div>
+                            <div class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                                <input type="checkbox" disabled ${(resident.is_senior_citizen == 1 || resident.is_senior_citizen == '1' || resident.is_senior_citizen === true) ? 'checked' : ''} class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                <span class="text-sm font-medium text-gray-700">Senior Citizen</span>
+                            </div>
                         </div>
                     </div>
-                    <div class='flex justify-end gap-3 pt-4 border-t mt-4'>
-                        <button type='button' onclick='closeViewResidentModal()' class='px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600'>Close</button>
+                    
+                    <!-- Close Button -->
+                    <div class='flex justify-end gap-3 pt-6 border-t border-gray-200'>
+                        <button type='button' onclick='closeViewResidentModal()' class='px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500'>
+                            <i class="fas fa-times mr-2"></i>Close
+                        </button>
                     </div>
                 </form>
             `;
@@ -2188,11 +2231,13 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         function closeEditResidentModal() {
             const modal = document.getElementById('editResidentModal');
             if (modal) {
-                modal.classList.remove('show');
+                modal.classList.add('opacity-0');
                 if (modal.querySelector('.modal-container')) {
-                    modal.querySelector('.modal-container').style.transform = 'scale(0.95)';
+                    modal.querySelector('.modal-container').classList.remove('scale-100');
+                    modal.querySelector('.modal-container').classList.add('scale-95');
                 }
                 setTimeout(() => {
+                    modal.classList.add('hidden');
                     modal.style.display = 'none';
                 }, 300);
             }
@@ -2215,8 +2260,9 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             // Show the modal
             modal.style.display = 'flex';
             setTimeout(() => {
-                modal.classList.add('show');
-                modal.querySelector('.modal-container').style.transform = 'scale(1)';
+                modal.classList.remove('hidden', 'opacity-0');
+                modal.querySelector('.modal-container').classList.remove('scale-95');
+                modal.querySelector('.modal-container').classList.add('scale-100');
             }, 10);
             
             // Fetch resident details for editing
