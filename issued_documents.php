@@ -231,17 +231,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                             <option value="residency">Certificate of Residency</option>
                             <option value="indigency">Certificate of Indigency</option>
                             <option value="first_time_job_seeker">First Time Job Seeker</option>
-                            <option value="barangay_id">Barangay ID</option>
-                        </select>
-                    </div>
-                    <div class="md:w-48">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
-                        <select id="dateRangeFilter" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                            <option value="">All Time</option>
-                            <option value="today">Today</option>
-                            <option value="week">This Week</option>
-                            <option value="month">This Month</option>
-                            <option value="year">This Year</option>
                         </select>
                     </div>
                     <div class="flex items-end">
@@ -380,9 +369,24 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             try {
                 const response = await fetch('issued_documents.php?fetch_documents=1');
                 const data = await response.json();
-                documentsData = data;
                 
-                // Update table with real data
+                // Calculate request counts for each document
+                const processedData = data.map(doc => {
+                    // Count how many times this resident requested this document type
+                    const requestCount = data.filter(d => 
+                        d.resident_name === doc.resident_name && 
+                        d.document_type === doc.document_type
+                    ).length;
+                    
+                    return {
+                        ...doc,
+                        request_count: requestCount
+                    };
+                });
+                
+                documentsData = processedData;
+                
+                // Update table with processed data
                 if (documentsTable) {
                     documentsTable.setData(documentsData);
                 }
@@ -409,34 +413,33 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 resizableColumns: true,
                 placeholder: "Loading documents...",
                 columns: [
-                    {title: "Certificate #", field: "certificate_number", width: 150, sorter: "string"},
-                    {title: "Document Type", field: "document_type", width: 180, sorter: "string"},
-                    {title: "Resident Name", field: "resident_name", width: 200, sorter: "string"},
-                    {title: "Issued By", field: "issued_by", width: 150, sorter: "string"},
-                    {title: "Date Issued", field: "issued_date", width: 120, sorter: "date", 
+                    {title: "Certificate #", field: "certificate_number", sorter: "string"},
+                    {title: "Document Type", field: "document_type", sorter: "string"},
+                    {title: "Resident Name", field: "resident_name", sorter: "string"},
+                    {title: "Request Count", field: "request_count", sorter: "number", width: 120,
+                     formatter: function(cell) {
+                         const count = cell.getValue();
+                         const colorClass = count > 1 ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-600';
+                         return `<span class="px-2 py-1 text-xs rounded-full ${colorClass} font-medium">${count}${count > 1 ? ' times' : ' time'}</span>`;
+                     }
+                    },
+                    {title: "Date Issued", field: "issued_date", sorter: "date", 
                      formatter: function(cell) {
                          return new Date(cell.getValue()).toLocaleDateString();
                      }
                     },
-                    {title: "Purpose", field: "purpose", width: 200, sorter: "string"},
-                    {title: "Status", field: "status", width: 100, sorter: "string",
+                    {title: "Time Issued", field: "issued_date", sorter: "date", width: 110,
+                     formatter: function(cell) {
+                         return new Date(cell.getValue()).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+                     }
+                    },
+                    {title: "Status", field: "status", sorter: "string",
                      formatter: function(cell) {
                          const status = cell.getValue();
                          const colorClass = status === 'Issued' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
                          return `<span class="px-2 py-1 text-xs rounded-full ${colorClass}">${status}</span>`;
                      }
-                    },
-                    {title: "Actions", formatter: function(cell) {
-                        const data = cell.getRow().getData();
-                        return `<div class="flex gap-1">
-                                    <button onclick="viewDocument(${data.id})" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button onclick="downloadDocument('${data.certificate_number}')" class="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600">
-                                        <i class="fas fa-download"></i>
-                                    </button>
-                                </div>`;
-                    }, width: 120, hozAlign: "center", headerSort: false}
+                    }
                 ]
             });
         }
@@ -477,126 +480,46 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
 
         // Search and filter functions
         function setupFilters() {
-            document.getElementById('searchInput').addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase();
-                documentsTable.setFilter(function(data) {
-                    return data.resident_name.toLowerCase().includes(searchTerm) ||
-                           data.document_type.toLowerCase().includes(searchTerm) ||
-                           data.certificate_number.toLowerCase().includes(searchTerm);
-                });
-            });
-
-            document.getElementById('documentTypeFilter').addEventListener('change', function() {
-                const type = this.value;
-                if (type) {
-                    documentsTable.setFilter(function(data) {
-                        // Check if the certificate type matches the selected filter
-                        return data.document_type.toLowerCase().replace(/\s+/g, '_').includes(type) ||
-                               data.document_type.toLowerCase().includes(type.replace(/_/g, ' '));
-                    });
-                } else {
-                    documentsTable.clearFilter();
-                }
-            });
-
-            document.getElementById('dateRangeFilter').addEventListener('change', function() {
-                const range = this.value;
-                const today = new Date();
+            function applyFilters() {
+                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                const documentType = document.getElementById('documentTypeFilter').value;
                 
-                if (range === 'today') {
-                    const todayStr = today.toISOString().split('T')[0];
-                    documentsTable.setFilter(function(data) {
-                        const docDateStr = data.issued_date.split(' ')[0]; // Get just the date part
-                        return docDateStr === todayStr;
-                    });
-                } else if (range === 'week') {
-                    const weekAgo = new Date();
-                    weekAgo.setDate(weekAgo.getDate() - 7);
-                    documentsTable.setFilter(function(data) {
-                        const docDate = new Date(data.issued_date);
-                        return docDate >= weekAgo && docDate <= today;
-                    });
-                } else if (range === 'month') {
-                    const monthAgo = new Date();
-                    monthAgo.setMonth(monthAgo.getMonth() - 1);
-                    documentsTable.setFilter(function(data) {
-                        const docDate = new Date(data.issued_date);
-                        return docDate >= monthAgo && docDate <= today;
-                    });
-                } else if (range === 'year') {
-                    const yearAgo = new Date();
-                    yearAgo.setFullYear(yearAgo.getFullYear() - 1);
-                    documentsTable.setFilter(function(data) {
-                        const docDate = new Date(data.issued_date);
-                        return docDate >= yearAgo && docDate <= today;
-                    });
-                } else {
-                    documentsTable.clearFilter();
-                }
-            });
+                documentsTable.setFilter(function(data) {
+                    // Check search term match
+                    const searchMatch = !searchTerm || 
+                        data.resident_name.toLowerCase().includes(searchTerm) ||
+                        data.document_type.toLowerCase().includes(searchTerm) ||
+                        data.certificate_number.toLowerCase().includes(searchTerm);
+                    
+                    // Check document type match
+                    const typeMatch = !documentType || 
+                        data.document_type.toLowerCase().replace(/\s+/g, '_').includes(documentType) ||
+                        data.document_type.toLowerCase().includes(documentType.replace(/_/g, ' '));
+                    
+                    // Both conditions must be true
+                    return searchMatch && typeMatch;
+                });
+            }
+
+            document.getElementById('searchInput').addEventListener('input', applyFilters);
+            document.getElementById('documentTypeFilter').addEventListener('change', applyFilters);
         }
 
         // Modal functions
-        function viewDocument(id) {
-            const document = documentsData.find(doc => doc.id === id);
-            if (document) {
-                const detailsHtml = `
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Certificate Number</label>
-                            <p class="text-gray-900">${document.certificate_number}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Document Type</label>
-                            <p class="text-gray-900">${document.document_type}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Resident Name</label>
-                            <p class="text-gray-900">${document.resident_name}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Issued By</label>
-                            <p class="text-gray-900">${document.issued_by}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Date Issued</label>
-                            <p class="text-gray-900">${new Date(document.issued_date).toLocaleDateString()}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Purpose</label>
-                            <p class="text-gray-900">${document.purpose}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Status</label>
-                            <p class="text-gray-900">${document.status}</p>
-                        </div>
-                    </div>
-                `;
-                document.getElementById('documentDetails').innerHTML = detailsHtml;
-                document.getElementById('documentModal').classList.remove('hidden');
-            }
-        }
-
-        function downloadDocument(certificateNumber) {
-            window.open(`download_certificate.php?id=${certificateNumber}`, '_blank');
-        }
-
         function closeDocumentModal() {
             document.getElementById('documentModal').classList.add('hidden');
-        }
-
-        function printDocument() {
-            // Placeholder for print functionality
-            showNotification('Print functionality would be implemented here', 'info');
         }
 
         function exportDocuments() {
             // Simple CSV export
             const csvContent = "data:text/csv;charset=utf-8," 
-                + "Certificate Number,Document Type,Resident Name,Issued By,Date Issued,Purpose,Status\n"
-                + documentsData.map(doc => 
-                    `${doc.certificate_number},${doc.document_type},${doc.resident_name},${doc.issued_by},${doc.issued_date},${doc.purpose},${doc.status}`
-                  ).join("\n");
+                + "Certificate Number,Document Type,Resident Name,Request Count,Date Issued,Time Issued,Status\n"
+                + documentsData.map(doc => {
+                    const issuedDate = new Date(doc.issued_date);
+                    const dateOnly = issuedDate.toLocaleDateString();
+                    const timeOnly = issuedDate.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+                    return `${doc.certificate_number},${doc.document_type},${doc.resident_name},${doc.request_count},${dateOnly},${timeOnly},${doc.status}`;
+                  }).join("\n");
 
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");

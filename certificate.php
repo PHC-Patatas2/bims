@@ -281,18 +281,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     <h3 class="text-xl font-bold mb-2">Certificate of Indigency</h3>
                     <p class="text-white/80">Financial status certification</p>
                 </div>
-
-                <!-- Barangay ID -->
-                <div class="certificate-card p-6 text-white cursor-pointer" onclick="openCertificateModal('barangay_id')">
-                    <div class="flex items-center justify-between mb-4">
-                        <i class="fas fa-id-card text-3xl"></i>
-                        <div class="text-right">
-                            <div class="text-2xl font-bold">05</div>
-                        </div>
-                    </div>
-                    <h3 class="text-xl font-bold mb-2">Barangay ID</h3>
-                    <p class="text-white/80">Official barangay identification card</p>
-                </div>
             </div>
 
             <!-- Recent Certificates -->
@@ -316,14 +304,13 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                                 <th class="text-left py-3 px-4 font-semibold text-gray-700">Resident Name</th>
                                 <th class="text-left py-3 px-4 font-semibold text-gray-700">Certificate Type</th>
                                 <th class="text-left py-3 px-4 font-semibold text-gray-700">Date Requested</th>
-                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Purpose</th>
                                 <th class="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
                             </tr>
                         </thead>
                         <tbody id="recentCertificatesTable">
                             <!-- Dynamic content will be loaded here -->
                             <tr>
-                                <td colspan="6" class="text-center py-8 text-gray-500">
+                                <td colspan="5" class="text-center py-8 text-gray-500">
                                     <i class="fas fa-inbox text-3xl mb-2 block"></i>
                                     No recent certificates found
                                 </td>
@@ -455,8 +442,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 'clearance': 'Generate Barangay Clearance',
                 'first_time_job_seeker': 'Generate Certificate of First Time Job Seeker',
                 'residency': 'Generate Certificate of Residency',
-                'indigency': 'Generate Certificate of Indigency',
-                'barangay_id': 'Generate Barangay ID'
+                'indigency': 'Generate Certificate of Indigency'
             };
             
             document.getElementById('modalTitle').textContent = titles[type] || 'Generate Document';
@@ -634,22 +620,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 case 'residency':
                     additionalFields.innerHTML = ``;
                     break;
-                case 'barangay_id':
-                    additionalFields.innerHTML = `
-                        <div class="form-group">
-                            <label class="form-label" for="emergencyContact">
-                                <i class="fas fa-phone mr-2"></i>Emergency Contact Name
-                            </label>
-                            <input type="text" class="form-input" id="emergencyContact" name="emergency_contact" placeholder="Enter emergency contact name">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="emergencyContactNumber">
-                                <i class="fas fa-phone-alt mr-2"></i>Emergency Contact Number
-                            </label>
-                            <input type="tel" class="form-input" id="emergencyContactNumber" name="emergency_contact_number" placeholder="Enter emergency contact number">
-                        </div>
-                    `;
-                    break;
                 // For clearance, no additional fields needed
                 case 'clearance':
                     additionalFields.innerHTML = ``;
@@ -790,7 +760,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     if (data.length === 0) {
                         tableBody.innerHTML = `
                             <tr>
-                                <td colspan="6" class="text-center py-8 text-gray-500">
+                                <td colspan="5" class="text-center py-8 text-gray-500">
                                     <i class="fas fa-inbox text-3xl mb-2 block"></i>
                                     No recent certificates found
                                 </td>
@@ -859,11 +829,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                                     </div>
                                 </td>
                                 <td class="py-3 px-4 border-b">
-                                    <div class="text-sm text-gray-700">
-                                        ${cert.purpose}
-                                    </div>
-                                </td>
-                                <td class="py-3 px-4 border-b">
                                     ${statusBadge}
                                 </td>
                             `;
@@ -876,7 +841,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     const tableBody = document.getElementById('recentCertificatesTable');
                     tableBody.innerHTML = `
                         <tr>
-                            <td colspan="6" class="text-center py-8 text-red-500">
+                            <td colspan="5" class="text-center py-8 text-red-500">
                                 <i class="fas fa-exclamation-triangle text-3xl mb-2 block"></i>
                                 Error loading recent certificates
                             </td>

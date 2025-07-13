@@ -714,16 +714,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                                 <div class="text-sm text-gray-500">Certificate for first-time job seekers</div>
                             </div>
                         </button>
-                        
-                        <button onclick="generateCertificate('barangay_id')" class="w-full flex items-center gap-3 px-4 py-3 text-left bg-gray-50 hover:bg-indigo-50 rounded-lg transition-colors">
-                            <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-id-card"></i>
-                            </div>
-                            <div>
-                                <div class="font-medium text-gray-900">Barangay ID</div>
-                                <div class="text-sm text-gray-500">Official barangay identification</div>
-                            </div>
-                        </button>
                     </div>
                     
                     <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 mt-6">

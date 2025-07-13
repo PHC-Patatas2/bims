@@ -198,9 +198,6 @@ function validateResidentData($certificate_type, $resident_data, $age) {
                 return ['valid' => false, 'message' => 'First Time Job Seeker certificate is only for ages 15-30. Current age: ' . $age];
             }
             break;
-        case 'barangay_id':
-            // No additional validations for now
-            break;
         case 'clearance':
         case 'residency':
         case 'indigency':
@@ -246,11 +243,6 @@ function generateCertificate($type, $resident_data, $age, $purpose) {
             case 'first_time_job_seeker':
                 // First Time Job Seeker has its own header format like clearance
                 generateFirstTimeJobSeekerCertificate($pdf, $resident_data, $age, $purpose, $settings, $certificate_id);
-                break;
-            case 'barangay_id':
-                // Header for other certificates
-                addCertificateHeader($pdf, $settings);
-                generateBarangayID($pdf, $resident_data, $age, $settings);
                 break;
             default:
                 throw new Exception('Invalid certificate type: ' . $type);
@@ -955,38 +947,4 @@ function generateFirstTimeJobSeekerCertificate($pdf, $resident_data, $age, $purp
     $pdf->Cell(0, 4, 'Not valid without dry seal and signature.', 0, 1, 'C');
 }
 
-function generateBarangayID($pdf, $resident_data, $age, $settings) {
-    // Different layout for ID format
-    $pdf->SetFont('Arial', 'B', 14);
-    $pdf->Cell(0, 10, 'BARANGAY IDENTIFICATION CARD', 0, 1, 'C');
-    $pdf->Ln(10);
-    
-    $name = trim($resident_data['first_name'] . ' ' . ($resident_data['middle_name'] ?? '') . ' ' . $resident_data['last_name'] . ' ' . ($resident_data['suffix'] ?? ''));
-    
-    $pdf->SetFont('Arial', '', 12);
-    $pdf->Cell(50, 8, 'Name:', 0, 0, 'L');
-    $pdf->Cell(0, 8, strtoupper($name), 0, 1, 'L');
-    
-    $pdf->Cell(50, 8, 'Age:', 0, 0, 'L');
-    $pdf->Cell(0, 8, $age . ' years old', 0, 1, 'L');
-    
-    $pdf->Cell(50, 8, 'Gender:', 0, 0, 'L');
-    $pdf->Cell(0, 8, $resident_data['gender'], 0, 1, 'L');
-    
-    $pdf->Cell(50, 8, 'Address:', 0, 0, 'L');
-    $pdf->Cell(0, 8, ($resident_data['purok_name'] ?? '') . ', ' . ($settings['barangay_name'] ?? 'Barangay'), 0, 1, 'L');
-    
-    if (!empty($resident_data['birthdate'])) {
-        $pdf->Cell(50, 8, 'Birthdate:', 0, 0, 'L');
-        $pdf->Cell(0, 8, date('F d, Y', strtotime($resident_data['birthdate'])), 0, 1, 'L');
-    }
-    
-    $pdf->Cell(50, 8, 'Civil Status:', 0, 0, 'L');
-    $pdf->Cell(0, 8, $resident_data['civil_status'], 0, 1, 'L');
-    
-    if (!empty($resident_data['blood_type'])) {
-        $pdf->Cell(50, 8, 'Blood Type:', 0, 0, 'L');
-        $pdf->Cell(0, 8, $resident_data['blood_type'], 0, 1, 'L');
-    }
-}
 ?>
