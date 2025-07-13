@@ -1,8 +1,13 @@
 <?php
+// Set content type to JSON and prevent any HTML output
+header('Content-Type: application/json');
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // Don't display errors in response
+ini_set('log_errors', 1); // Log errors to file
+
 session_start();
-require_once 'config.php';
-require_once 'audit_logger.php'; // Include audit logging functions
-require_once 'email_config.php';
+
+// Load vendor autoload first
 require_once 'vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
@@ -34,6 +39,11 @@ if (empty($subject) || empty($message)) {
 }
 
 try {
+    // Load configuration files
+    require_once 'config.php';
+    require_once 'audit_logger.php';
+    require_once 'email_config.php';
+    
     // Connect to database
     $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     if ($conn->connect_error) {
@@ -65,7 +75,7 @@ try {
     $stmt->close();
 
     if (empty($recipients)) {
-        echo json_encode(['success' => false, 'message' => 'No residents found with valid email addresses']);
+        echo json_encode(['success' => false, 'message' => 'No residents found with valid email addresses. Please add email addresses to resident records first.']);
         exit();
     }
 
@@ -156,7 +166,7 @@ try {
         'subject' => $subject,
         'sent_count' => $sent_count,
         'failed_count' => count($failed_emails),
-        'total_recipients' => count($residents)
+        'total_recipients' => count($recipients)
     ];
     
     if (!empty($failed_emails)) {

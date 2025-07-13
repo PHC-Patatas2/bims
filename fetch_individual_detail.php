@@ -17,7 +17,7 @@ if ($conn->connect_error) {
 }
 
 $id = intval($_GET['id']);
-$sql = "SELECT i.*, p.name AS purok_name, i.religion AS religion_name
+$sql = "SELECT i.*, p.name AS purok_name
         FROM individuals i 
         LEFT JOIN purok p ON i.purok_id = p.id 
         WHERE i.id = ? LIMIT 1";

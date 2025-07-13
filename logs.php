@@ -168,19 +168,18 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
     <div id="sidepanelOverlay" class="fixed inset-0 bg-black bg-opacity-30 z-30 hidden"></div>
     <!-- Navbar -->
     <nav class="fixed top-0 left-0 right-0 z-30 bg-white shadow flex items-center justify-between h-16 px-4 md:px-8">
-        <div class="flex items-center gap-2">
-            <button id="menuBtn" class="h-8 w-8 mr-2 flex items-center justify-center text-blue-700 focus:outline-none">
+        <div class="flex items-center gap-2">            <button id="menuBtn" class="h-8 w-8 mr-2 flex items-center justify-center text-blue-700 focus:outline-none">
                 <i class="fas fa-bars text-2xl"></i>
             </button>
             <span class="font-bold text-lg text-blue-700"><?php echo htmlspecialchars($system_title); ?></span>
         </div>
         <div class="relative flex items-center gap-2">
-            <span class="hidden sm:inline text-gray-700 font-medium">Welcome, <?php echo htmlspecialchars($user_full_name); ?></span>
+            <span class="hidden sm:inline text-gray-700 font-medium">Welcome,</span>
             <button id="userDropdownBtn" class="focus:outline-none flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100">
-                <i class="fas fa-user-circle text-2xl text-gray-600"></i>
+                <span class="text-gray-700 font-medium"><?php echo htmlspecialchars($user_full_name); ?></span>
                 <i class="fas fa-chevron-down text-sm text-gray-600"></i>
             </button>
-            <div id="userDropdownMenu" class="dropdown-menu">
+            <div id="userDropdownMenu" class="dropdown-menu mt-2">
                 <a href="profile.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg mx-2 my-1">
                     <i class="fas fa-user mr-2"></i>Profile
                 </a>
@@ -210,14 +209,14 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             </div>
 
             <!-- Log Statistics -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div class="bg-white rounded-lg shadow p-6">
                     <div class="flex items-center">
                         <div class="bg-blue-100 p-3 rounded-lg mr-4">
                             <i class="fas fa-list text-blue-600 text-xl"></i>
                         </div>
                         <div>
-                            <p class="text-sm text-gray-600">Total Logs</p>
+                            <p class="text-sm text-gray-600">Total Activity Logs</p>
                             <p class="text-2xl font-bold text-gray-900" id="totalLogs">0</p>
                         </div>
                     </div>
@@ -225,33 +224,11 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 <div class="bg-white rounded-lg shadow p-6">
                     <div class="flex items-center">
                         <div class="bg-green-100 p-3 rounded-lg mr-4">
-                            <i class="fas fa-info-circle text-green-600 text-xl"></i>
+                            <i class="fas fa-clock text-green-600 text-xl"></i>
                         </div>
                         <div>
-                            <p class="text-sm text-gray-600">Info Logs</p>
-                            <p class="text-2xl font-bold text-gray-900" id="infoLogs">0</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex items-center">
-                        <div class="bg-yellow-100 p-3 rounded-lg mr-4">
-                            <i class="fas fa-exclamation-triangle text-yellow-600 text-xl"></i>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-600">Warnings</p>
-                            <p class="text-2xl font-bold text-gray-900" id="warningLogs">0</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex items-center">
-                        <div class="bg-red-100 p-3 rounded-lg mr-4">
-                            <i class="fas fa-times-circle text-red-600 text-xl"></i>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-600">Errors</p>
-                            <p class="text-2xl font-bold text-gray-900" id="errorLogs">0</p>
+                            <p class="text-sm text-gray-600">Today's Activities</p>
+                            <p class="text-2xl font-bold text-gray-900" id="todayLogs">0</p>
                         </div>
                     </div>
                 </div>
@@ -259,24 +236,14 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
 
             <!-- Search and Filter Controls -->
             <div class="bg-white rounded-lg shadow mb-6 p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                    <div class="lg:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Search Logs</label>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="lg:col-span-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Search Activities</label>
                         <div class="relative">
-                            <input type="text" id="searchLogs" placeholder="Search by user, action, or details..." 
+                            <input type="text" id="searchLogs" placeholder="Search by user or activity..." 
                                    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
                         </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Log Level</label>
-                        <select id="logLevelFilter" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                            <option value="">All Levels</option>
-                            <option value="INFO">Info</option>
-                            <option value="WARNING">Warning</option>
-                            <option value="ERROR">Error</option>
-                            <option value="DEBUG">Debug</option>
-                        </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
@@ -285,7 +252,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                             <option value="today">Today</option>
                             <option value="week">This Week</option>
                             <option value="month">This Month</option>
-                            <option value="custom">Custom Range</option>
                         </select>
                     </div>
                     <div>
@@ -295,46 +261,38 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                         </select>
                     </div>
                 </div>
-                <div id="customDateRange" class="mt-4 hidden">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">From Date</label>
-                            <input type="date" id="fromDate" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">To Date</label>
-                            <input type="date" id="toDate" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Logs Table -->
             <div class="bg-white rounded-lg shadow">
                 <div class="p-6 border-b border-gray-200">
-                    <h3 class="text-lg font-semibold text-gray-900">System Activity Logs</h3>
+                    <h3 class="text-lg font-semibold text-gray-900">System Activity History</h3>
+                    <p class="text-sm text-gray-600 mt-1">View all system activities and user actions</p>
                 </div>
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto" style="height: 600px;">
                     <div id="logsTable"></div>
                 </div>
             </div>
 
-            <!-- Log Details Modal -->
+            <!-- Activity Details Modal -->
             <div id="logModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
                 <div class="flex items-center justify-center min-h-screen p-4">
-                    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+                    <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[80vh] overflow-y-auto">
                         <div class="flex items-center justify-between p-6 border-b">
-                            <h3 class="text-lg font-semibold">Log Details</h3>
+                            <div>
+                                <h3 class="text-lg font-semibold">Activity Details</h3>
+                                <p class="text-sm text-gray-600">Detailed information about this system activity</p>
+                            </div>
                             <button onclick="closeLogModal()" class="text-gray-400 hover:text-gray-600">
-                                <i class="fas fa-times"></i>
+                                <i class="fas fa-times text-xl"></i>
                             </button>
                         </div>
                         <div class="p-6" id="logDetails">
                             <!-- Log details will be populated here -->
                         </div>
-                        <div class="flex justify-end p-6 border-t">
-                            <button onclick="closeLogModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
-                                Close
+                        <div class="flex justify-end p-6 border-t bg-gray-50">
+                            <button onclick="closeLogModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-check mr-2"></i>Got it
                             </button>
                         </div>
                     </div>
@@ -344,37 +302,40 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
     </main>
 
     <script>
-        // Sidebar functionality
-        const sidepanel = document.getElementById('sidepanel');
-        const overlay = document.getElementById('sidepanelOverlay');
+        // Sidepanel toggle
         const menuBtn = document.getElementById('menuBtn');
+        const sidepanel = document.getElementById('sidepanel');
+        const sidepanelOverlay = document.getElementById('sidepanelOverlay');
         const closeSidepanel = document.getElementById('closeSidepanel');
-        
+
+
         function openSidepanel() {
             sidepanel.classList.remove('-translate-x-full');
-            overlay.classList.remove('hidden');
+            sidepanelOverlay.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
         }
-        
-        function closeSidepanelFunc() {
+        function closeSidepanelFn() {
             sidepanel.classList.add('-translate-x-full');
-            overlay.classList.add('hidden');
+            sidepanelOverlay.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
         }
-        
         menuBtn.addEventListener('click', openSidepanel);
-        closeSidepanel.addEventListener('click', closeSidepanelFunc);
-        overlay.addEventListener('click', closeSidepanelFunc);
+        closeSidepanel.addEventListener('click', closeSidepanelFn);
+        sidepanelOverlay.addEventListener('click', closeSidepanelFn);
         
-        // Dropdown functionality
+        // Dropdown logic for sidepanel (only one open at a time)
         function toggleDropdown(id) {
-            const elements = document.querySelectorAll('[id$="SubNav"]');
-            elements.forEach(el => {
-                if (el.id !== id) {
-                    if (el.classList.contains('dropdown-open')) {
-                        el.classList.remove('dropdown-open');
-                        el.classList.add('dropdown-closed');
+            const dropdowns = ['peopleSubNav', 'docsSubNav', 'settingsSubNav'];
+            dropdowns.forEach(function(dropId) {
+                if (dropId !== id) {
+                    const otherEl = document.getElementById(dropId);
+                    if (otherEl && otherEl.classList.contains('dropdown-open')) {
+                        otherEl.classList.remove('dropdown-open');
+                        otherEl.classList.add('dropdown-closed');
                     }
                 }
             });
+            
             const targetEl = document.getElementById(id);
             if (targetEl) {
                 if (targetEl.classList.contains('dropdown-open')) {
@@ -408,10 +369,11 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         // User dropdown
         const userDropdownBtn = document.getElementById('userDropdownBtn');
         const userDropdownMenu = document.getElementById('userDropdownMenu');
+
         userDropdownBtn.addEventListener('click', () => {
             userDropdownMenu.classList.toggle('show');
         });
-        
+
         // Close user dropdown if clicked outside
         document.addEventListener('click', (e) => {
             if (!userDropdownBtn.contains(e.target) && !userDropdownMenu.contains(e.target)) {
@@ -449,30 +411,27 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 layout: "fitColumns",
                 responsiveLayout: "hide",
                 pagination: "local",
-                paginationSize: 25,
-                paginationSizeSelector: [10, 25, 50, 100],
-                movableColumns: true,
+                paginationSize: 50,
+                paginationSizeSelector: [25, 50, 100],
+                movableColumns: false,
                 resizableRows: false,
+                height: "100%",
                 initialSort: [
                     {column: "timestamp", dir: "desc"}
                 ],
                 columns: [
                     {
-                        title: "Date", 
+                        title: "Date & Time", 
                         field: "timestamp", 
-                        width: 120,
+                        width: 200,
                         formatter: function(cell) {
                             const date = new Date(cell.getValue());
-                            return date.toLocaleDateString();
-                        }
-                    },
-                    {
-                        title: "Time", 
-                        field: "timestamp", 
-                        width: 120,
-                        formatter: function(cell) {
-                            const date = new Date(cell.getValue());
-                            return date.toLocaleTimeString();
+                            return `
+                                <div class="text-sm">
+                                    <div class="font-medium">${date.toLocaleDateString()}</div>
+                                    <div class="text-gray-500">${date.toLocaleTimeString()}</div>
+                                </div>
+                            `;
                         }
                     },
                     {
@@ -480,58 +439,76 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                         field: "user_name", 
                         width: 150,
                         formatter: function(cell) {
-                            return `<span class="font-medium">${cell.getValue()}</span>`;
+                            const userName = cell.getValue() || 'System';
+                            return `<span class="font-medium text-blue-700">${userName}</span>`;
                         }
                     },
                     {
-                        title: "Action", 
+                        title: "Activity", 
                         field: "action", 
-                        width: 150,
+                        widthGrow: 2,
                         formatter: function(cell) {
                             const action = cell.getValue() || '';
-                            let badgeClass = 'bg-blue-100 text-blue-800';
-                            if (action.toUpperCase().includes('DELETE')) badgeClass = 'bg-red-100 text-red-800';
-                            else if (action.toUpperCase().includes('CREATE')) badgeClass = 'bg-green-100 text-green-800';
-                            else if (action.toUpperCase().includes('UPDATE')) badgeClass = 'bg-yellow-100 text-yellow-800';
-                            else if (action.toUpperCase().includes('LOGIN')) badgeClass = 'bg-purple-100 text-purple-800';
-                            else if (action.toUpperCase().includes('LOGOUT')) badgeClass = 'bg-gray-100 text-gray-800';
+                            let iconClass = 'fas fa-info-circle text-blue-500';
+                            let description = action;
                             
-                            return `<span class="px-2 py-1 rounded-full text-xs font-medium ${badgeClass}">${action}</span>`;
+                            // Make activities more human-readable
+                            if (action.toLowerCase().includes('login')) {
+                                iconClass = 'fas fa-sign-in-alt text-green-500';
+                                description = 'User logged into the system';
+                            } else if (action.toLowerCase().includes('logout')) {
+                                iconClass = 'fas fa-sign-out-alt text-gray-500';
+                                description = 'User logged out of the system';
+                            } else if (action.toLowerCase().includes('create') || action.toLowerCase().includes('add')) {
+                                iconClass = 'fas fa-plus-circle text-green-500';
+                                description = action.replace(/create|add/gi, 'Added new');
+                            } else if (action.toLowerCase().includes('update') || action.toLowerCase().includes('edit')) {
+                                iconClass = 'fas fa-edit text-yellow-500';
+                                description = action.replace(/update|edit/gi, 'Updated');
+                            } else if (action.toLowerCase().includes('delete') || action.toLowerCase().includes('remove')) {
+                                iconClass = 'fas fa-trash text-red-500';
+                                description = action.replace(/delete|remove/gi, 'Removed');
+                            }
+                            
+                            return `
+                                <div class="flex items-center gap-2">
+                                    <i class="${iconClass}"></i>
+                                    <span class="text-sm">${description}</span>
+                                </div>
+                            `;
                         }
                     },
                     {
-                        title: "Level", 
-                        field: "level", 
-                        width: 100,
+                        title: "Actions", 
+                        field: "id", 
+                        width: 120,
+                        headerSort: false,
                         formatter: function(cell) {
-                            const level = cell.getValue();
-                            let badgeClass = 'bg-gray-100 text-gray-800';
-                            if (level === 'ERROR') badgeClass = 'bg-red-100 text-red-800';
-                            else if (level === 'WARNING') badgeClass = 'bg-yellow-100 text-yellow-800';
-                            else if (level === 'INFO') badgeClass = 'bg-green-100 text-green-800';
-                            else if (level === 'DEBUG') badgeClass = 'bg-blue-100 text-blue-800';
-                            
-                            return `<span class="px-2 py-1 rounded-full text-xs font-medium ${badgeClass}">${level}</span>`;
+                            return `
+                                <button onclick="viewLogDetails(${cell.getValue()})" 
+                                        class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors">
+                                    <i class="fas fa-eye mr-1"></i>View Details
+                                </button>
+                            `;
                         }
                     }
-                ],
-                rowClick: function(e, row) {
-                    viewLogDetails(row.getData().id);
-                }
+                ]
             });
         }
 
         // Update statistics
         function updateLogStatistics() {
             const total = logsData.length;
-            const info = logsData.filter(log => log.level === 'INFO').length;
-            const warnings = logsData.filter(log => log.level === 'WARNING').length;
-            const errors = logsData.filter(log => log.level === 'ERROR').length;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const todayLogs = logsData.filter(log => {
+                const logDate = new Date(log.timestamp);
+                logDate.setHours(0, 0, 0, 0);
+                return logDate.getTime() === today.getTime();
+            }).length;
 
             document.getElementById('totalLogs').textContent = total;
-            document.getElementById('infoLogs').textContent = info;
-            document.getElementById('warningLogs').textContent = warnings;
-            document.getElementById('errorLogs').textContent = errors;
+            document.getElementById('todayLogs').textContent = todayLogs;
         }
 
         // Populate user filter with actual users from logs
@@ -553,7 +530,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         // Search functionality
         function setupSearchAndFilters() {
             const searchInput = document.getElementById('searchLogs');
-            const levelFilter = document.getElementById('logLevelFilter');
             const dateRangeFilter = document.getElementById('dateRangeFilter');
             const userFilter = document.getElementById('userFilter');
 
@@ -568,12 +544,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                         (log.action && log.action.toLowerCase().includes(searchTerm)) ||
                         (log.details && log.details.toLowerCase().includes(searchTerm))
                     );
-                }
-
-                // Level filter
-                const level = levelFilter.value;
-                if (level) {
-                    filteredData = filteredData.filter(log => log.level === level);
                 }
 
                 // User filter
@@ -598,19 +568,9 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                         case 'month':
                             startDate = new Date(now.getFullYear(), now.getMonth(), 1);
                             break;
-                        case 'custom':
-                            const fromDate = document.getElementById('fromDate').value;
-                            const toDate = document.getElementById('toDate').value;
-                            if (fromDate && toDate) {
-                                filteredData = filteredData.filter(log => {
-                                    const logDate = new Date(log.timestamp);
-                                    return logDate >= new Date(fromDate) && logDate <= new Date(toDate + ' 23:59:59');
-                                });
-                            }
-                            break;
                     }
 
-                    if (startDate && dateRange !== 'custom') {
+                    if (startDate) {
                         filteredData = filteredData.filter(log => new Date(log.timestamp) >= startDate);
                     }
                 }
@@ -620,92 +580,63 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             }
 
             searchInput.addEventListener('input', applyFilters);
-            levelFilter.addEventListener('change', applyFilters);
             dateRangeFilter.addEventListener('change', applyFilters);
             userFilter.addEventListener('change', applyFilters);
-            document.getElementById('fromDate').addEventListener('change', applyFilters);
-            document.getElementById('toDate').addEventListener('change', applyFilters);
-
-            // Custom date range toggle
-            dateRangeFilter.addEventListener('change', function() {
-                const customDateRange = document.getElementById('customDateRange');
-                if (this.value === 'custom') {
-                    customDateRange.classList.remove('hidden');
-                } else {
-                    customDateRange.classList.add('hidden');
-                }
-            });
         }
-
         // Update statistics for filtered data
         function updateFilteredStatistics(data) {
             const total = data.length;
-            const info = data.filter(log => log.level === 'INFO').length;
-            const warnings = data.filter(log => log.level === 'WARNING').length;
-            const errors = data.filter(log => log.level === 'ERROR').length;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const todayFiltered = data.filter(log => {
+                const logDate = new Date(log.timestamp);
+                logDate.setHours(0, 0, 0, 0);
+                return logDate.getTime() === today.getTime();
+            }).length;
 
             document.getElementById('totalLogs').textContent = total;
-            document.getElementById('infoLogs').textContent = info;
-            document.getElementById('warningLogs').textContent = warnings;
-            document.getElementById('errorLogs').textContent = errors;
+            document.getElementById('todayLogs').textContent = todayFiltered;
         }
 
-        // View log details
+        // View log details in modal
         function viewLogDetails(logId) {
-            const log = logsData.find(l => l.id === logId);
+            const log = logsData.find(l => l.id == logId);
             if (!log) return;
 
-            const modal = document.getElementById('logModal');
-            const detailsContainer = document.getElementById('logDetails');
-
-            const levelBadge = {
-                'INFO': 'bg-green-100 text-green-800',
-                'WARNING': 'bg-yellow-100 text-yellow-800',
-                'ERROR': 'bg-red-100 text-red-800',
-                'DEBUG': 'bg-blue-100 text-blue-800'
-            }[log.level] || 'bg-gray-100 text-gray-800';
-
-            detailsContainer.innerHTML = `
+            const detailsHtml = `
                 <div class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Timestamp</label>
-                            <p class="text-sm text-gray-900">${new Date(log.timestamp).toLocaleString()}</p>
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-blue-800 mb-2">When</h4>
+                            <p class="text-sm">${new Date(log.timestamp).toLocaleString()}</p>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Log Level</label>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${levelBadge}">
-                                ${log.level}
-                            </span>
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-green-800 mb-2">Who</h4>
+                            <p class="text-sm">${log.user_name || 'System'}</p>
                         </div>
                     </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">User</label>
-                            <p class="text-sm text-gray-900">${log.user_name} (ID: ${log.user})</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Action</label>
-                            <p class="text-sm text-gray-900">${log.action}</p>
-                        </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-gray-800 mb-2">What Happened</h4>
+                        <p class="text-sm">${log.action || 'No action specified'}</p>
                     </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">IP Address</label>
-                        <code class="text-xs bg-gray-100 px-2 py-1 rounded">${log.ip_address || 'N/A'}</code>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Additional Details</label>
-                        <div class="bg-gray-50 p-3 rounded-lg">
-                            <p class="text-sm text-gray-700">${log.details || 'No additional details'}</p>
+                    ${log.details ? `
+                        <div class="bg-yellow-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-yellow-800 mb-2">Additional Details</h4>
+                            <p class="text-sm">${log.details}</p>
                         </div>
-                    </div>
+                    ` : ''}
+                    ${log.ip_address ? `
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-purple-800 mb-2">Technical Information</h4>
+                            <p class="text-sm"><strong>IP Address:</strong> ${log.ip_address}</p>
+                            ${log.user_agent ? `<p class="text-sm mt-1"><strong>Browser:</strong> ${log.user_agent}</p>` : ''}
+                        </div>
+                    ` : ''}
                 </div>
             `;
 
-            modal.classList.remove('hidden');
+            document.getElementById('logDetails').innerHTML = detailsHtml;
+            document.getElementById('logModal').classList.remove('hidden');
         }
 
         // Close log modal
@@ -713,105 +644,29 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             document.getElementById('logModal').classList.add('hidden');
         }
 
-        // Export logs
+        // Export logs functionality
         function exportLogs() {
-            showNotification('Preparing log export...', 'info');
-            
-            setTimeout(() => {
-                // Create CSV content
-                const headers = ['Timestamp', 'User', 'Action', 'Level', 'Details', 'IP Address'];
-                const csvContent = [
-                    headers.join(','),
-                    ...logsData.map(log => [
-                        log.timestamp,
-                        `"${log.user_name}"`,
-                        `"${log.action}"`,
-                        log.level,
-                        `"${(log.details || '').replace(/"/g, '""')}"`,
-                        log.ip_address || ''
-                    ].join(','))
-                ].join('\n');
-
-                // Create and download file
-                const blob = new Blob([csvContent], { type: 'text/csv' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `system_logs_${new Date().toISOString().split('T')[0]}.csv`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-
-                showNotification('Logs exported successfully!', 'success');
-            }, 1000);
+            alert('Export functionality will be implemented soon!');
         }
 
-        // Clear old logs
+        // Clear old logs functionality
         function clearOldLogs() {
-            if (confirm('Are you sure you want to clear logs older than 30 days? This action cannot be undone.')) {
-                showNotification('Clearing old logs...', 'info');
-                
-                // Make AJAX request to clear logs
-                fetch('logs.php?clear_old_logs=1', {method: 'POST'})
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            showNotification(`Cleared ${data.count} old log entries.`, 'success');
-                            fetchLogs(); // Refresh the logs
-                        } else {
-                            showNotification('Error clearing logs.', 'error');
-                        }
-                    })
-                    .catch(() => {
-                        showNotification('Error clearing logs.', 'error');
-                    });
+            if (confirm('Are you sure you want to clear old logs? This action cannot be undone.')) {
+                alert('Clear old logs functionality will be implemented soon!');
             }
         }
-
-        // Show notification
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            const bgColor = {
-                'success': 'bg-green-500',
-                'error': 'bg-red-500',
-                'warning': 'bg-yellow-500',
-                'info': 'bg-blue-500'
-            }[type] || 'bg-blue-500';
-
-            notification.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform translate-x-full opacity-0 transition-all duration-300`;
-            notification.innerHTML = `
-                <div class="flex items-center">
-                    <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} mr-2"></i>
-                    <span>${message}</span>
-                </div>
-            `;
-
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-                notification.classList.remove('translate-x-full', 'opacity-0');
-            }, 100);
-
-            setTimeout(() => {
-                notification.classList.add('translate-x-full', 'opacity-0');
-                setTimeout(() => {
-                    document.body.removeChild(notification);
-                }, 300);
-            }, 3000);
-        }
-
-        // Close modal when clicking outside
-        document.getElementById('logModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeLogModal();
-            }
-        });
 
         // Initialize everything when page loads
         document.addEventListener('DOMContentLoaded', function() {
             fetchLogs();
             setupSearchAndFilters();
+            
+            // Close modal when clicking overlay
+            document.getElementById('logModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeLogModal();
+                }
+            });
         });
     </script>
 </body>

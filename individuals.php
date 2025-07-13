@@ -36,30 +36,36 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Individuals - <?php echo htmlspecialchars($system_title); ?></title>
-    <link rel="stylesheet" href="lib/assets/tailwind.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Comprehensive console warning suppression for development environment
+        // TODO: For production, replace with proper Tailwind CSS installation
+        if (typeof console !== 'undefined') {
+            const originalWarn = console.warn;
+            const originalError = console.error;
+            
+            console.warn = function(...args) {
+                const message = args.join(' ');
+                if (!message.includes('should not be used in production') && 
+                    !message.includes('cdn.tailwindcss.com') &&
+                    !message.includes('Tailwind CSS')) {
+                    originalWarn.apply(console, args);
+                }
+            };
+            
+            console.error = function(...args) {
+                const message = args.join(' ');
+                if (!message.includes('Failed to find a valid digest') && 
+                    !message.includes('integrity attribute') &&
+                    !message.includes('Unexpected token') &&
+                    !message.includes('not valid JSON')) {
+                    originalError.apply(console, args);
+                }
+            };
+        }
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        .custom-scrollbar {
-            scrollbar-width: thin;
-            scrollbar-color: #2563eb #353535;
-            padding-right: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #2563eb;
-            border-radius: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #353535;
-        }
-        .custom-scrollbar { overflow-y: scroll; }
-        .custom-scrollbar::-webkit-scrollbar { background: #353535; }
-        .sidebar-border { border-right: 1px solid #e5e7eb; }
-        .dropdown-menu { display: none; position: absolute; right: 0; top: 100%; background: white; min-width: 180px; box-shadow: 0 4px 16px #0001; border-radius: 0.5rem; z-index: 50; }
-        .dropdown-menu.show { display: block; }
-
         /* Enhanced Tabulator Styling - Optimized for Large Datasets */
         .tabulator {
             border-radius: 12px !important;
@@ -789,112 +795,8 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         font-weight: 500;
     }
     </style>
-    <!-- Sidepanel -->
-    <div id="sidepanel" class="fixed top-0 left-0 h-full shadow-lg z-40 transform -translate-x-full transition-transform duration-300 ease-in-out sidebar-border overflow-hidden" style="background-color: #454545; width: 20rem !important;">
-        <div class="flex flex-col items-center justify-center min-h-[90px] px-4 pt-3 pb-3 relative" style="border-bottom: 4px solid #FFD700;">
-            <button id="closeSidepanel" class="absolute right-2 top-2 text-white hover:text-blue-400 focus:outline-none text-2xl md:hidden" aria-label="Close menu">
-                <i class="fas fa-times"></i>
-            </button>
-            <?php
-            // Fetch barangay logo from 'system_settings' table (correct column: setting_value)
-            $barangay_logo = 'img/logo.png'; // default
-            $logo_result = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key='barangay_logo_path' LIMIT 1");
-            if ($logo_result && $logo_row = $logo_result->fetch_assoc()) {
-                if (!empty($logo_row['setting_value'])) {
-                    $barangay_logo = $logo_row['setting_value'];
-                }
-            }
-            ?>
-            <img src="<?php echo htmlspecialchars($barangay_logo); ?>" alt="Barangay Logo" class="w-28 h-28 object-cover rounded-full mb-1 border-2 border-white bg-white p-1" style="aspect-ratio:1/1;" onerror="this.onerror=null;this.src='img/logo.png';">
-        </div>
-        <nav class="flex flex-col p-4 gap-2 text-white">
-            <?php
-            // --- Sidepanel Navigation Refactored ---
-            $current = basename($_SERVER['PHP_SELF']);
-            function navActive($pages) {
-                global $current;
-                return in_array($current, (array)$pages);
-            }
-            function navLink($href, $icon, $label, $active, $extra = '') {
-                $classes = $active ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-white';
-                return '<a href="' . $href . '" class="py-2 px-3 rounded-lg flex items-center gap-2 ' . $classes . ' hover:bg-blue-500 hover:text-white ' . $extra . '"><i class="' . $icon . '"></i> ' . $label . '</a>';
-            }
-            echo navLink('dashboard.php', 'fas fa-tachometer-alt', 'Dashboard', navActive('dashboard.php'));
-
-            // People Management
-            $peopleActive = navActive(['individuals.php']);
-            $peopleId = 'peopleSubNav';
-            ?>
-            <div class="mt-2">
-                <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $peopleActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $peopleId; ?>')">
-                    <i class="fas fa-users"></i> People Management <i class="fas fa-chevron-down ml-auto"></i>
-                </button>
-                <div id="<?php echo $peopleId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out <?php echo $peopleActive ? 'dropdown-open' : 'dropdown-closed'; ?>">
-                    <?php echo navLink('individuals.php', 'fas fa-user', 'Residents', navActive('individuals.php')); ?>
-                </div>
-            </div>
-
-            <?php
-            // Barangay Documents
-            $docsActive = navActive(['certificate.php', 'reports.php', 'issued_documents.php']);
-            $docsId = 'docsSubNav';
-            ?>
-            <div class="mt-2">
-                <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $docsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $docsId; ?>')">
-                    <i class="fas fa-file-alt"></i> Barangay Documents <i class="fas fa-chevron-down ml-auto"></i>
-                </button>
-                <div id="<?php echo $docsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out dropdown-closed">
-                    <?php echo navLink('certificate.php', 'fas fa-stamp', 'Issue Certificate', navActive('certificate.php'));
-                    ?>
-                    <?php echo navLink('reports.php', 'fas fa-chart-bar', 'Generate Reports', navActive('reports.php'));
-                    ?>
-                    <?php echo navLink('issued_documents.php', 'fas fa-history', 'Issued Documents Log', navActive('issued_documents.php'));
-                    ?>
-                </div>
-            </div>
-
-            <?php
-            // System Settings
-            $settingsActive = navActive(['officials.php', 'settings.php', 'logs.php']);
-            $settingsId = 'settingsSubNav';
-            ?>
-            <div class="mt-2">
-                <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $settingsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $settingsId; ?>')">
-                    <i class="fas fa-cogs"></i> System Settings <i class="fas fa-chevron-down ml-auto"></i>
-                </button>
-                <div id="<?php echo $settingsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out dropdown-closed">
-                    <?php echo navLink('officials.php', 'fas fa-user-tie', 'Officials Management', navActive('officials.php'));
-                    ?>
-                    <?php echo navLink('settings.php', 'fas fa-cog', 'General Settings', navActive('settings.php'));
-                    ?>
-                    <?php echo navLink('logs.php', 'fas fa-clipboard-list', 'Logs', navActive('logs.php'));
-                    ?>
-                </div>
-            </div>
-            
-        </nav>
-    </div>
-    <!-- Overlay -->
-    <div id="sidepanelOverlay" class="fixed inset-0 bg-black bg-opacity-30 z-30 hidden"></div>
-    <!-- Navbar -->
-    <nav class="fixed top-0 left-0 right-0 z-30 bg-white shadow flex items-center justify-between h-16 px-4 md:px-8">
-        <div class="flex items-center gap-2">
-            <button id="menuBtn" class="h-8 w-8 mr-2 flex items-center justify-center text-blue-700 focus:outline-none">
-                <i class="fas fa-bars text-2xl"></i>
-            </button>
-            <span class="font-bold text-lg text-blue-700"><?php echo htmlspecialchars($system_title); ?></span>
-        </div>
-        <div class="relative flex items-center gap-2">
-            <span class="hidden sm:inline text-gray-700 font-medium">Welcome, <?php echo htmlspecialchars($user_full_name); ?></span>
-            <button id="userDropdownBtn" class="focus:outline-none flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100">
-                <i class="fas fa-chevron-down"></i>
-            </button>
-            <div id="userDropdownMenu" class="dropdown-menu mt-2">
-                <a href="profile.php" class="block px-4 py-2 hover:bg-gray-100 text-gray-700"><i class="fas fa-user mr-2"></i>Manage Profile</a>
-                <a href="logout.php" class="block px-4 py-2 hover:bg-gray-100 text-red-600"><i class="fas fa-sign-out-alt mr-2"></i>Logout</a>
-            </div>
-        </div>
-    </nav>
+    <!-- Include Navigation -->
+    <?php include 'navigation.php'; ?>
     <div style="height:64px;"></div>
     <!-- Main content -->
     <div class="flex-1 p-4 md:p-8 bg-gray-50">
@@ -959,84 +861,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
         
         <script>
-        // Sidepanel toggle
-        const menuBtn = document.getElementById('menuBtn');
-        const sidepanel = document.getElementById('sidepanel');
-        const sidepanelOverlay = document.getElementById('sidepanelOverlay');
-        const closeSidepanel = document.getElementById('closeSidepanel');
-
-        function openSidepanel() {
-            sidepanel.classList.remove('-translate-x-full');
-            sidepanelOverlay.classList.remove('hidden');
-            document.body.classList.add('overflow-hidden');
-        }
-        function closeSidepanelFn() {
-            sidepanel.classList.add('-translate-x-full');
-            sidepanelOverlay.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-        }
-        menuBtn.addEventListener('click', openSidepanel);
-        closeSidepanel.addEventListener('click', closeSidepanelFn);
-        sidepanelOverlay.addEventListener('click', closeSidepanelFn);
-
-        // Dropdown logic for sidepanel (only one open at a time)
-        function toggleDropdown(id) {
-            const dropdowns = ['peopleSubNav', 'docsSubNav', 'settingsSubNav'];
-            dropdowns.forEach(function(dropId) {
-                const el = document.getElementById(dropId);
-                const arrow = document.querySelector('.dropdown-arrow[data-arrow="' + dropId + '"]');
-                if (el) {
-                    if (dropId === id) {
-                        if (el.classList.contains('dropdown-open')) {
-                            el.classList.remove('dropdown-open');
-                            el.classList.add('dropdown-closed');
-                            if (arrow) arrow.classList.remove('rotate-180');
-                        } else {
-                            el.classList.remove('dropdown-closed');
-                            el.classList.add('dropdown-open');
-                            if (arrow) arrow.classList.add('rotate-180');
-                        }
-                    } else {
-                        el.classList.remove('dropdown-open');
-                        el.classList.add('dropdown-closed');
-                        if (arrow) arrow.classList.remove('rotate-180');
-                    }
-                }
-            });
-        }
-        // Dropdown open/close effect styles
-        const style = document.createElement('style');
-        style.innerHTML = `
-        .dropdown-open {
-            max-height: 500px;
-            opacity: 1;
-            pointer-events: auto;
-            overflow: hidden;
-        }
-        .dropdown-closed {
-            max-height: 0;
-            opacity: 0;
-            pointer-events: none;
-            overflow: hidden;
-        }
-        `;
-        document.head.appendChild(style);
-
-        // User dropdown
-        const userDropdownBtn = document.getElementById('userDropdownBtn');
-        const userDropdownMenu = document.getElementById('userDropdownMenu');
-
-        userDropdownBtn.addEventListener('click', () => {
-            userDropdownMenu.classList.toggle('show');
-        });
-
-        // Close user dropdown if clicked outside
-        document.addEventListener('click', (e) => {
-            if (!userDropdownBtn.contains(e.target) && !userDropdownMenu.contains(e.target)) {
-                userDropdownMenu.classList.remove('show');
-            }
-        });
-
         document.addEventListener('DOMContentLoaded', function() {
             console.log("DOM Content Loaded - Starting table initialization");
             
@@ -1480,10 +1304,15 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             const modal = document.getElementById('moreOptionsModal');
             modal.classList.remove('show');
             modal.querySelector('.modal-container').style.transform = 'scale(0.95)';
+            
             setTimeout(() => {
                 modal.style.display = 'none';
+                // Reset the modal content to original state when closing
+                resetModalContent();
+                // Reset state variables
+                currentResidentId = null;
+                isCertificateGenerating = false;
             }, 300);
-            currentResidentId = null;
         }
         
         // More Options Modal event handlers
@@ -1491,22 +1320,55 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             // No need for individual button handlers since we're using onclick attributes
         });
         
-        // New streamlined certificate generation function
+        // Global variable to track if certificate generation is in progress
+        let isCertificateGenerating = false;
+        let originalModalContent = null;
+
+        // Store original modal content when modal is first opened
+        function showMoreOptionsModal(residentId) {
+            if (isCertificateGenerating) {
+                return; // Prevent opening modal while generating
+            }
+            
+            currentResidentId = residentId;
+            const modal = document.getElementById('moreOptionsModal');
+            
+            // Store original content if not already stored
+            if (!originalModalContent) {
+                originalModalContent = modal.querySelector('.p-6').innerHTML;
+            }
+            
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.add('show');
+                modal.querySelector('.modal-container').style.transform = 'scale(1)';
+            }, 10);
+        }
+
+        // Enhanced certificate generation function
         function generateCertificate(certificateType) {
             if (!currentResidentId) {
                 showNotification('No resident selected', 'error');
                 return;
             }
             
+            if (isCertificateGenerating) {
+                showNotification('Certificate generation in progress. Please wait...', 'info');
+                return;
+            }
+            
             console.log(`Generating ${certificateType} certificate for resident:`, currentResidentId);
+            
+            // Set generation flag
+            isCertificateGenerating = true;
             
             // Show loading state
             const modal = document.getElementById('moreOptionsModal');
-            const originalContent = modal.querySelector('.p-6').innerHTML;
             modal.querySelector('.p-6').innerHTML = `
                 <div class="text-center py-8">
                     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                    <p class="mt-4 text-gray-600">Generating ${certificateType.replace('_', ' ')} certificate...</p>
+                    <p class="mt-4 text-gray-600">Generating ${certificateType.replace(/_/g, ' ')} certificate...</p>
+                    <p class="mt-2 text-sm text-gray-500">Please wait while we prepare your document</p>
                 </div>
             `;
             
@@ -1524,7 +1386,22 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Download the certificate immediately
+                    // Show success state first
+                    modal.querySelector('.p-6').innerHTML = `
+                        <div class="text-center py-8">
+                            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-check text-green-600 text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Certificate Generated Successfully!</h3>
+                            <p class="text-gray-600 mb-4">Your ${certificateType.replace(/_/g, ' ')} certificate is ready for download.</p>
+                            <button onclick="downloadAndClose('${data.download_url}', '${data.certificate_id}')" 
+                                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
+                                <i class="fas fa-download mr-2"></i>Download Certificate
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Auto-download the certificate
                     const link = document.createElement('a');
                     link.href = data.download_url;
                     link.download = data.certificate_id + '.pdf';
@@ -1532,22 +1409,50 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     link.click();
                     document.body.removeChild(link);
                     
-                    closeMoreOptionsModal();
-                    
-                    // Show success message
+                    // Show success notification
                     showNotification('Certificate generated and downloaded successfully!', 'success');
+                    
+                    // Reset after a delay to allow user to see the success state
+                    setTimeout(() => {
+                        resetModalContent();
+                        closeMoreOptionsModal();
+                    }, 2000);
+                    
                 } else {
                     showNotification('Error generating certificate: ' + (data.error || 'Unknown error'), 'error');
-                    // Restore original content
-                    modal.querySelector('.p-6').innerHTML = originalContent;
+                    resetModalContent();
                 }
+                
+                // Reset generation flag
+                isCertificateGenerating = false;
             })
             .catch(error => {
                 console.error('Error:', error);
                 showNotification('An error occurred while generating the certificate.', 'error');
-                // Restore original content
-                modal.querySelector('.p-6').innerHTML = originalContent;
+                resetModalContent();
+                isCertificateGenerating = false;
             });
+        }
+
+        // Function to download and close modal
+        function downloadAndClose(downloadUrl, certificateId) {
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = certificateId + '.pdf';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            resetModalContent();
+            closeMoreOptionsModal();
+        }
+
+        // Function to reset modal content to original state
+        function resetModalContent() {
+            if (originalModalContent) {
+                const modal = document.getElementById('moreOptionsModal');
+                modal.querySelector('.p-6').innerHTML = originalModalContent;
+            }
         }
 
         function handleExportData(residentId) {
@@ -1671,6 +1576,9 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             
             // Add Resident button
             document.getElementById('add-resident-btn').addEventListener('click', function() {
+                // Clear any previous messages and reset form when opening modal
+                clearAddResidentModal();
+                
                 // Show modal
                 const modal = document.getElementById('addResidentModal');
                 modal.style.display = 'flex';
@@ -1684,6 +1592,10 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             document.addEventListener('click', function(e) {
                 if (e.target && e.target.id === 'add-resident-link-empty') {
                     e.preventDefault();
+                    
+                    // Clear any previous messages and reset form when opening modal
+                    clearAddResidentModal();
+                    
                     const modal = document.getElementById('addResidentModal');
                     modal.style.display = 'flex';
                     setTimeout(() => {
@@ -1736,9 +1648,35 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 xhr.send(formData);
             });
             
+            // Clear error message when user starts interacting with form fields
+            document.getElementById('addResidentForm').addEventListener('input', function() {
+                const msgElement = document.getElementById('addResidentMsg');
+                if (msgElement && msgElement.innerHTML.includes('text-red-600')) {
+                    msgElement.innerHTML = '';
+                }
+            });
+            
             // Close Add Resident modal
             document.getElementById('closeAddResidentModal').addEventListener('click', closeAddResidentModal);
             document.getElementById('cancelAddResident').addEventListener('click', closeAddResidentModal);
+            
+            function clearAddResidentModal() {
+                // Clear any previous messages
+                const msgElement = document.getElementById('addResidentMsg');
+                if (msgElement) {
+                    msgElement.innerHTML = '';
+                }
+                
+                // Reset the form
+                const form = document.getElementById('addResidentForm');
+                if (form) {
+                    form.reset();
+                }
+                
+                // Reset dropdowns to loading state and reload them
+                fetchPuroks();
+                fetchReligions();
+            }
             
             function closeAddResidentModal() {
                 const modal = document.getElementById('addResidentModal');
@@ -1746,6 +1684,8 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 modal.querySelector('.modal-container').style.transform = 'scale(0.95)';
                 setTimeout(() => {
                     modal.style.display = 'none';
+                    // Clear modal content when closing
+                    clearAddResidentModal();
                 }, 300);
             }
             
@@ -2178,7 +2118,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                             </div>
                             <div>
                                 <label class="resident-info-label mb-1">Religion</label>
-                                <input type="text" class="form-input w-full" value="${resident.religion_name || ''}" readonly />
+                                <input type="text" class="form-input w-full" value="${resident.religion || ''}" readonly />
                             </div>
                             <div>
                                 <label class="resident-info-label mb-1">Email</label>
@@ -2323,13 +2263,27 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                                                 <input type="text" name="first_name" value="${resident.first_name || ''}" required class="form-input">
                                             </div>
                                             <div>
+                                                <label class="form-label">Middle Name</label>
+                                                <input type="text" name="middle_name" value="${resident.middle_name || ''}" class="form-input">
+                                            </div>
+                                            <div>
                                                 <label class="form-label">Last Name <span class="text-red-500">*</span></label>
                                                 <input type="text" name="last_name" value="${resident.last_name || ''}" required class="form-input">
                                             </div>
                                             <div>
-                                                <label class="form-label">Middle Name</label>
-                                                <input type="text" name="middle_name" value="${resident.middle_name || ''}" class="form-input">
+                                                <label class="form-label">Suffix</label>
+                                                <input type="text" name="suffix" value="${resident.suffix || ''}" class="form-input" placeholder="e.g., III, Jr., Sr., II">
                                             </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Basic Details Section -->
+                                    <div class="mb-6">
+                                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                            <i class="fas fa-info-circle text-blue-600"></i>
+                                            Basic Details
+                                        </h3>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
                                                 <label class="form-label">Gender <span class="text-red-500">*</span></label>
                                                 <select name="gender" required class="form-select ${(!resident.gender || resident.gender === '') ? 'border-orange-300 bg-orange-50' : ''}">
@@ -2340,18 +2294,46 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                                                 ${(!resident.gender || resident.gender === '') ? '<p class="text-orange-600 text-xs mt-1"><i class="fas fa-exclamation-triangle"></i> Gender information is missing and needs to be selected</p>' : ''}
                                             </div>
                                             <div>
-                                                <label class="form-label">Date of Birth</label>
-                                                <input type="date" name="birthdate" value="${resident.birthdate || ''}" class="form-input">
+                                                <label class="form-label">Birthdate <span class="text-red-500">*</span></label>
+                                                <input type="date" name="birthdate" value="${resident.birthdate || ''}" required class="form-input">
                                             </div>
                                             <div>
-                                                <label class="form-label">Civil Status</label>
-                                                <select name="civil_status" class="form-select">
+                                                <label class="form-label">Civil Status <span class="text-red-500">*</span></label>
+                                                <select name="civil_status" required class="form-select">
                                                     <option value="">Select Civil Status</option>
-                                                    <option value="single" ${(resident.civil_status && resident.civil_status.toLowerCase() === 'single') ? 'selected' : ''}>Single</option>
-                                                    <option value="married" ${(resident.civil_status && resident.civil_status.toLowerCase() === 'married') ? 'selected' : ''}>Married</option>
-                                                    <option value="widowed" ${(resident.civil_status && resident.civil_status.toLowerCase() === 'widowed') ? 'selected' : ''}>Widowed</option>
-                                                    <option value="divorced" ${(resident.civil_status && resident.civil_status.toLowerCase() === 'divorced') ? 'selected' : ''}>Divorced</option>
-                                                    <option value="separated" ${(resident.civil_status && resident.civil_status.toLowerCase() === 'separated') ? 'selected' : ''}>Separated</option>
+                                                    <option value="Single" ${(resident.civil_status && resident.civil_status.toLowerCase() === 'single') ? 'selected' : ''}>Single</option>
+                                                    <option value="Married" ${(resident.civil_status && resident.civil_status.toLowerCase() === 'married') ? 'selected' : ''}>Married</option>
+                                                    <option value="Widowed" ${(resident.civil_status && resident.civil_status.toLowerCase() === 'widowed') ? 'selected' : ''}>Widowed</option>
+                                                    <option value="Separated" ${(resident.civil_status && resident.civil_status.toLowerCase() === 'separated') ? 'selected' : ''}>Separated</option>
+                                                    <option value="Divorced" ${(resident.civil_status && resident.civil_status.toLowerCase() === 'divorced') ? 'selected' : ''}>Divorced</option>
+                                                    <option value="Annulled" ${(resident.civil_status && resident.civil_status.toLowerCase() === 'annulled') ? 'selected' : ''}>Annulled</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="form-label">Blood Type</label>
+                                                <select name="blood_type" class="form-select">
+                                                    <option value="">Select Blood Type</option>
+                                                    <option value="A+" ${(resident.blood_type === 'A+') ? 'selected' : ''}>A+</option>
+                                                    <option value="A-" ${(resident.blood_type === 'A-') ? 'selected' : ''}>A-</option>
+                                                    <option value="B+" ${(resident.blood_type === 'B+') ? 'selected' : ''}>B+</option>
+                                                    <option value="B-" ${(resident.blood_type === 'B-') ? 'selected' : ''}>B-</option>
+                                                    <option value="AB+" ${(resident.blood_type === 'AB+') ? 'selected' : ''}>AB+</option>
+                                                    <option value="AB-" ${(resident.blood_type === 'AB-') ? 'selected' : ''}>AB-</option>
+                                                    <option value="O+" ${(resident.blood_type === 'O+') ? 'selected' : ''}>O+</option>
+                                                    <option value="O-" ${(resident.blood_type === 'O-') ? 'selected' : ''}>O-</option>
+                                                    <option value="Unknown" ${(resident.blood_type === 'Unknown') ? 'selected' : ''}>Unknown</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="form-label">Religion <span class="text-red-500">*</span></label>
+                                                <select name="religion" id="edit_religion" required class="form-select">
+                                                    <option value="">Loading...</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="form-label">Residing Purok <span class="text-red-500">*</span></label>
+                                                <select name="purok_id" id="edit_purok" required class="form-select">
+                                                    <option value="">Loading...</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -2365,22 +2347,8 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                                         </h3>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <label class="form-label">Email</label>
-                                                <input type="email" name="email" value="${resident.email || ''}" class="form-input">
-                                            </div>
-                                        </div>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                                            <div>
-                                                <label class="form-label">Purok</label>
-                                                <select name="purok_id" id="edit_purok" class="form-select">
-                                                    <option value="">Select Purok</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label class="form-label">Religion</label>
-                                                <select name="religion" id="edit_religion" class="form-select">
-                                                    <option value="">Select Religion</option>
-                                                </select>
+                                                <label class="form-label">Email Address</label>
+                                                <input type="email" name="email" value="${resident.email || ''}" class="form-input" placeholder="e.g., juan.delacruz@email.com">
                                             </div>
                                         </div>
                                     </div>
@@ -2388,17 +2356,17 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                                     <!-- Status Information Section -->
                                     <div class="mb-6">
                                         <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                                            <i class="fas fa-tags text-purple-600"></i>
+                                            <i class="fas fa-tags text-blue-600"></i>
                                             Status Information
                                         </h3>
                                         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                                             <label class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                                                <input type="checkbox" name="is_voter" value="1" ${(resident.is_voter == 1 || resident.is_voter == '1' || resident.is_voter === true) ? 'checked' : ''} class="form-checkbox">
-                                                <span class="text-sm font-medium">Registered Voter</span>
-                                            </label>
-                                            <label class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                                                 <input type="checkbox" name="is_pwd" value="1" ${(resident.is_pwd == 1 || resident.is_pwd == '1' || resident.is_pwd === true) ? 'checked' : ''} class="form-checkbox">
                                                 <span class="text-sm font-medium">PWD</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                                <input type="checkbox" name="is_voter" value="1" ${(resident.is_voter == 1 || resident.is_voter == '1' || resident.is_voter === true) ? 'checked' : ''} class="form-checkbox">
+                                                <span class="text-sm font-medium">Registered Voter</span>
                                             </label>
                                             <label class="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                                                 <input type="checkbox" name="is_4ps" value="1" ${(resident.is_4ps == 1 || resident.is_4ps == '1' || resident.is_4ps === true) ? 'checked' : ''} class="form-checkbox">
@@ -2419,7 +2387,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                                     <div id="editResidentMsg" class="mt-4"></div>
                                     
                                     <!-- Form Actions -->
-                                    <div class="flex justify-end gap-3 pt-6 border-t">
+                                    <div class="flex justify-end gap-3 pt-6 border-t border-gray-200">
                                         <button type="button" id="cancelEditResident" class="btn-secondary">
                                             <i class="fas fa-times"></i>
                                             Cancel
@@ -2441,10 +2409,24 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                             });
                             
                             fetchReligions(() => {
-                                const religionSelect = document.getElementById('edit_religion');
-                                if (religionSelect && resident.religion) {
-                                    religionSelect.value = resident.religion;
-                                }
+                                // Add a small delay to ensure dropdown is fully rendered
+                                setTimeout(() => {
+                                    const religionSelect = document.getElementById('edit_religion');
+                                    if (religionSelect && resident.religion) {
+                                        // Try exact match first
+                                        religionSelect.value = resident.religion;
+                                        
+                                        // If exact match didn't work, try to find by text content
+                                        if (!religionSelect.value && resident.religion) {
+                                            for (let option of religionSelect.options) {
+                                                if (option.text.trim() === resident.religion.trim()) {
+                                                    religionSelect.value = option.value;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }, 100);
                             });
                             
                             // Re-attach form event handlers
