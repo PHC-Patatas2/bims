@@ -1,5 +1,12 @@
 <?php
 session_start();
+
+// Security: If user is already logged in, redirect to dashboard
+if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
+    header('Location: dashboard.php');
+    exit();
+}
+
 require_once 'config.php';
 
 // Fetch system title and logo path
