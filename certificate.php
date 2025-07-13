@@ -233,7 +233,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             </div>
 
             <!-- Certificate Types Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 max-w-5xl mx-auto">
                 <!-- Barangay Clearance -->
                 <div class="certificate-card p-6 text-white cursor-pointer" onclick="openCertificateModal('clearance')">
                     <div class="flex items-center justify-between mb-4">
