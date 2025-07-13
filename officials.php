@@ -402,9 +402,11 @@ if ($officials_result) {
                             </div>
                         </div>
                     </div>
-                    <button onclick="openOfficialModal()" class="btn-add-official text-white px-6 py-3 rounded-lg font-medium shadow-lg relative overflow-hidden">
-                        <i class="fas fa-plus mr-2"></i>Add Official
-                    </button>
+                    <div class="flex gap-3">
+                        <button onclick="openOfficialModal()" class="btn-add-official text-white px-6 py-3 rounded-lg font-medium shadow-lg relative overflow-hidden">
+                            <i class="fas fa-plus mr-2"></i>Add Official
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -450,10 +452,12 @@ if ($officials_result) {
                     <div class="col-span-full empty-state">
                         <i class="fas fa-user-friends"></i>
                         <h3 class="text-xl font-semibold mb-2">No Officials Found</h3>
-                        <p class="text-gray-500 mb-4">Start by adding your first barangay official</p>
-                        <button onclick="openOfficialModal()" class="btn-add-official text-white px-6 py-2 rounded-lg font-medium relative overflow-hidden">
-                            <i class="fas fa-plus mr-2"></i>Add First Official
-                        </button>
+                        <p class="text-gray-500 mb-4">Start by adding your first barangay official or fetch from government website</p>
+                        <div class="flex gap-3 justify-center">
+                            <button onclick="openOfficialModal()" class="btn-add-official text-white px-6 py-2 rounded-lg font-medium relative overflow-hidden">
+                                <i class="fas fa-plus mr-2"></i>Add First Official
+                            </button>
+                        </div>
                     </div>
                 <?php } ?>
             </div>
@@ -505,8 +509,6 @@ if ($officials_result) {
                                     <option value="Barangay Secretary">Barangay Secretary</option>
                                     <option value="Barangay Treasurer">Barangay Treasurer</option>
                                     <option value="Sangguniang Barangay Member">Sangguniang Barangay Member</option>
-                                    <option value="SK Chairman">SK Chairman</option>
-                                    <option value="SK Kagawad">SK Kagawad</option>
                                 </select>
                             </div>
                         </form>
@@ -692,15 +694,116 @@ if ($officials_result) {
                     <i class="fas fa-user-friends"></i>
                     <h3 class="text-xl font-semibold mb-2">No Officials Found</h3>
                     <p class="text-gray-500 mb-4">Start by adding your first barangay official</p>
-                    <button onclick="openOfficialModal()" class="btn-add-official text-white px-6 py-2 rounded-lg font-medium relative overflow-hidden">
-                        <i class="fas fa-plus mr-2"></i>Add First Official
-                    </button>
+                    <div class="flex gap-3 justify-center">
+                        <button onclick="openOfficialModal()" class="btn-add-official text-white px-6 py-2 rounded-lg font-medium relative overflow-hidden">
+                            <i class="fas fa-plus mr-2"></i>Add First Official
+                        </button>
+                    </div>
                 `;
                 grid.appendChild(emptyState);
             }
         }
 
-        // Modal functions
+        // Modal functions for confirmation
+        function showConfirmationModal(options) {
+            // Create modal if it doesn't exist
+            let modal = document.getElementById('confirmationModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'confirmationModal';
+                modal.className = 'modal-enhanced fixed inset-0 bg-black bg-opacity-50 hidden z-50';
+                modal.innerHTML = `
+                    <div class="flex items-center justify-center min-h-screen p-4">
+                        <div class="modal-content max-w-md w-full">
+                            <div class="p-6">
+                                <div class="text-center mb-6">
+                                    <div id="modalIcon" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-blue-500 to-blue-600">
+                                        <i id="modalIconClass" class="text-white text-2xl"></i>
+                                    </div>
+                                    <h3 id="modalTitle" class="text-xl font-bold text-gray-900 mb-2"></h3>
+                                    <p id="modalMessage" class="text-gray-600"></p>
+                                </div>
+                                <div class="flex space-x-3">
+                                    <button id="modalCancelBtn" class="flex-1 bg-gray-100 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-200 font-medium transition-colors">
+                                        Cancel
+                                    </button>
+                                    <button id="modalConfirmBtn" class="flex-1 text-white px-4 py-3 rounded-lg font-medium transition-all">
+                                        Confirm
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+            
+            const modalIcon = document.getElementById('modalIcon');
+            const modalIconClass = document.getElementById('modalIconClass');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalMessage = document.getElementById('modalMessage');
+            const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+            const modalCancelBtn = document.getElementById('modalCancelBtn');
+            
+            // Set modal content
+            modalTitle.textContent = options.title;
+            modalMessage.textContent = options.message;
+            modalIconClass.className = options.icon + ' text-white text-2xl';
+            modalConfirmBtn.textContent = options.confirmText || 'Confirm';
+            modalConfirmBtn.className = `flex-1 text-white px-4 py-3 rounded-lg font-medium transition-all ${options.confirmClass || 'bg-blue-500 hover:bg-blue-600'}`;
+            
+            // Set icon colors
+            if (options.iconColors) {
+                modalIcon.style.background = `linear-gradient(135deg, ${options.iconColors[0]}, ${options.iconColors[1]})`;
+            }
+            
+            // Show modal
+            modal.classList.remove('hidden');
+            
+            // Handle confirm
+            const confirmHandler = () => {
+                modal.classList.add('hidden');
+                if (options.onConfirm) {
+                    options.onConfirm();
+                }
+                modalConfirmBtn.removeEventListener('click', confirmHandler);
+                modalCancelBtn.removeEventListener('click', cancelHandler);
+                modal.removeEventListener('click', outsideClickHandler);
+            };
+            
+            // Handle cancel
+            const cancelHandler = () => {
+                modal.classList.add('hidden');
+                if (options.onCancel) {
+                    options.onCancel();
+                }
+                modalConfirmBtn.removeEventListener('click', confirmHandler);
+                modalCancelBtn.removeEventListener('click', cancelHandler);
+                modal.removeEventListener('click', outsideClickHandler);
+            };
+            
+            // Handle outside click
+            const outsideClickHandler = (e) => {
+                if (e.target === modal) {
+                    cancelHandler();
+                }
+            };
+            
+            // Add event listeners
+            modalConfirmBtn.addEventListener('click', confirmHandler);
+            modalCancelBtn.addEventListener('click', cancelHandler);
+            modal.addEventListener('click', outsideClickHandler);
+            
+            // Handle escape key
+            const escapeHandler = (e) => {
+                if (e.key === 'Escape') {
+                    cancelHandler();
+                    document.removeEventListener('keydown', escapeHandler);
+                }
+            };
+            document.addEventListener('keydown', escapeHandler);
+        }
+
         function openOfficialModal(id = null) {
             editingOfficialId = id;
             const modal = document.getElementById('officialModal');

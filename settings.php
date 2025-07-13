@@ -12,6 +12,7 @@ if ($conn->connect_error) {
     include 'error_page.php';
     exit();
 }
+// Get user information for navigation
 $user_id = $_SESSION['user_id'];
 $user_first_name = '';
 $user_last_name = '';
@@ -22,6 +23,8 @@ $stmt->bind_result($user_first_name, $user_last_name);
 $stmt->fetch();
 $stmt->close();
 $user_full_name = trim($user_first_name . ' ' . $user_last_name);
+
+// Get system title for navigation
 $system_title = 'Resident Information and Certification Management System';
 $title_result = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key='system_title' LIMIT 1");
 if ($title_result && $title_row = $title_result->fetch_assoc()) {
@@ -198,129 +201,81 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 opacity: 1;
             }
         }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform: scale(0.9) translateY(-20px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow: auto;
+        }
+        
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
+        }
+        
+        .modal-icon {
+            background: linear-gradient(135deg, var(--modal-icon-color-1, #3b82f6), var(--modal-icon-color-2, #1d4ed8));
+            animation: modalIconPulse 2s infinite;
+        }
+        
+        @keyframes modalIconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .modal-button {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .modal-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .modal-button:hover::before {
+            left: 100%;
+        }
+        
+        .modal-button:hover {
+            transform: translateY(-2px);
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col settings-container">
-    <!-- Sidepanel -->
-    <div id="sidepanel" class="fixed top-0 left-0 h-full w-80 shadow-lg z-40 transform -translate-x-full transition-transform duration-300 ease-in-out sidebar-border overflow-y-auto custom-scrollbar" style="background-color: #454545;">
-        <div class="flex flex-col items-center justify-center min-h-[90px] px-4 pt-3 pb-3 relative" style="border-bottom: 4px solid #FFD700;">
-            <button id="closeSidepanel" class="absolute right-2 top-2 text-white hover:text-blue-400 focus:outline-none text-2xl md:hidden" aria-label="Close menu">
-                <i class="fas fa-times"></i>
-            </button>
-            <?php
-            $barangay_logo = 'img/logo.png';
-            $logo_result = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key='barangay_logo_path' LIMIT 1");
-            if ($logo_result && $logo_row = $logo_result->fetch_assoc()) {
-                if (!empty($logo_row['setting_value'])) {
-                    $barangay_logo = $logo_row['setting_value'];
-                }
-            }
-            ?>
-            <img src="<?php echo htmlspecialchars($barangay_logo); ?>" alt="Barangay Logo" class="w-28 h-28 object-cover rounded-full mb-1 border-2 border-white bg-white p-1" style="aspect-ratio:1/1;" onerror="this.onerror=null;this.src='img/logo.png';">
-        </div>
-        <nav class="flex flex-col p-4 gap-2 text-white">
-            <?php
-            $current = basename($_SERVER['PHP_SELF']);
-            function navActive($pages) {
-                global $current;
-                return in_array($current, (array)$pages);
-            }
-            function navLink($href, $icon, $label, $active, $extra = '') {
-                $classes = $active ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-white';
-                return '<a href="' . $href . '" class="py-2 px-3 rounded-lg flex items-center gap-2 ' . $classes . ' hover:bg-blue-500 hover:text-white ' . $extra . '"><i class="' . $icon . '"></i> ' . $label . '</a>';
-            }
-            echo navLink('dashboard.php', 'fas fa-tachometer-alt', 'Dashboard', navActive('dashboard.php'));
-            $peopleActive = navActive(['individuals.php']);
-            $peopleId = 'peopleSubNav';
-            ?>
-            <div class="mt-2">
-                <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $peopleActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $peopleId; ?>')">
-                    <i class="fas fa-users"></i> People Management <i class="fas fa-chevron-down ml-auto"></i>
-                </button>
-                <div id="<?php echo $peopleId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out dropdown-closed">
-                    <?php echo navLink('individuals.php', 'fas fa-user', 'Individuals', navActive('individuals.php'));
-                    ?>
-                </div>
-            </div>
-            <?php
-            $docsActive = navActive(['certificate.php', 'reports.php', 'issued_documents.php']);
-            $docsId = 'docsSubNav';
-            ?>
-            <div class="mt-2">
-                <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $docsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $docsId; ?>')">
-                    <i class="fas fa-file-alt"></i> Barangay Documents <i class="fas fa-chevron-down ml-auto"></i>
-                </button>
-                <div id="<?php echo $docsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out dropdown-closed">
-                    <?php echo navLink('certificate.php', 'fas fa-stamp', 'Issue Certificate', navActive('certificate.php'));
-                    ?>
-                    <?php echo navLink('reports.php', 'fas fa-chart-bar', 'Reports', navActive('reports.php'));
-                    ?>
-                    <?php echo navLink('issued_documents.php', 'fas fa-history', 'Issued Documents', navActive('issued_documents.php'));
-                    ?>
-                </div>
-            </div>
-            <?php
-            $settingsActive = navActive(['officials.php', 'settings.php', 'logs.php']);
-            $settingsId = 'settingsSubNav';
-            ?>
-            <div class="mt-2">
-                <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $settingsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $settingsId; ?>')">
-                    <i class="fas fa-cogs"></i> System Settings <i class="fas fa-chevron-down ml-auto"></i>
-                </button>
-                <div id="<?php echo $settingsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out dropdown-closed">
-                    <?php echo navLink('officials.php', 'fas fa-user-tie', 'Officials', navActive('officials.php'));
-                    ?>
-                    <?php echo navLink('settings.php', 'fas fa-cog', 'General Settings', navActive('settings.php'));
-                    ?>
-                    <?php echo navLink('logs.php', 'fas fa-clipboard-list', 'Logs', navActive('logs.php'));
-                    ?>
-                </div>
-            </div>
-        </nav>
-    </div>
-    <!-- Overlay -->
-    <div id="sidepanelOverlay" class="fixed inset-0 bg-black bg-opacity-30 z-30 hidden"></div>
-    <!-- Navbar -->
-    <nav class="fixed top-0 left-0 right-0 z-30 bg-white shadow flex items-center justify-between h-16 px-4 md:px-8">
-        <div class="flex items-center gap-2">
-            <button id="menuBtn" class="h-8 w-8 mr-2 flex items-center justify-center text-blue-700 focus:outline-none">
-                <i class="fas fa-bars text-2xl"></i>
-            </button>
-            <span class="font-bold text-lg text-blue-700"><?php echo htmlspecialchars($system_title); ?></span>
-        </div>
-        <div class="relative flex items-center gap-2">
-            <span class="hidden sm:inline text-gray-700 font-medium">Welcome, <?php echo htmlspecialchars($user_full_name); ?></span>
-            <button id="userDropdownBtn" class="focus:outline-none flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100">
-                <i class="fas fa-chevron-down"></i>
-            </button>
-            <div id="userDropdownMenu" class="dropdown-menu mt-2">
-                <a href="profile.php" class="block px-4 py-2 hover:bg-gray-100 text-gray-700"><i class="fas fa-user mr-2"></i>Manage Profile</a>
-                <a href="logout.php" class="block px-4 py-2 hover:bg-gray-100 text-red-600"><i class="fas fa-sign-out-alt mr-2"></i>Logout</a>
-            </div>
-        </div>
-    </nav>
+    <?php include 'navigation.php'; ?>
     <div class="flex-1 transition-all duration-300 ease-in-out p-2 md:px-0 md:pt-4 mt-16 flex flex-col items-center">
         <div class="w-full px-4 md:px-8">
-            <!-- Settings Tabs -->
+            <!-- Settings Card -->
             <div class="settings-card rounded-xl shadow mb-6">
-                <div class="border-b border-gray-200">
-                    <nav class="flex">
-                        <button onclick="switchTab('general')" id="generalTab" class="tab-button active px-6 py-4 font-medium text-sm border-b-2 border-blue-500 text-blue-600">
-                            <i class="fas fa-cog mr-2"></i>General Settings
-                        </button>
-                        <button onclick="switchTab('system')" id="systemTab" class="tab-button px-6 py-4 font-medium text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700">
-                            <i class="fas fa-server mr-2"></i>System Configuration
-                        </button>
-                        <button onclick="switchTab('appearance')" id="appearanceTab" class="tab-button px-6 py-4 font-medium text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700">
-                            <i class="fas fa-palette mr-2"></i>Appearance
-                        </button>
-                    </nav>
-                </div>
-
-                <!-- General Settings Tab -->
-                <div id="generalContent" class="tab-content p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">General Settings</h3>
+                <!-- General Settings -->
+                <div class="p-6">
                     <form id="generalSettingsForm" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
@@ -354,72 +309,29 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                                       class="input-field w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                       placeholder="Enter complete barangay address"></textarea>
                         </div>
-                    </form>
-                </div>
-
-                <!-- System Configuration Tab -->
-                <div id="systemContent" class="tab-content p-6 hidden">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">System Configuration</h3>
-                    <form id="systemSettingsForm" class="space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Records Per Page</label>
-                                <select id="recordsPerPage" class="input-field w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                    <option value="10">10</option>
-                                    <option value="25">25</option>
-                                    <option value="50">50</option>
-                                    <option value="100">100</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Session Timeout (minutes)</label>
-                                <input type="number" id="sessionTimeout" value="" min="5" max="480" 
-                                       class="input-field w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                       placeholder="Enter session timeout">
-                            </div>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Appearance Tab -->
-                <div id="appearanceContent" class="tab-content p-6 hidden">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Appearance Settings</h3>
-                    <form id="appearanceSettingsForm" class="space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Primary Color</label>
-                                <div class="flex space-x-2">
-                                    <input type="color" id="primaryColor" value="#2563eb" class="w-12 h-12 border border-gray-300 rounded cursor-pointer">
-                                    <input type="text" id="primaryColorHex" value="#2563eb" 
-                                           class="input-field flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                </div>
-                            </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Barangay Logo Path</label>
+                            <input type="text" id="barangayLogoPath" value="" 
+                                   class="input-field w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="Enter logo file path (e.g., img/logo.png)">
                         </div>
                     </form>
                 </div>
 
                 <!-- Save Button -->
                 <div class="p-6 border-t border-gray-200">
-                    <div class="flex justify-between items-center">
-                        <button onclick="resetSettings()" class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors">
-                            <i class="fas fa-undo mr-2"></i>Reset to Defaults
+                    <div class="flex justify-end">
+                        <button onclick="saveSettings()" id="saveButton" class="save-button text-white px-8 py-3 rounded-lg transition-all duration-300 transform hover:scale-105">
+                            <span id="saveButtonText">
+                                <i class="fas fa-save mr-2"></i>Save Settings
+                            </span>
                         </button>
-                        <div class="space-x-3">
-                            <button onclick="previewSettings()" class="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-6 py-3 rounded-lg hover:from-yellow-600 hover:to-yellow-700 transition-all duration-300 transform hover:scale-105">
-                                <i class="fas fa-eye mr-2"></i>Preview
-                            </button>
-                            <button onclick="saveSettings()" id="saveButton" class="save-button text-white px-8 py-3 rounded-lg transition-all duration-300 transform hover:scale-105">
-                                <span id="saveButtonText">
-                                    <i class="fas fa-save mr-2"></i>Save Settings
-                                </span>
-                            </button>
-                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Quick Actions -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="action-card rounded-xl shadow-lg p-6 text-center" style="--card-gradient: linear-gradient(90deg, #3b82f6, #1d4ed8); --icon-color-1: #3b82f6; --icon-color-2: #1d4ed8;">
                     <div class="action-icon w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4">
                         <i class="fas fa-download text-white text-2xl"></i>
@@ -428,16 +340,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     <p class="text-sm text-gray-600 mb-6">Create a backup of system data</p>
                     <button onclick="backupData()" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 w-full transition-all duration-300 transform hover:scale-105">
                         Backup Now
-                    </button>
-                </div>
-                <div class="action-card rounded-xl shadow-lg p-6 text-center" style="--card-gradient: linear-gradient(90deg, #10b981, #059669); --icon-color-1: #10b981; --icon-color-2: #059669;">
-                    <div class="action-icon w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-upload text-white text-2xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-3">Restore Data</h3>
-                    <p class="text-sm text-gray-600 mb-6">Restore from backup file</p>
-                    <button onclick="restoreData()" class="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg hover:from-green-600 hover:to-green-700 w-full transition-all duration-300 transform hover:scale-105">
-                        Restore
                     </button>
                 </div>
                 <div class="action-card rounded-xl shadow-lg p-6 text-center" style="--card-gradient: linear-gradient(90deg, #f59e0b, #d97706); --icon-color-1: #f59e0b; --icon-color-2: #d97706;">
@@ -450,79 +352,37 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                         Clear Cache
                     </button>
                 </div>
-                <div class="action-card rounded-xl shadow-lg p-6 text-center" style="--card-gradient: linear-gradient(90deg, #ef4444, #dc2626); --icon-color-1: #ef4444; --icon-color-2: #dc2626;">
-                    <div class="action-icon w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-tools text-white text-2xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="modal-content w-full max-w-md">
+            <div class="p-6">
+                <!-- Modal Header -->
+                <div class="text-center mb-6">
+                    <div id="modalIcon" class="modal-icon w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i id="modalIconClass" class="text-white text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-3">Maintenance</h3>
-                    <p class="text-sm text-gray-600 mb-6">System maintenance mode</p>
-                    <button onclick="toggleMaintenance()" class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-lg hover:from-red-600 hover:to-red-700 w-full transition-all duration-300 transform hover:scale-105">
-                        Toggle Mode
+                    <h3 id="modalTitle" class="text-xl font-bold text-gray-900 mb-2"></h3>
+                    <p id="modalMessage" class="text-gray-600"></p>
+                </div>
+                
+                <!-- Modal Actions -->
+                <div class="flex space-x-3">
+                    <button id="modalCancelBtn" class="modal-button flex-1 bg-gray-100 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-200 font-medium">
+                        Cancel
+                    </button>
+                    <button id="modalConfirmBtn" class="modal-button flex-1 text-white px-4 py-3 rounded-lg font-medium">
+                        Confirm
                     </button>
                 </div>
             </div>
         </div>
     </div>
+    
     <script>
-        // Sidepanel toggle
-        const menuBtn = document.getElementById('menuBtn');
-        const sidepanel = document.getElementById('sidepanel');
-        const sidepanelOverlay = document.getElementById('sidepanelOverlay');
-        const closeSidepanel = document.getElementById('closeSidepanel');
-        function openSidepanel() {
-            sidepanel.classList.remove('-translate-x-full');
-            sidepanelOverlay.classList.remove('hidden');
-            document.body.classList.add('overflow-hidden');
-        }
-        function closeSidepanelFn() {
-            sidepanel.classList.add('-translate-x-full');
-            sidepanelOverlay.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-        }
-        menuBtn.addEventListener('click', openSidepanel);
-        closeSidepanel.addEventListener('click', closeSidepanelFn);
-        sidepanelOverlay.addEventListener('click', closeSidepanelFn);
-        // Dropdown logic for sidepanel (only one open at a time)
-        function toggleDropdown(id) {
-            const dropdowns = ['peopleSubNav', 'docsSubNav', 'settingsSubNav'];
-            dropdowns.forEach(function(dropId) {
-                const el = document.getElementById(dropId);
-                if (el) {
-                    if (dropId === id) {
-                        el.classList.toggle('dropdown-open');
-                        el.classList.toggle('dropdown-closed');
-                    } else {
-                        el.classList.remove('dropdown-open');
-                        el.classList.add('dropdown-closed');
-                    }
-                }
-            });
-        }
-
-        // Tab switching functionality
-        function switchTab(tabName) {
-            // Hide all tab contents
-            const tabContents = document.querySelectorAll('.tab-content');
-            tabContents.forEach(content => {
-                content.classList.add('hidden');
-            });
-
-            // Remove active class from all tab buttons
-            const tabButtons = document.querySelectorAll('.tab-button');
-            tabButtons.forEach(button => {
-                button.classList.remove('active', 'border-blue-500', 'text-blue-600');
-                button.classList.add('border-transparent', 'text-gray-500');
-            });
-
-            // Show selected tab content
-            document.getElementById(tabName + 'Content').classList.remove('hidden');
-
-            // Add active class to selected tab button
-            const activeTab = document.getElementById(tabName + 'Tab');
-            activeTab.classList.add('active', 'border-blue-500', 'text-blue-600');
-            activeTab.classList.remove('border-transparent', 'text-gray-500');
-        }
-
         // Settings functions
         let isLoading = false;
 
@@ -534,20 +394,13 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Populate general settings
+                        // Populate general settings only
                         document.getElementById('systemTitle').value = data.settings.system_title || '';
                         document.getElementById('barangayName').value = data.settings.barangay_name || '';
                         document.getElementById('municipality').value = data.settings.municipality || '';
                         document.getElementById('province').value = data.settings.province || '';
                         document.getElementById('address').value = data.settings.barangay_address || '';
-                        
-                        // Populate system settings
-                        document.getElementById('recordsPerPage').value = data.settings.records_per_page || '25';
-                        document.getElementById('sessionTimeout').value = data.settings.session_timeout || '30';
-                        
-                        // Populate appearance settings
-                        document.getElementById('primaryColor').value = data.settings.primary_color || '#2563eb';
-                        document.getElementById('primaryColorHex').value = data.settings.primary_color || '#2563eb';
+                        document.getElementById('barangayLogoPath').value = data.settings.barangay_logo_path || '';
                         
                         showNotification('Settings loaded successfully', 'success');
                     } else {
@@ -575,21 +428,14 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             saveButton.disabled = true;
             isLoading = true;
             
-            // Collect all form data
+            // Collect only general settings form data
             const settingsData = {
-                // General Settings
                 system_title: document.getElementById('systemTitle').value,
                 barangay_name: document.getElementById('barangayName').value,
                 municipality: document.getElementById('municipality').value,
                 province: document.getElementById('province').value,
                 address: document.getElementById('address').value,
-                
-                // System Settings
-                records_per_page: document.getElementById('recordsPerPage').value,
-                session_timeout: document.getElementById('sessionTimeout').value,
-                
-                // Appearance Settings
-                primary_color: document.getElementById('primaryColor').value
+                barangay_logo_path: document.getElementById('barangayLogoPath').value
             };
 
             fetch('save_settings.php', {
@@ -623,135 +469,70 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             });
         }
 
-        function resetSettings() {
-            if (confirm('Are you sure you want to reset all settings to defaults? This action cannot be undone.')) {
-                // Reset to default values
-                document.getElementById('systemTitle').value = 'Resident Information and Certification Management System';
-                document.getElementById('barangayName').value = 'Barangay Sample';
-                document.getElementById('municipality').value = 'Sample City';
-                document.getElementById('province').value = 'Sample Province';
-                document.getElementById('address').value = 'Sample Street, Sample City, Sample Province';
-                
-                // Reset system settings
-                document.getElementById('recordsPerPage').value = '25';
-                document.getElementById('sessionTimeout').value = '30';
-                
-                // Reset appearance settings
-                document.getElementById('primaryColor').value = '#2563eb';
-                document.getElementById('primaryColorHex').value = '#2563eb';
-
-                showNotification('Settings reset to defaults', 'info');
-            }
-        }
-
-        function previewSettings() {
-            showNotification('Preview mode activated. Changes are temporary.', 'info');
-            // Apply settings temporarily for preview
-            applyAppearanceSettings();
-        }
-
-        function applyAppearanceSettings() {
-            const theme = document.getElementById('theme').value;
-            const primaryColor = document.getElementById('primaryColor').value;
-            const fontSize = document.getElementById('fontSize').value;
-
-            // Apply theme
-            if (theme === 'dark') {
-                document.body.classList.add('dark-theme');
-            } else {
-                document.body.classList.remove('dark-theme');
-            }
-
-            // Apply primary color
-            document.documentElement.style.setProperty('--primary-color', primaryColor);
-
-            // Apply font size
-            const fontSizeMap = {
-                'small': '14px',
-                'medium': '16px',
-                'large': '18px'
-            };
-            document.documentElement.style.setProperty('--base-font-size', fontSizeMap[fontSize]);
-        }
-
         // Quick action functions
         function backupData() {
-            if (confirm('Do you want to create a backup of all system data?')) {
-                showNotification('Creating backup...', 'info');
-                // Simulate backup process
-                setTimeout(() => {
-                    const link = document.createElement('a');
-                    link.href = '#'; // Replace with actual backup endpoint
-                    link.download = `bims_backup_${new Date().toISOString().split('T')[0]}.sql`;
-                    showNotification('Backup created successfully!', 'success');
-                }, 2000);
-            }
-        }
-
-        function restoreData() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.sql,.zip';
-            input.onchange = function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    if (confirm(`Are you sure you want to restore from "${file.name}"? This will overwrite all current data.`)) {
-                        showNotification('Restoring data...', 'info');
-                        // Simulate restore process
-                        setTimeout(() => {
-                            showNotification('Data restored successfully!', 'success');
-                        }, 3000);
-                    }
+            showConfirmationModal({
+                title: 'Create Database Backup',
+                message: 'Do you want to create a backup of all system data? This will export the entire database to an SQL file.',
+                icon: 'fas fa-download',
+                iconColors: ['#3b82f6', '#1d4ed8'],
+                confirmText: 'Create Backup',
+                confirmClass: 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700',
+                onConfirm: () => {
+                    showNotification('Creating database backup...', 'info');
+                    
+                    fetch('backup_database.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showNotification('Database backup created successfully!', 'success');
+                            
+                            // Auto-download the backup file
+                            const link = document.createElement('a');
+                            link.href = data.download_url;
+                            link.download = data.filename;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            
+                            // Show additional info
+                            setTimeout(() => {
+                                showNotification(`Backup file: ${data.filename} (${(data.size / 1024).toFixed(2)} KB)`, 'info');
+                            }, 1000);
+                        } else {
+                            showNotification('Failed to create backup: ' + data.message, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Backup error:', error);
+                        showNotification('Error creating backup. Please try again.', 'error');
+                    });
                 }
-            };
-            input.click();
+            });
         }
 
         function clearCache() {
-            if (confirm('Do you want to clear all system cache files?')) {
-                showNotification('Clearing cache...', 'info');
-                // Simulate cache clearing
-                setTimeout(() => {
-                    showNotification('Cache cleared successfully!', 'success');
-                }, 1000);
-            }
-        }
-
-        function toggleMaintenance() {
-            const isMaintenanceMode = document.body.classList.contains('maintenance-mode');
-            if (isMaintenanceMode) {
-                if (confirm('Do you want to disable maintenance mode? The system will be available to users.')) {
-                    document.body.classList.remove('maintenance-mode');
-                    showNotification('Maintenance mode disabled', 'success');
+            showConfirmationModal({
+                title: 'Clear System Cache',
+                message: 'Do you want to clear all system cache files? This will remove temporary data and may improve system performance.',
+                icon: 'fas fa-sync',
+                iconColors: ['#f59e0b', '#d97706'],
+                confirmText: 'Clear Cache',
+                confirmClass: 'bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700',
+                onConfirm: () => {
+                    showNotification('Clearing cache...', 'info');
+                    // Simulate cache clearing
+                    setTimeout(() => {
+                        showNotification('Cache cleared successfully!', 'success');
+                    }, 1000);
                 }
-            } else {
-                if (confirm('Do you want to enable maintenance mode? This will temporarily disable the system for users.')) {
-                    document.body.classList.add('maintenance-mode');
-                    showNotification('Maintenance mode enabled', 'warning');
-                }
-            }
+            });
         }
-
-        // Color picker sync
-        document.getElementById('primaryColor').addEventListener('change', function() {
-            document.getElementById('primaryColorHex').value = this.value;
-        });
-
-        document.getElementById('primaryColorHex').addEventListener('change', function() {
-            document.getElementById('primaryColor').value = this.value;
-        });
-
-        // Logo file preview
-        document.getElementById('logoFile').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('logoPreview').src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        });
 
         function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
@@ -789,35 +570,81 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 }
             }, 5000);
         }
-        // Dropdown open/close effect styles
-        const style = document.createElement('style');
-        style.innerHTML = `
-        .dropdown-open {
-            max-height: 500px;
-            opacity: 1;
-            pointer-events: auto;
-            overflow: hidden;
-        }
-        .dropdown-closed {
-            max-height: 0;
-            opacity: 0;
-            pointer-events: none;
-            overflow: hidden;
-        }
-        `;
-        document.head.appendChild(style);
-        // User dropdown
-        const userDropdownBtn = document.getElementById('userDropdownBtn');
-        const userDropdownMenu = document.getElementById('userDropdownMenu');
-        userDropdownBtn.addEventListener('click', () => {
-            userDropdownMenu.classList.toggle('show');
-        });
-        // Close user dropdown if clicked outside
-        document.addEventListener('click', (e) => {
-            if (!userDropdownBtn.contains(e.target) && !userDropdownMenu.contains(e.target)) {
-                userDropdownMenu.classList.remove('show');
+        
+        // Modal functions
+        function showConfirmationModal(options) {
+            const modal = document.getElementById('confirmationModal');
+            const modalIcon = document.getElementById('modalIcon');
+            const modalIconClass = document.getElementById('modalIconClass');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalMessage = document.getElementById('modalMessage');
+            const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+            const modalCancelBtn = document.getElementById('modalCancelBtn');
+            
+            // Set modal content
+            modalTitle.textContent = options.title;
+            modalMessage.textContent = options.message;
+            modalIconClass.className = options.icon;
+            modalConfirmBtn.textContent = options.confirmText || 'Confirm';
+            modalConfirmBtn.className = `modal-button flex-1 text-white px-4 py-3 rounded-lg font-medium ${options.confirmClass || 'bg-blue-500 hover:bg-blue-600'}`;
+            
+            // Set icon colors
+            if (options.iconColors) {
+                modalIcon.style.setProperty('--modal-icon-color-1', options.iconColors[0]);
+                modalIcon.style.setProperty('--modal-icon-color-2', options.iconColors[1]);
             }
-        });
+            
+            // Show modal
+            modal.classList.add('active');
+            
+            // Handle confirm
+            const confirmHandler = () => {
+                hideConfirmationModal();
+                if (options.onConfirm) {
+                    options.onConfirm();
+                }
+                modalConfirmBtn.removeEventListener('click', confirmHandler);
+                modalCancelBtn.removeEventListener('click', cancelHandler);
+                modal.removeEventListener('click', outsideClickHandler);
+            };
+            
+            // Handle cancel
+            const cancelHandler = () => {
+                hideConfirmationModal();
+                if (options.onCancel) {
+                    options.onCancel();
+                }
+                modalConfirmBtn.removeEventListener('click', confirmHandler);
+                modalCancelBtn.removeEventListener('click', cancelHandler);
+                modal.removeEventListener('click', outsideClickHandler);
+            };
+            
+            // Handle outside click
+            const outsideClickHandler = (e) => {
+                if (e.target === modal) {
+                    cancelHandler();
+                }
+            };
+            
+            // Add event listeners
+            modalConfirmBtn.addEventListener('click', confirmHandler);
+            modalCancelBtn.addEventListener('click', cancelHandler);
+            modal.addEventListener('click', outsideClickHandler);
+            
+            // Handle escape key
+            const escapeHandler = (e) => {
+                if (e.key === 'Escape') {
+                    cancelHandler();
+                    document.removeEventListener('keydown', escapeHandler);
+                }
+            };
+            document.addEventListener('keydown', escapeHandler);
+        }
+        
+        function hideConfirmationModal() {
+            const modal = document.getElementById('confirmationModal');
+            modal.classList.remove('active');
+        }
 
         // Initialize settings on page load
         document.addEventListener('DOMContentLoaded', function() {

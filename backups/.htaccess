@@ -1,0 +1,8 @@
+# Protect backup files from direct access
+Order Deny,Allow
+Deny from all
+
+# Allow access only to download_backup.php
+<Files "download_backup.php">
+    Allow from all
+</Files>

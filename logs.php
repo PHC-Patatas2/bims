@@ -11,13 +11,11 @@ if ($conn->connect_error) {
     error_log('Database connection failed: ' . $conn->connect_error);
     include 'error_page.php';
     exit();
-}
-
-// AJAX endpoint for logs data
+}    // AJAX endpoint for logs data
 if (isset($_GET['fetch_logs'])) {
     header('Content-Type: application/json');
     $logs = [];
-    $sql = "SELECT a.id, a.user_id, a.action, a.details, a.ip_address, a.timestamp, u.first_name, u.last_name, u.username 
+    $sql = "SELECT a.id, a.user_id, a.action, a.details, a.timestamp, u.first_name, u.last_name, u.username 
             FROM audit_trail a 
             LEFT JOIN users u ON a.user_id = u.id 
             ORDER BY a.timestamp DESC";
@@ -33,8 +31,7 @@ if (isset($_GET['fetch_logs'])) {
                     : ($row['username'] ?? $row['user_id']),
                 'action' => $row['action'],
                 'level' => 'INFO', // Default to INFO
-                'details' => $row['details'] ?? '',
-                'ip_address' => $row['ip_address'] ?? ''
+                'details' => $row['details'] ?? ''
             ];
         }
     }
@@ -42,6 +39,230 @@ if (isset($_GET['fetch_logs'])) {
     exit();
 }
 
+// AJAX endpoint for log statistics
+if (isset($_GET['fetch_stats'])) {
+    header('Content-Type: application/json');
+    
+    // Get total logs count
+    $totalResult = $conn->query("SELECT COUNT(*) as total FROM audit_trail");
+    $totalLogs = $totalResult ? $totalResult->fetch_assoc()['total'] : 0;
+    
+    // Get today's logs count
+    $todayResult = $conn->query("SELECT COUNT(*) as today FROM audit_trail WHERE DATE(timestamp) = CURDATE()");
+    $todayLogs = $todayResult ? $todayResult->fetch_assoc()['today'] : 0;
+    
+    echo json_encode([
+        'total' => (int)$totalLogs,
+        'today' => (int)$todayLogs
+    ]);
+    exit();
+}
+
+// AJAX endpoint for exporting logs to XLSX
+if (isset($_GET['export_logs'])) {
+    // Get filters from request
+    $dateFilter = $_GET['date_filter'] ?? '';
+    $userFilter = $_GET['user_filter'] ?? '';
+    $searchTerm = $_GET['search_term'] ?? '';
+    
+    // Build SQL query with filters
+    $sql = "SELECT a.id, a.user_id, a.action, a.details, a.timestamp, 
+                   u.first_name, u.last_name, u.username 
+            FROM audit_trail a 
+            LEFT JOIN users u ON a.user_id = u.id WHERE 1=1";
+    
+    $params = [];
+    $types = '';
+    
+    // Apply date filter
+    if ($dateFilter) {
+        switch ($dateFilter) {
+            case 'today':
+                $sql .= " AND DATE(a.timestamp) = CURDATE()";
+                break;
+            case 'week':
+                $sql .= " AND a.timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+                break;
+            case 'month':
+                $sql .= " AND a.timestamp >= DATE_SUB(NOW(), INTERVAL 1 MONTH)";
+                break;
+        }
+    }
+    
+    // Apply user filter
+    if ($userFilter) {
+        $sql .= " AND (u.username = ? OR CONCAT(u.first_name, ' ', u.last_name) = ?)";
+        $params[] = $userFilter;
+        $params[] = $userFilter;
+        $types .= 'ss';
+    }
+    
+    // Apply search filter
+    if ($searchTerm) {
+        $sql .= " AND (u.username LIKE ? OR CONCAT(u.first_name, ' ', u.last_name) LIKE ? OR a.action LIKE ? OR a.details LIKE ?)";
+        $searchPattern = '%' . $searchTerm . '%';
+        $params[] = $searchPattern;
+        $params[] = $searchPattern;
+        $params[] = $searchPattern;
+        $params[] = $searchPattern;
+        $types .= 'ssss';
+    }
+    
+    $sql .= " ORDER BY a.timestamp DESC";
+    
+    // Execute query
+    if ($params) {
+        $stmt = $conn->prepare($sql);
+        if ($types) {
+            $stmt->bind_param($types, ...$params);
+        }
+        $stmt->execute();
+        $result = $stmt->get_result();
+    } else {
+        $result = $conn->query($sql);
+    }
+    
+    // Prepare data for Excel export
+    $logsData = [];
+    
+    // Add header row
+    $logsData[] = [
+        'Date & Time',
+        'User', 
+        'Activity',
+        'Details'
+    ];
+    
+    if ($result && $result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            // Format date
+            $date = date('Y-m-d H:i:s', strtotime($row['timestamp']));
+            
+            // Format user name
+            $userName = '';
+            if ($row['first_name'] || $row['last_name']) {
+                $userName = trim($row['first_name'] . ' ' . $row['last_name']);
+            } else {
+                $userName = $row['username'] ?: 'System';
+            }
+            
+            // Make action human-readable
+            $humanAction = $row['action'];
+            if (stripos($humanAction, 'login') !== false) {
+                $humanAction = 'User Login';
+            } elseif (stripos($humanAction, 'logout') !== false) {
+                $humanAction = 'User Logout';
+            } elseif (stripos($humanAction, 'create') !== false || stripos($humanAction, 'add') !== false) {
+                if (stripos($humanAction, 'individual') !== false || stripos($humanAction, 'resident') !== false) {
+                    $humanAction = 'Added New Resident';
+                } elseif (stripos($humanAction, 'official') !== false) {
+                    $humanAction = 'Added New Official';
+                } else {
+                    $humanAction = 'Added New Record';
+                }
+            } elseif (stripos($humanAction, 'update') !== false || stripos($humanAction, 'edit') !== false) {
+                if (stripos($humanAction, 'individual') !== false || stripos($humanAction, 'resident') !== false) {
+                    $humanAction = 'Updated Resident';
+                } elseif (stripos($humanAction, 'official') !== false) {
+                    $humanAction = 'Updated Official';
+                } else {
+                    $humanAction = 'Updated Record';
+                }
+            } elseif (stripos($humanAction, 'delete') !== false || stripos($humanAction, 'remove') !== false) {
+                if (stripos($humanAction, 'individual') !== false || stripos($humanAction, 'resident') !== false) {
+                    $humanAction = 'Deleted Resident';
+                } elseif (stripos($humanAction, 'official') !== false) {
+                    $humanAction = 'Deleted Official';
+                } else {
+                    $humanAction = 'Deleted Record';
+                }
+            } elseif (stripos($humanAction, 'generate') !== false) {
+                $humanAction = 'Generated Document';
+            } elseif (stripos($humanAction, 'certificate') !== false) {
+                $humanAction = 'Certificate Issued';
+            }
+            
+            // Convert JSON details to human-readable format using same logic as modal
+            $humanDetails = $row['details'];
+            if ($humanDetails && (strpos($humanDetails, '{') === 0 || strpos($humanDetails, '[') === 0)) {
+                $decoded = json_decode($humanDetails, true);
+                if ($decoded) {
+                    $readableDetails = '';
+                    
+                    if (is_array($decoded) && !array_key_exists(0, $decoded)) {
+                        // Associative array
+                        $detailParts = [];
+                        foreach ($decoded as $key => $value) {
+                            // Skip redundant fields that are already shown in other columns
+                            if (in_array($key, ['timestamp', 'user_id', 'username', 'first_name', 'last_name'])) {
+                                continue;
+                            }
+                            
+                            // Convert field names to human-readable labels (same as modal)
+                            $label = str_replace('_', ' ', $key);
+                            $label = ucwords($label);
+                            if ($key === 'id') $label = 'ID';
+                            if ($key === 'first_name') $label = 'First Name';
+                            if ($key === 'last_name') $label = 'Last Name';
+                            if ($key === 'purok') $label = 'Purok';
+                            if ($key === 'gender') $label = 'Gender';
+                            if ($key === 'religion') $label = 'Religion';
+                            if ($key === 'civil_status') $label = 'Civil Status';
+                            if ($key === 'birth_date') $label = 'Birth Date';
+                            if ($key === 'phone_number') $label = 'Phone Number';
+                            if ($key === 'email_address') $label = 'Email Address';
+                            if ($key === 'certificate_type') $label = 'Certificate Type';
+                            if ($key === 'purpose') $label = 'Purpose';
+                            
+                            $displayValue = is_array($value) ? implode(', ', $value) : $value;
+                            $detailParts[] = $label . ': ' . $displayValue;
+                        }
+                        $readableDetails = implode(' | ', $detailParts);
+                    } else {
+                        // Regular array
+                        $readableDetails = implode(', ', $decoded);
+                    }
+                    $humanDetails = $readableDetails ?: $humanDetails;
+                }
+            }
+            
+            // Add row to data array - no truncation needed for Excel
+            $logsData[] = [
+                $date,
+                $userName,
+                $humanAction,
+                $humanDetails
+            ];
+        }
+    }
+    
+    // Generate filename with filters info
+    $filename = 'system_logs_' . date('Y-m-d_H-i-s');
+    if ($dateFilter) {
+        $filename .= '_' . $dateFilter;
+    }
+    if ($userFilter) {
+        $filename .= '_' . preg_replace('/[^a-zA-Z0-9_-]/', '', $userFilter);
+    }
+    $filename .= '.xlsx';
+    
+    // Return JSON data for client-side Excel generation
+    header('Content-Type: application/json');
+    echo json_encode([
+        'data' => $logsData,
+        'filename' => $filename,
+        'metadata' => [
+            'generated_on' => date('Y-m-d H:i:s'),
+            'date_filter' => $dateFilter ? ucfirst($dateFilter) : 'All Time',
+            'user_filter' => $userFilter ?: 'All Users',
+            'search_term' => $searchTerm ?: 'None',
+            'total_records' => count($logsData) - 1 // Subtract header row
+        ]
+    ]);
+    exit();
+}
+
+// Get user information for navigation
 $user_id = $_SESSION['user_id'];
 $user_first_name = '';
 $user_last_name = '';
@@ -52,6 +273,8 @@ $stmt->bind_result($user_first_name, $user_last_name);
 $stmt->fetch();
 $stmt->close();
 $user_full_name = trim($user_first_name . ' ' . $user_last_name);
+
+// Get system title for navigation
 $system_title = 'Resident Information and Certification Management System';
 $title_result = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key='system_title' LIMIT 1");
 if ($title_result && $title_row = $title_result->fetch_assoc()) {
@@ -71,124 +294,15 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style>
-        .custom-scrollbar { scrollbar-width: thin; scrollbar-color: #2563eb #353535; padding-right: 6px; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #2563eb; border-radius: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #353535; }
-        .custom-scrollbar { overflow-y: scroll; }
-        .custom-scrollbar::-webkit-scrollbar { background: #353535; }
         .stat-card { transition: transform 0.2s, box-shadow 0.2s; }
         .stat-card:hover { transform: translateY(-5px) scale(1.03); box-shadow: 0 10px 20px -5px #0002; }
-        .dropdown-menu { display: none; position: absolute; right: 0; top: 100%; background: white; min-width: 180px; box-shadow: 0 4px 16px #0001; border-radius: 0.5rem; z-index: 50; }
-        .dropdown-menu.show { display: block; }
-        .sidebar-border { border-right: 1px solid #e5e7eb; }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
-    <!-- Sidepanel -->
-    <div id="sidepanel" class="fixed top-0 left-0 h-full w-80 shadow-lg z-40 transform -translate-x-full transition-transform duration-300 ease-in-out sidebar-border overflow-y-auto custom-scrollbar" style="background-color: #454545;">
-        <div class="flex flex-col items-center justify-center min-h-[90px] px-4 pt-3 pb-3 relative" style="border-bottom: 4px solid #FFD700;">
-            <button id="closeSidepanel" class="absolute right-2 top-2 text-white hover:text-blue-400 focus:outline-none text-2xl md:hidden" aria-label="Close menu">
-                <i class="fas fa-times"></i>
-            </button>
-            <?php
-            $barangay_logo = 'img/logo.png';
-            $logo_result = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key='barangay_logo_path' LIMIT 1");
-            if ($logo_result && $logo_row = $logo_result->fetch_assoc()) {
-                if (!empty($logo_row['setting_value'])) {
-                    $barangay_logo = $logo_row['setting_value'];
-                }
-            }
-            ?>
-            <img src="<?php echo htmlspecialchars($barangay_logo); ?>" alt="Barangay Logo" class="w-28 h-28 object-cover rounded-full mb-1 border-2 border-white bg-white p-1" style="aspect-ratio:1/1;" onerror="this.onerror=null;this.src='img/logo.png';">
-        </div>
-        <nav class="flex flex-col p-4 gap-2 text-white">
-            <?php
-            $current = basename($_SERVER['PHP_SELF']);
-            function navActive($pages) {
-                global $current;
-                return in_array($current, (array)$pages);
-            }
-            function navLink($href, $icon, $label, $active, $extra = '') {
-                $classes = $active ? 'bg-blue-600 text-white font-bold shadow-md' : 'text-white';
-                return '<a href="' . $href . '" class="py-2 px-3 rounded-lg flex items-center gap-2 ' . $classes . ' hover:bg-blue-500 hover:text-white ' . $extra . '"><i class="' . $icon . '"></i> ' . $label . '</a>';
-            }
-            echo navLink('dashboard.php', 'fas fa-tachometer-alt', 'Dashboard', navActive('dashboard.php'));
-            $peopleActive = navActive(['individuals.php']);
-            $peopleId = 'peopleSubNav';
-            ?>
-            <div class="mt-2">
-                <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $peopleActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $peopleId; ?>')">
-                    <i class="fas fa-users"></i> People Management <i class="fas fa-chevron-down ml-auto"></i>
-                </button>
-                <div id="<?php echo $peopleId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out dropdown-closed">
-                    <?php echo navLink('individuals.php', 'fas fa-user', 'Individuals', navActive('individuals.php'));
-                    ?>
-                </div>
-            </div>
-            <?php
-            $docsActive = navActive(['certificate.php', 'reports.php', 'issued_documents.php']);
-            $docsId = 'docsSubNav';
-            ?>
-            <div class="mt-2">
-                <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $docsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $docsId; ?>')">
-                    <i class="fas fa-file-alt"></i> Barangay Documents <i class="fas fa-chevron-down ml-auto"></i>
-                </button>
-                <div id="<?php echo $docsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out dropdown-closed">
-                    <?php echo navLink('certificate.php', 'fas fa-stamp', 'Issue Certificate', navActive('certificate.php'));
-                    ?>
-                    <?php echo navLink('reports.php', 'fas fa-chart-bar', 'Reports', navActive('reports.php'));
-                    ?>
-                    <?php echo navLink('issued_documents.php', 'fas fa-history', 'Issued Documents', navActive('issued_documents.php'));
-                    ?>
-                </div>
-            </div>
-            <?php
-            $settingsActive = navActive(['officials.php', 'settings.php', 'logs.php']);
-            $settingsId = 'settingsSubNav';
-            ?>
-            <div class="mt-2">
-                <button type="button" class="w-full py-2 px-3 rounded-lg flex items-center gap-2 text-left group <?php echo $settingsActive ? 'bg-blue-500 text-white font-bold shadow-md' : 'text-white'; ?> hover:bg-blue-500 hover:text-white focus:outline-none" onclick="toggleDropdown('<?php echo $settingsId; ?>')">
-                    <i class="fas fa-cogs"></i> System Settings <i class="fas fa-chevron-down ml-auto"></i>
-                </button>
-                <div id="<?php echo $settingsId; ?>" class="ml-6 mt-1 flex flex-col gap-1 transition-all duration-300 ease-in-out dropdown-closed">
-                    <?php echo navLink('officials.php', 'fas fa-user-tie', 'Officials', navActive('officials.php'));
-                    ?>
-                    <?php echo navLink('settings.php', 'fas fa-cog', 'General Settings', navActive('settings.php'));
-                    ?>
-                    <?php echo navLink('logs.php', 'fas fa-clipboard-list', 'Logs', navActive('logs.php'));
-                    ?>
-                </div>
-            </div>
-        </nav>
-    </div>
-    <!-- Overlay -->
-    <div id="sidepanelOverlay" class="fixed inset-0 bg-black bg-opacity-30 z-30 hidden"></div>
-    <!-- Navbar -->
-    <nav class="fixed top-0 left-0 right-0 z-30 bg-white shadow flex items-center justify-between h-16 px-4 md:px-8">
-        <div class="flex items-center gap-2">            <button id="menuBtn" class="h-8 w-8 mr-2 flex items-center justify-center text-blue-700 focus:outline-none">
-                <i class="fas fa-bars text-2xl"></i>
-            </button>
-            <span class="font-bold text-lg text-blue-700"><?php echo htmlspecialchars($system_title); ?></span>
-        </div>
-        <div class="relative flex items-center gap-2">
-            <span class="hidden sm:inline text-gray-700 font-medium">Welcome,</span>
-            <button id="userDropdownBtn" class="focus:outline-none flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100">
-                <span class="text-gray-700 font-medium"><?php echo htmlspecialchars($user_full_name); ?></span>
-                <i class="fas fa-chevron-down text-sm text-gray-600"></i>
-            </button>
-            <div id="userDropdownMenu" class="dropdown-menu mt-2">
-                <a href="profile.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg mx-2 my-1">
-                    <i class="fas fa-user mr-2"></i>Profile
-                </a>
-                <a href="logout.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg mx-2 my-1">
-                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
-                </a>
-            </div>
-        </div>
-    </nav>
+    <?php include 'navigation.php'; ?>
     <!-- Main Content -->
     <main class="flex-1 pt-16">
         <div class="p-6 max-w-7xl mx-auto">
@@ -200,10 +314,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 </div>
                 <div class="flex gap-3">
                     <button onclick="exportLogs()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
-                        <i class="fas fa-download mr-2"></i>Export Logs
-                    </button>
-                    <button onclick="clearOldLogs()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
-                        <i class="fas fa-trash mr-2"></i>Clear Old Logs
+                        <i class="fas fa-download mr-2"></i>Export to Excel
                     </button>
                 </div>
             </div>
@@ -302,85 +413,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
     </main>
 
     <script>
-        // Sidepanel toggle
-        const menuBtn = document.getElementById('menuBtn');
-        const sidepanel = document.getElementById('sidepanel');
-        const sidepanelOverlay = document.getElementById('sidepanelOverlay');
-        const closeSidepanel = document.getElementById('closeSidepanel');
-
-
-        function openSidepanel() {
-            sidepanel.classList.remove('-translate-x-full');
-            sidepanelOverlay.classList.remove('hidden');
-            document.body.classList.add('overflow-hidden');
-        }
-        function closeSidepanelFn() {
-            sidepanel.classList.add('-translate-x-full');
-            sidepanelOverlay.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-        }
-        menuBtn.addEventListener('click', openSidepanel);
-        closeSidepanel.addEventListener('click', closeSidepanelFn);
-        sidepanelOverlay.addEventListener('click', closeSidepanelFn);
-        
-        // Dropdown logic for sidepanel (only one open at a time)
-        function toggleDropdown(id) {
-            const dropdowns = ['peopleSubNav', 'docsSubNav', 'settingsSubNav'];
-            dropdowns.forEach(function(dropId) {
-                if (dropId !== id) {
-                    const otherEl = document.getElementById(dropId);
-                    if (otherEl && otherEl.classList.contains('dropdown-open')) {
-                        otherEl.classList.remove('dropdown-open');
-                        otherEl.classList.add('dropdown-closed');
-                    }
-                }
-            });
-            
-            const targetEl = document.getElementById(id);
-            if (targetEl) {
-                if (targetEl.classList.contains('dropdown-open')) {
-                    targetEl.classList.remove('dropdown-open');
-                    targetEl.classList.add('dropdown-closed');
-                } else {
-                    targetEl.classList.remove('dropdown-closed');
-                    targetEl.classList.add('dropdown-open');
-                }
-            }
-        }
-        
-        // Dropdown open/close effect styles
-        const style = document.createElement('style');
-        style.innerHTML = `
-        .dropdown-open {
-            max-height: 500px;
-            opacity: 1;
-            pointer-events: auto;
-            overflow: hidden;
-        }
-        .dropdown-closed {
-            max-height: 0;
-            opacity: 0;
-            pointer-events: none;
-            overflow: hidden;
-        }
-        `;
-        document.head.appendChild(style);
-        
-        // User dropdown
-        const userDropdownBtn = document.getElementById('userDropdownBtn');
-        const userDropdownMenu = document.getElementById('userDropdownMenu');
-
-        userDropdownBtn.addEventListener('click', () => {
-            userDropdownMenu.classList.toggle('show');
-        });
-
-        // Close user dropdown if clicked outside
-        document.addEventListener('click', (e) => {
-            if (!userDropdownBtn.contains(e.target) && !userDropdownMenu.contains(e.target)) {
-                userDropdownMenu.classList.remove('show');
-            }
-        });
-
         // Logs Management JavaScript
         let logsTable;
         let logsData = [];
@@ -396,11 +428,25 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     } else {
                         initializeLogsTable();
                     }
-                    updateLogStatistics();
                     populateUserFilter();
                 })
                 .catch(error => {
                     console.error('Error fetching logs:', error);
+                });
+        }
+        
+        // Fetch statistics from database (separate from table filtering)
+        function fetchLogStatistics() {
+            fetch('logs.php?fetch_stats=1')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('totalLogs').textContent = data.total;
+                    document.getElementById('todayLogs').textContent = data.today;
+                })
+                .catch(error => {
+                    console.error('Error fetching statistics:', error);
+                    document.getElementById('totalLogs').textContent = '0';
+                    document.getElementById('todayLogs').textContent = '0';
                 });
         }
 
@@ -452,7 +498,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                             let iconClass = 'fas fa-info-circle text-blue-500';
                             let description = action;
                             
-                            // Make activities more human-readable
+                            // Make activities more human-readable with proper grammar
                             if (action.toLowerCase().includes('login')) {
                                 iconClass = 'fas fa-sign-in-alt text-green-500';
                                 description = 'User logged into the system';
@@ -461,13 +507,44 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                                 description = 'User logged out of the system';
                             } else if (action.toLowerCase().includes('create') || action.toLowerCase().includes('add')) {
                                 iconClass = 'fas fa-plus-circle text-green-500';
-                                description = action.replace(/create|add/gi, 'Added new');
+                                if (action.toLowerCase().includes('individual') || action.toLowerCase().includes('resident')) {
+                                    description = 'Added new resident';
+                                } else if (action.toLowerCase().includes('official')) {
+                                    description = 'Added new official';
+                                } else if (action.toLowerCase().includes('certificate')) {
+                                    description = 'Generated certificate';
+                                } else {
+                                    description = 'Added new record';
+                                }
                             } else if (action.toLowerCase().includes('update') || action.toLowerCase().includes('edit')) {
                                 iconClass = 'fas fa-edit text-yellow-500';
-                                description = action.replace(/update|edit/gi, 'Updated');
+                                if (action.toLowerCase().includes('individual') || action.toLowerCase().includes('resident')) {
+                                    description = 'Updated resident information';
+                                } else if (action.toLowerCase().includes('official')) {
+                                    description = 'Updated official information';
+                                } else if (action.toLowerCase().includes('settings')) {
+                                    description = 'Updated system settings';
+                                } else {
+                                    description = 'Updated record';
+                                }
                             } else if (action.toLowerCase().includes('delete') || action.toLowerCase().includes('remove')) {
                                 iconClass = 'fas fa-trash text-red-500';
-                                description = action.replace(/delete|remove/gi, 'Removed');
+                                if (action.toLowerCase().includes('individual') || action.toLowerCase().includes('resident')) {
+                                    description = 'Deleted resident record';
+                                } else if (action.toLowerCase().includes('official')) {
+                                    description = 'Deleted official record';
+                                } else {
+                                    description = 'Deleted record';
+                                }
+                            } else if (action.toLowerCase().includes('generate')) {
+                                iconClass = 'fas fa-file-pdf text-purple-500';
+                                description = 'Generated document';
+                            } else if (action.toLowerCase().includes('certificate')) {
+                                iconClass = 'fas fa-certificate text-yellow-600';
+                                description = 'Issued certificate';
+                            } else if (action.toLowerCase().includes('announcement')) {
+                                iconClass = 'fas fa-bullhorn text-blue-600';
+                                description = 'Sent announcement';
                             }
                             
                             return `
@@ -494,21 +571,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     }
                 ]
             });
-        }
-
-        // Update statistics
-        function updateLogStatistics() {
-            const total = logsData.length;
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const todayLogs = logsData.filter(log => {
-                const logDate = new Date(log.timestamp);
-                logDate.setHours(0, 0, 0, 0);
-                return logDate.getTime() === today.getTime();
-            }).length;
-
-            document.getElementById('totalLogs').textContent = total;
-            document.getElementById('todayLogs').textContent = todayLogs;
         }
 
         // Populate user filter with actual users from logs
@@ -576,32 +638,73 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 }
 
                 logsTable.setData(filteredData);
-                updateFilteredStatistics(filteredData);
             }
 
             searchInput.addEventListener('input', applyFilters);
             dateRangeFilter.addEventListener('change', applyFilters);
             userFilter.addEventListener('change', applyFilters);
         }
-        // Update statistics for filtered data
-        function updateFilteredStatistics(data) {
-            const total = data.length;
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const todayFiltered = data.filter(log => {
-                const logDate = new Date(log.timestamp);
-                logDate.setHours(0, 0, 0, 0);
-                return logDate.getTime() === today.getTime();
-            }).length;
-
-            document.getElementById('totalLogs').textContent = total;
-            document.getElementById('todayLogs').textContent = todayFiltered;
-        }
 
         // View log details in modal
         function viewLogDetails(logId) {
             const log = logsData.find(l => l.id == logId);
             if (!log) return;
+
+            // Make action human-readable
+            let humanAction = log.action || 'No action specified';
+            if (humanAction.toLowerCase().includes('login')) {
+                humanAction = 'User logged into the system';
+            } else if (humanAction.toLowerCase().includes('logout')) {
+                humanAction = 'User logged out of the system';
+            } else if (humanAction.toLowerCase().includes('create') || humanAction.toLowerCase().includes('add')) {
+                humanAction = 'Added new record to the system';
+            } else if (humanAction.toLowerCase().includes('update') || humanAction.toLowerCase().includes('edit')) {
+                humanAction = 'Updated existing record';
+            } else if (humanAction.toLowerCase().includes('delete') || humanAction.toLowerCase().includes('remove')) {
+                humanAction = 'Deleted record from the system';
+            } else if (humanAction.toLowerCase().includes('generate')) {
+                humanAction = 'Generated a document';
+            } else if (humanAction.toLowerCase().includes('certificate')) {
+                humanAction = 'Issued a certificate';
+            }
+
+            // Make details human-readable
+            let humanDetails = log.details;
+            if (humanDetails && (humanDetails.startsWith('{') || humanDetails.startsWith('['))) {
+                try {
+                    const decoded = JSON.parse(humanDetails);
+                    let readableDetails = '';
+                    
+                    if (Array.isArray(decoded)) {
+                        readableDetails = decoded.join(', ');
+                    } else if (typeof decoded === 'object') {
+                        const detailParts = [];
+                        for (const [key, value] of Object.entries(decoded)) {
+                            // Convert field names to human-readable labels
+                            let label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                            if (key === 'id') label = 'ID';
+                            if (key === 'first_name') label = 'First Name';
+                            if (key === 'last_name') label = 'Last Name';
+                            if (key === 'purok') label = 'Purok';
+                            if (key === 'gender') label = 'Gender';
+                            if (key === 'religion') label = 'Religion';
+                            if (key === 'civil_status') label = 'Civil Status';
+                            if (key === 'birth_date') label = 'Birth Date';
+                            if (key === 'phone_number') label = 'Phone Number';
+                            if (key === 'email_address') label = 'Email Address';
+                            if (key === 'certificate_type') label = 'Certificate Type';
+                            if (key === 'purpose') label = 'Purpose';
+                            
+                            let displayValue = Array.isArray(value) ? value.join(', ') : value;
+                            detailParts.push(`${label}: ${displayValue}`);
+                        }
+                        readableDetails = detailParts.join(' | ');
+                    }
+                    humanDetails = readableDetails || humanDetails;
+                } catch (e) {
+                    // If JSON parsing fails, keep original details
+                }
+            }
 
             const detailsHtml = `
                 <div class="space-y-4">
@@ -617,19 +720,12 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     </div>
                     <div class="bg-gray-50 p-4 rounded-lg">
                         <h4 class="font-semibold text-gray-800 mb-2">What Happened</h4>
-                        <p class="text-sm">${log.action || 'No action specified'}</p>
+                        <p class="text-sm">${humanAction}</p>
                     </div>
-                    ${log.details ? `
+                    ${humanDetails ? `
                         <div class="bg-yellow-50 p-4 rounded-lg">
-                            <h4 class="font-semibold text-yellow-800 mb-2">Additional Details</h4>
-                            <p class="text-sm">${log.details}</p>
-                        </div>
-                    ` : ''}
-                    ${log.ip_address ? `
-                        <div class="bg-purple-50 p-4 rounded-lg">
-                            <h4 class="font-semibold text-purple-800 mb-2">Technical Information</h4>
-                            <p class="text-sm"><strong>IP Address:</strong> ${log.ip_address}</p>
-                            ${log.user_agent ? `<p class="text-sm mt-1"><strong>Browser:</strong> ${log.user_agent}</p>` : ''}
+                            <h4 class="font-semibold text-yellow-800 mb-2">Details of Changes</h4>
+                            <p class="text-sm">${humanDetails}</p>
                         </div>
                     ` : ''}
                 </div>
@@ -646,19 +742,113 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
 
         // Export logs functionality
         function exportLogs() {
-            alert('Export functionality will be implemented soon!');
-        }
-
-        // Clear old logs functionality
-        function clearOldLogs() {
-            if (confirm('Are you sure you want to clear old logs? This action cannot be undone.')) {
-                alert('Clear old logs functionality will be implemented soon!');
+            // Get current filter values
+            const searchTerm = document.getElementById('searchLogs').value;
+            const dateFilter = document.getElementById('dateRangeFilter').value;
+            const userFilter = document.getElementById('userFilter').value;
+            
+            // Build export URL with filters
+            let exportUrl = 'logs.php?export_logs=1';
+            
+            if (searchTerm) {
+                exportUrl += '&search_term=' + encodeURIComponent(searchTerm);
             }
+            if (dateFilter) {
+                exportUrl += '&date_filter=' + encodeURIComponent(dateFilter);
+            }
+            if (userFilter) {
+                exportUrl += '&user_filter=' + encodeURIComponent(userFilter);
+            }
+            
+            // Show loading state
+            const exportBtn = event.target;
+            const originalText = exportBtn.innerHTML;
+            exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating Excel...';
+            exportBtn.disabled = true;
+            
+            // Fetch data and generate Excel file
+            fetch(exportUrl)
+                .then(response => response.json())
+                .then(data => {
+                    // Create workbook and worksheet
+                    const wb = XLSX.utils.book_new();
+                    
+                    // Create worksheet with metadata info
+                    const metadataRows = [
+                        ['System Activity Logs Report'],
+                        [''],
+                        ['Generated on:', data.metadata.generated_on],
+                        ['Date Filter:', data.metadata.date_filter],
+                        ['User Filter:', data.metadata.user_filter],
+                        ['Search Term:', data.metadata.search_term],
+                        ['Total Records:', data.metadata.total_records],
+                        ['']
+                    ];
+                    
+                    // Combine metadata and data
+                    const allData = [...metadataRows, ...data.data];
+                    
+                    // Create worksheet
+                    const ws = XLSX.utils.aoa_to_sheet(allData);
+                    
+                    // Set column widths
+                    ws['!cols'] = [
+                        { width: 20 }, // Date & Time
+                        { width: 25 }, // User
+                        { width: 30 }, // Activity
+                        { width: 60 }  // Details
+                    ];
+                    
+                    // Style the header row (row 9, 0-indexed = 8)
+                    const headerRowIndex = 8;
+                    const headerStyle = {
+                        font: { bold: true },
+                        fill: { fgColor: { rgb: "C8DCFF" } }
+                    };
+                    
+                    // Apply header styles
+                    ['A', 'B', 'C', 'D'].forEach(col => {
+                        const cellRef = col + (headerRowIndex + 1);
+                        if (!ws[cellRef]) ws[cellRef] = {};
+                        ws[cellRef].s = headerStyle;
+                    });
+                    
+                    // Style the title row
+                    if (!ws['A1']) ws['A1'] = {};
+                    ws['A1'].s = {
+                        font: { bold: true, size: 16 },
+                        alignment: { horizontal: 'center' }
+                    };
+                    
+                    // Merge title cell across all columns
+                    ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }];
+                    
+                    // Add worksheet to workbook
+                    XLSX.utils.book_append_sheet(wb, ws, 'System Logs');
+                    
+                    // Generate and download file
+                    XLSX.writeFile(wb, data.filename);
+                    
+                    // Reset button after successful export
+                    setTimeout(() => {
+                        exportBtn.innerHTML = originalText;
+                        exportBtn.disabled = false;
+                    }, 1000);
+                })
+                .catch(error => {
+                    console.error('Error exporting logs:', error);
+                    alert('Error generating Excel file. Please try again.');
+                    
+                    // Reset button on error
+                    exportBtn.innerHTML = originalText;
+                    exportBtn.disabled = false;
+                });
         }
 
         // Initialize everything when page loads
         document.addEventListener('DOMContentLoaded', function() {
             fetchLogs();
+            fetchLogStatistics(); // Fetch statistics separately
             setupSearchAndFilters();
             
             // Close modal when clicking overlay

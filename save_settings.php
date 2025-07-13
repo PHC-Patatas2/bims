@@ -31,21 +31,14 @@ if (!$input) {
 try {
     $conn->begin_transaction();
     
-    // Define settings mapping
+    // Define settings mapping - only general settings
     $settingsMap = [
-        // General Settings
         'system_title' => ['key' => 'system_title', 'description' => 'System title displayed in header'],
         'barangay_name' => ['key' => 'barangay_name', 'description' => 'Name of the barangay'],
         'municipality' => ['key' => 'municipality', 'description' => 'Municipality or city name'],
         'province' => ['key' => 'province', 'description' => 'Province name'],
         'address' => ['key' => 'barangay_address', 'description' => 'Complete barangay address'],
-        
-        // System Settings
-        'records_per_page' => ['key' => 'records_per_page', 'description' => 'Number of records per page'],
-        'session_timeout' => ['key' => 'session_timeout', 'description' => 'Session timeout in minutes'],
-        
-        // Appearance Settings
-        'primary_color' => ['key' => 'primary_color', 'description' => 'Primary theme color']
+        'barangay_logo_path' => ['key' => 'barangay_logo_path', 'description' => 'Path to barangay logo']
     ];
     
     // Prepare statement for inserting/updating settings

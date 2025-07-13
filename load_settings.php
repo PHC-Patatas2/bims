@@ -29,16 +29,14 @@ try {
         }
     }
     
-    // Default values if settings don't exist
+    // Default values if settings don't exist - only general settings
     $defaults = [
         'system_title' => 'Resident Information and Certification Management System',
         'barangay_name' => 'Barangay Sample',
         'municipality' => 'Sample City',
         'province' => 'Sample Province',
         'barangay_address' => 'Sample Street, Sample City, Sample Province',
-        'records_per_page' => '25',
-        'session_timeout' => '30',
-        'primary_color' => '#2563eb'
+        'barangay_logo_path' => 'img/logo.png'
     ];
     
     // Merge with defaults
