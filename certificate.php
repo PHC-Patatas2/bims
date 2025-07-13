@@ -350,7 +350,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
 
                 <!-- New Resident Form -->
                 <!-- Purpose -->
-                <div class="form-group">
+                <div class="form-group" id="purposeField">
                     <label class="form-label" for="purpose">
                         <i class="fas fa-info-circle mr-2"></i>Purpose
                     </label>
@@ -565,65 +565,25 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
 
         function loadAdditionalFields(type) {
             const additionalFields = document.getElementById('additionalFields');
+            const purposeField = document.getElementById('purposeField');
             additionalFields.innerHTML = '';
+
+            // Hide purpose field for first_time_job_seeker, residency, and indigency certificates
+            if (type === 'first_time_job_seeker' || type === 'residency' || type === 'indigency') {
+                purposeField.style.display = 'none';
+            } else {
+                purposeField.style.display = 'block';
+            }
 
             switch(type) {
                 case 'first_time_job_seeker':
-                    additionalFields.innerHTML = `
-                        <div class="form-group">
-                            <label class="form-label" for="age">
-                                <i class="fas fa-calendar mr-2"></i>Age
-                            </label>
-                            <input type="number" class="form-input" id="age" name="age" placeholder="Enter age" min="15" max="30">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="educationalAttainment">
-                                <i class="fas fa-graduation-cap mr-2"></i>Educational Attainment
-                            </label>
-                            <select class="form-input form-select" id="educationalAttainment" name="educational_attainment">
-                                <option value="">Select educational attainment</option>
-                                <option value="Elementary Graduate">Elementary Graduate</option>
-                                <option value="High School Graduate">High School Graduate</option>
-                                <option value="Senior High School Graduate">Senior High School Graduate</option>
-                                <option value="College Graduate">College Graduate</option>
-                                <option value="Vocational/Technical Graduate">Vocational/Technical Graduate</option>
-                                <option value="Post Graduate">Post Graduate</option>
-                            </select>
-                        </div>
-                    `;
+                    additionalFields.innerHTML = ``;
                     break;
                 case 'indigency':
-                    additionalFields.innerHTML = `
-                        <div class="form-group">
-                            <label class="form-label" for="familyIncome">
-                                <i class="fas fa-money-bill-wave mr-2"></i>Monthly Family Income
-                            </label>
-                            <select class="form-input form-select" id="familyIncome" name="family_income">
-                                <option value="">Select income range</option>
-                                <option value="Below ₱5,000">Below ₱5,000</option>
-                                <option value="₱5,000 - ₱10,000">₱5,000 - ₱10,000</option>
-                                <option value="₱10,001 - ₱15,000">₱10,001 - ₱15,000</option>
-                                <option value="₱15,001 - ₱20,000">₱15,001 - ₱20,000</option>
-                                <option value="Above ₱20,000">Above ₱20,000</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="familyMembers">
-                                <i class="fas fa-users mr-2"></i>Number of Family Members
-                            </label>
-                            <input type="number" class="form-input" id="familyMembers" name="family_members" placeholder="Enter number of family members" min="1">
-                        </div>
-                    `;
+                    additionalFields.innerHTML = ``;
                     break;
                 case 'residency':
-                    additionalFields.innerHTML = `
-                        <div class="form-group">
-                            <label class="form-label" for="yearsOfResidency">
-                                <i class="fas fa-clock mr-2"></i>Years of Residency
-                            </label>
-                            <input type="number" class="form-input" id="yearsOfResidency" name="years_of_residency" placeholder="Enter number of years as resident" min="0">
-                        </div>
-                    `;
+                    additionalFields.innerHTML = ``;
                     break;
                 case 'barangay_id':
                     additionalFields.innerHTML = `
@@ -655,9 +615,10 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         document.getElementById('certificateForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Validate purpose field (required for all certificates)
+            // Validate purpose field (required for all certificates except first_time_job_seeker, residency, and indigency)
+            const certificateType = document.getElementById('certificateType').value;
             const purpose = document.getElementById('purpose').value.trim();
-            if (!purpose) {
+            if (certificateType !== 'first_time_job_seeker' && certificateType !== 'residency' && certificateType !== 'indigency' && !purpose) {
                 showNotification('Please enter the purpose of the certificate.', 'error');
                 document.getElementById('purpose').focus();
                 return;

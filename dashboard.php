@@ -428,7 +428,7 @@ function stat_card_count($value) {
                     </div>
                     <!-- See more button at the bottom -->
                     <div class="flex justify-center mt-3">
-                        <a href="#" class="inline-flex items-center gap-1 px-3 py-1 rounded text-blue-600 hover:bg-blue-50 hover:underline text-xs font-semibold transition">
+                        <a href="logs.php" class="inline-flex items-center gap-1 px-3 py-1 rounded text-blue-600 hover:bg-blue-50 hover:underline text-xs font-semibold transition">
                             <span>See more</span>
                             <i class="fas fa-arrow-right"></i>
                         </a>

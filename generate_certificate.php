@@ -236,19 +236,16 @@ function generateCertificate($type, $resident_data, $age, $purpose) {
                 generateBarangayClearance($pdf, $resident_data, $age, $purpose, $settings, $certificate_id);
                 break;
             case 'residency':
-                // Header for other certificates
-                addCertificateHeader($pdf, $settings);
+                // Certificate of Residency has its own header format like clearance
                 generateResidencyCertificate($pdf, $resident_data, $age, $purpose, $settings);
                 break;
             case 'indigency':
-                // Header for other certificates
-                addCertificateHeader($pdf, $settings);
+                // Certificate of Indigency has its own header format like clearance
                 generateIndigencyCertificate($pdf, $resident_data, $age, $purpose, $settings);
                 break;
             case 'first_time_job_seeker':
-                // Header for other certificates
-                addCertificateHeader($pdf, $settings);
-                generateFirstTimeJobSeekerCertificate($pdf, $resident_data, $age, $purpose, $settings);
+                // First Time Job Seeker has its own header format like clearance
+                generateFirstTimeJobSeekerCertificate($pdf, $resident_data, $age, $purpose, $settings, $certificate_id);
                 break;
             case 'barangay_id':
                 // Header for other certificates
@@ -259,8 +256,8 @@ function generateCertificate($type, $resident_data, $age, $purpose) {
                 throw new Exception('Invalid certificate type: ' . $type);
         }
         
-        // Footer - only add for non-clearance certificates
-        if ($type !== 'clearance') {
+        // Footer - only add for certificates that don't have their own custom format
+        if ($type !== 'clearance' && $type !== 'first_time_job_seeker' && $type !== 'residency' && $type !== 'indigency') {
             addCertificateFooter($pdf, $settings);
         }
         
@@ -520,76 +517,442 @@ function generateBarangayClearance($pdf, $resident_data, $age, $purpose, $settin
 }
 
 function generateResidencyCertificate($pdf, $resident_data, $age, $purpose, $settings) {
-    $pdf->SetFont('Arial', 'B', 16);
+    // Set 1-inch margins (25.4mm) on left and right
+    $pdf->SetMargins(25.4, 10, 25.4);
+    
+    // Add logo on top left - positioned to balance with header text
+    $logoPath = $settings['barangay_logo_path'] ?? 'img/logo.png';
+    if (file_exists($logoPath)) {
+        try {
+            $pdf->Image($logoPath, 25.4, 11, 25);
+        } catch (Exception $e) {
+            // Log error but continue without logo
+            error_log("Logo loading error: " . $e->getMessage());
+        }
+    } else {
+        // Log missing logo but continue
+        error_log("Logo file not found: " . $logoPath);
+    }
+    
+    // Add header with formal address - positioned to align with logo
+    $pdf->SetY(11); // Start at same Y position as logo
+    $pdf->SetFont('Arial', 'B', 13);
+    $pdf->Cell(0, 6, 'Republic of the Philippines', 0, 1, 'C');
+    $pdf->Cell(0, 6, 'Province of Bulacan', 0, 1, 'C');
+    $pdf->Cell(0, 6, 'Municipality of Calumpit', 0, 1, 'C');
+    $pdf->Cell(0, 6, 'Barangay Sucol', 0, 1, 'C');
+    $pdf->Ln(10);
+    
+    // Dividing line - adjusted for 1-inch margins
+    $pdf->Line(25.4, $pdf->GetY(), 210 - 25.4, $pdf->GetY());
+    $pdf->Ln(8);
+    
+    // Main title
+    $pdf->SetFont('Arial', 'B', 18);
     $pdf->Cell(0, 10, 'CERTIFICATE OF RESIDENCY', 0, 1, 'C');
     $pdf->Ln(10);
     
+    // TO WHOM IT MAY CONCERN
     $pdf->SetFont('Arial', '', 12);
-    $pdf->Cell(0, 8, 'TO WHOM IT MAY CONCERN:', 0, 1, 'L');
+    $pdf->Cell(0, 8, 'TO WHOM IT MAY CONCERN,', 0, 1, 'L');
     $pdf->Ln(5);
     
+    // Main certificate content with indentation and justified text
     $name = trim($resident_data['first_name'] . ' ' . ($resident_data['middle_name'] ?? '') . ' ' . $resident_data['last_name'] . ' ' . ($resident_data['suffix'] ?? ''));
     
-    $text = "This is to certify that " . strtoupper($name) . ", " . $age . " years old, " . 
-            $resident_data['civil_status'] . ", " . $resident_data['gender'] . ", is a bona fide resident of " .
-            ($resident_data['purok_name'] ?? 'this barangay') . ", " . ($settings['barangay_name'] ?? 'Barangay') . 
-            ", " . ($settings['municipality'] ?? 'Municipality') . ", " . ($settings['province'] ?? 'Province') . 
-            " and has been residing in this place for a considerable length of time.";
+    // First paragraph - with indent and justified text
+    $first_paragraph = "          This is to certify that " . strtoupper($name) . ", " . $age . " years old, " . $resident_data['civil_status'] . ", Filipino citizen, is a PERMANENT RESIDENT of Barangay Sucol, Calumpit, Bulacan.";
     
-    $pdf->MultiCell(0, 6, $text, 0, 'J');
+    $pdf->MultiCell(0, 6, $first_paragraph, 0, 'J');
     $pdf->Ln(5);
     
-    if ($purpose && $purpose !== 'Certificate request') {
-        $pdf->MultiCell(0, 6, "This certification is issued for " . $purpose . ".", 0, 'J');
+    // Second paragraph - Residency statement with indent and justified text
+    $second_paragraph = "         Based on records of this office, he has been residing at Barangay Sucol, Calumpit, Bulacan.";
+    
+    $pdf->MultiCell(0, 6, $second_paragraph, 0, 'J');
+    $pdf->Ln(5);
+    
+    // Third paragraph - Purpose statement with indent and justified text
+    $third_paragraph = "          This CERTIFICATION is being issued upon the request of the above-named person for whatever legal purpose it may serve.";
+    
+    $pdf->MultiCell(0, 6, $third_paragraph, 0, 'J');
+    $pdf->Ln(5);
+    
+    // Fourth paragraph - Issued statement with indent and justified text
+    $fourth_paragraph = "          Issued this " . date('jS') . " day of " . date('F Y') . " at Barangay Sucol, Calumpit, Bulacan.";
+    
+    $pdf->MultiCell(0, 6, $fourth_paragraph, 0, 'J');
+    
+    // Move to bottom for signature section
+    $pdf->SetY(200); // Position higher up on page
+    
+    // Punong Barangay signature section (bottom right) - adjusted for 1-inch margins
+    $signature_x = 210 - 25.4 - 75; // Right margin - signature width
+    $pdf->SetXY($signature_x, $pdf->GetY() + 5);
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->Cell(75, 6, 'Issued this ' . date('jS') . ' day of ' . date('F Y'), 0, 1, 'C');
+    $pdf->Ln(15);
+    
+    // Get Punong Barangay name
+    global $conn;
+    $punong_barangay_query = "SELECT 
+        CONCAT(first_name, 
+               CASE WHEN middle_initial IS NOT NULL AND middle_initial != '' 
+                    THEN CONCAT(' ', middle_initial, ' ') 
+                    ELSE ' ' 
+               END, 
+               last_name,
+               CASE WHEN suffix IS NOT NULL AND suffix != '' 
+                    THEN CONCAT(' ', suffix) 
+                    ELSE '' 
+               END) as name 
+        FROM barangay_officials 
+        WHERE position = 'Punong Barangay' AND status = 'Active' 
+        LIMIT 1";
+    $punong_result = $conn->query($punong_barangay_query);
+    $punong_name = "PUNONG BARANGAY";
+    
+    if ($punong_result && $punong_result->num_rows > 0) {
+        $punong_data = $punong_result->fetch_assoc();
+        $punong_name = strtoupper($punong_data['name']);
     }
+    
+    // Get Barangay Secretary name
+    $secretary_query = "SELECT 
+        CONCAT(first_name, 
+               CASE WHEN middle_initial IS NOT NULL AND middle_initial != '' 
+                    THEN CONCAT(' ', middle_initial, ' ') 
+                    ELSE ' ' 
+               END, 
+               last_name,
+               CASE WHEN suffix IS NOT NULL AND suffix != '' 
+                    THEN CONCAT(' ', suffix) 
+                    ELSE '' 
+               END) as name 
+        FROM barangay_officials 
+        WHERE position = 'Barangay Secretary' AND status = 'Active' 
+        LIMIT 1";
+    $secretary_result = $conn->query($secretary_query);
+    $secretary_name = "BARANGAY SECRETARY";
+    
+    if ($secretary_result && $secretary_result->num_rows > 0) {
+        $secretary_data = $secretary_result->fetch_assoc();
+        $secretary_name = strtoupper($secretary_data['name']);
+    }
+    
+    // Barangay Secretary signature section (bottom left)
+    $secretary_x = 25.4; // Left margin
+    $current_y = $pdf->GetY(); // Get current Y position to align both signatures
+    $pdf->SetXY($secretary_x, $current_y);
+    $pdf->SetFont('Arial', 'B', 11);
+    $pdf->Cell(75, 6, $secretary_name, 0, 1, 'C');
+    $pdf->SetXY($secretary_x, $pdf->GetY());
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->Cell(75, 6, 'Barangay Secretary', 0, 1, 'C');
+    
+    // Punong Barangay signature section (bottom right) - same Y position as secretary
+    $pdf->SetXY($signature_x, $current_y);
+    $pdf->SetFont('Arial', 'B', 11);
+    $pdf->Cell(75, 6, $punong_name, 0, 1, 'C');
+    $pdf->SetXY($signature_x, $pdf->GetY());
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->Cell(75, 6, 'Punong Barangay', 0, 1, 'C');
+    
+    // Add footer message at the bottom
+    $pdf->SetY(270); // Position closer to signatures
+    $pdf->SetFont('Arial', 'I', 8);
+    $pdf->Cell(0, 4, 'Not valid without dry seal and signature.', 0, 1, 'C');
 }
 
 function generateIndigencyCertificate($pdf, $resident_data, $age, $purpose, $settings) {
-    $pdf->SetFont('Arial', 'B', 16);
+    // Set 1-inch margins (25.4mm) on left and right
+    $pdf->SetMargins(25.4, 10, 25.4);
+    
+    // Add logo on top left - positioned to balance with header text
+    $logoPath = $settings['barangay_logo_path'] ?? 'img/logo.png';
+    if (file_exists($logoPath)) {
+        try {
+            $pdf->Image($logoPath, 25.4, 11, 25);
+        } catch (Exception $e) {
+            // Log error but continue without logo
+            error_log("Logo loading error: " . $e->getMessage());
+        }
+    } else {
+        // Log missing logo but continue
+        error_log("Logo file not found: " . $logoPath);
+    }
+    
+    // Add header with formal address - positioned to align with logo
+    $pdf->SetY(11); // Start at same Y position as logo
+    $pdf->SetFont('Arial', 'B', 13);
+    $pdf->Cell(0, 6, 'Republic of the Philippines', 0, 1, 'C');
+    $pdf->Cell(0, 6, 'Province of Bulacan', 0, 1, 'C');
+    $pdf->Cell(0, 6, 'Municipality of Calumpit', 0, 1, 'C');
+    $pdf->Cell(0, 6, 'Barangay Sucol', 0, 1, 'C');
+    $pdf->Ln(10);
+    
+    // Dividing line - adjusted for 1-inch margins
+    $pdf->Line(25.4, $pdf->GetY(), 210 - 25.4, $pdf->GetY());
+    $pdf->Ln(8);
+    
+    // Main title
+    $pdf->SetFont('Arial', 'B', 18);
     $pdf->Cell(0, 10, 'CERTIFICATE OF INDIGENCY', 0, 1, 'C');
     $pdf->Ln(10);
     
+    // TO WHOM IT MAY CONCERN
     $pdf->SetFont('Arial', '', 12);
-    $pdf->Cell(0, 8, 'TO WHOM IT MAY CONCERN:', 0, 1, 'L');
+    $pdf->Cell(0, 8, 'TO WHOM IT MAY CONCERN,', 0, 1, 'L');
     $pdf->Ln(5);
     
+    // Main certificate content with indentation and justified text
     $name = trim($resident_data['first_name'] . ' ' . ($resident_data['middle_name'] ?? '') . ' ' . $resident_data['last_name'] . ' ' . ($resident_data['suffix'] ?? ''));
     
-    $text = "This is to certify that " . strtoupper($name) . ", " . $age . " years old, " . 
-            $resident_data['civil_status'] . ", " . $resident_data['gender'] . ", is a bonafide resident of " .
-            ($resident_data['purok_name'] ?? 'this barangay') . ", " . ($settings['barangay_name'] ?? 'Barangay') . 
-            ", " . ($settings['municipality'] ?? 'Municipality') . ", " . ($settings['province'] ?? 'Province') . 
-            " and that he/she belongs to an indigent family in this locality.";
+    // First paragraph - with indent and justified text
+    $first_paragraph = "          This is to certify that " . strtoupper($name) . ", of legal age, " . $resident_data['civil_status'] . ", Filipino citizen, is a resident of this Barangay and is one of the INDIGENTS in our barangay.";
     
-    $pdf->MultiCell(0, 6, $text, 0, 'J');
+    $pdf->MultiCell(0, 6, $first_paragraph, 0, 'J');
     $pdf->Ln(5);
     
-    if ($purpose && $purpose !== 'Certificate request') {
-        $pdf->MultiCell(0, 6, "This certification is issued for " . $purpose . ".", 0, 'J');
+    // Second paragraph - Purpose statement with indent and justified text
+    $second_paragraph = "         This certification is being issued upon the request of the above-named person for whatever legal purpose it may serve his/her best.";
+    
+    $pdf->MultiCell(0, 6, $second_paragraph, 0, 'J');
+    $pdf->Ln(5);
+    
+    // Third paragraph - Issued statement with indent and justified text
+    $third_paragraph = "          Issued this " . date('jS') . " day of " . date('F Y') . " at Barangay Sucol, Calumpit, Bulacan.";
+    
+    $pdf->MultiCell(0, 6, $third_paragraph, 0, 'J');
+    
+    // Move to bottom for signature section
+    $pdf->SetY(200); // Position higher up on page
+    
+    // Punong Barangay signature section (bottom right) - adjusted for 1-inch margins
+    $signature_x = 210 - 25.4 - 75; // Right margin - signature width
+    $pdf->SetXY($signature_x, $pdf->GetY() + 5);
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->Cell(75, 6, 'Issued this ' . date('jS') . ' day of ' . date('F Y'), 0, 1, 'C');
+    $pdf->Ln(15);
+    
+    // Get Punong Barangay name
+    global $conn;
+    $punong_barangay_query = "SELECT 
+        CONCAT(first_name, 
+               CASE WHEN middle_initial IS NOT NULL AND middle_initial != '' 
+                    THEN CONCAT(' ', middle_initial, ' ') 
+                    ELSE ' ' 
+               END, 
+               last_name,
+               CASE WHEN suffix IS NOT NULL AND suffix != '' 
+                    THEN CONCAT(' ', suffix) 
+                    ELSE '' 
+               END) as name 
+        FROM barangay_officials 
+        WHERE position = 'Punong Barangay' AND status = 'Active' 
+        LIMIT 1";
+    $punong_result = $conn->query($punong_barangay_query);
+    $punong_name = "PUNONG BARANGAY";
+    
+    if ($punong_result && $punong_result->num_rows > 0) {
+        $punong_data = $punong_result->fetch_assoc();
+        $punong_name = strtoupper($punong_data['name']);
     }
+    
+    // Get Barangay Secretary name
+    $secretary_query = "SELECT 
+        CONCAT(first_name, 
+               CASE WHEN middle_initial IS NOT NULL AND middle_initial != '' 
+                    THEN CONCAT(' ', middle_initial, ' ') 
+                    ELSE ' ' 
+               END, 
+               last_name,
+               CASE WHEN suffix IS NOT NULL AND suffix != '' 
+                    THEN CONCAT(' ', suffix) 
+                    ELSE '' 
+               END) as name 
+        FROM barangay_officials 
+        WHERE position = 'Barangay Secretary' AND status = 'Active' 
+        LIMIT 1";
+    $secretary_result = $conn->query($secretary_query);
+    $secretary_name = "BARANGAY SECRETARY";
+    
+    if ($secretary_result && $secretary_result->num_rows > 0) {
+        $secretary_data = $secretary_result->fetch_assoc();
+        $secretary_name = strtoupper($secretary_data['name']);
+    }
+    
+    // Barangay Secretary signature section (bottom left)
+    $secretary_x = 25.4; // Left margin
+    $current_y = $pdf->GetY(); // Get current Y position to align both signatures
+    $pdf->SetXY($secretary_x, $current_y);
+    $pdf->SetFont('Arial', 'B', 11);
+    $pdf->Cell(75, 6, $secretary_name, 0, 1, 'C');
+    $pdf->SetXY($secretary_x, $pdf->GetY());
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->Cell(75, 6, 'Barangay Secretary', 0, 1, 'C');
+    
+    // Punong Barangay signature section (bottom right) - same Y position as secretary
+    $pdf->SetXY($signature_x, $current_y);
+    $pdf->SetFont('Arial', 'B', 11);
+    $pdf->Cell(75, 6, $punong_name, 0, 1, 'C');
+    $pdf->SetXY($signature_x, $pdf->GetY());
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->Cell(75, 6, 'Punong Barangay', 0, 1, 'C');
+    
+    // Add footer message at the bottom
+    $pdf->SetY(270); // Position closer to signatures
+    $pdf->SetFont('Arial', 'I', 8);
+    $pdf->Cell(0, 4, 'Not valid without dry seal and signature.', 0, 1, 'C');
 }
 
-function generateFirstTimeJobSeekerCertificate($pdf, $resident_data, $age, $purpose, $settings) {
-    $pdf->SetFont('Arial', 'B', 16);
+function generateFirstTimeJobSeekerCertificate($pdf, $resident_data, $age, $purpose, $settings, $certificate_id) {
+    // Set 1-inch margins (25.4mm) on left and right
+    $pdf->SetMargins(25.4, 10, 25.4);
+    
+    // Add logo on top left - positioned to balance with header text
+    $logoPath = $settings['barangay_logo_path'] ?? 'img/logo.png';
+    if (file_exists($logoPath)) {
+        try {
+            $pdf->Image($logoPath, 25.4, 11, 25);
+        } catch (Exception $e) {
+            // Log error but continue without logo
+            error_log("Logo loading error: " . $e->getMessage());
+        }
+    } else {
+        // Log missing logo but continue
+        error_log("Logo file not found: " . $logoPath);
+    }
+    
+    // Add header with formal address - positioned to align with logo
+    $pdf->SetY(11); // Start at same Y position as logo
+    $pdf->SetFont('Arial', 'B', 13);
+    $pdf->Cell(0, 6, 'Republic of the Philippines', 0, 1, 'C');
+    $pdf->Cell(0, 6, 'Province of Bulacan', 0, 1, 'C');
+    $pdf->Cell(0, 6, 'Municipality of Calumpit', 0, 1, 'C');
+    $pdf->Cell(0, 6, 'Barangay Sucol', 0, 1, 'C');
+    $pdf->Ln(10);
+    
+    // Dividing line - adjusted for 1-inch margins
+    $pdf->Line(25.4, $pdf->GetY(), 210 - 25.4, $pdf->GetY());
+    $pdf->Ln(8);
+    
+    // Main title
+    $pdf->SetFont('Arial', 'B', 18);
     $pdf->Cell(0, 10, 'FIRST TIME JOB SEEKER CERTIFICATE', 0, 1, 'C');
     $pdf->Ln(10);
     
+    // TO WHOM IT MAY CONCERN
     $pdf->SetFont('Arial', '', 12);
-    $pdf->Cell(0, 8, 'TO WHOM IT MAY CONCERN:', 0, 1, 'L');
+    $pdf->Cell(0, 8, 'TO WHOM IT MAY CONCERN,', 0, 1, 'L');
     $pdf->Ln(5);
     
+    // Main certificate content with indentation and justified text
     $name = trim($resident_data['first_name'] . ' ' . ($resident_data['middle_name'] ?? '') . ' ' . $resident_data['last_name'] . ' ' . ($resident_data['suffix'] ?? ''));
+    $gender_prefix = ($resident_data['gender'] === 'Female') ? 'Ms.' : 'Mr.';
     
-    $text = "This is to certify that " . strtoupper($name) . ", " . $age . " years old, " . 
-            $resident_data['civil_status'] . ", " . $resident_data['gender'] . ", is a bonafide resident of " .
-            ($resident_data['purok_name'] ?? 'this barangay') . ", " . ($settings['barangay_name'] ?? 'Barangay') . 
-            ", " . ($settings['municipality'] ?? 'Municipality') . ", " . ($settings['province'] ?? 'Province') . 
-            " and that he/she is actively looking for work/employment and has not been previously employed.";
+    // First paragraph - with indent and justified text
+    $first_paragraph = "          This is to certify that " . $gender_prefix . " " . strtoupper($name) . ", a resident of Barangay Sucol, Calumpit, Bulacan, for " . $age . " years, is a qualified availee of RA 11261 or the First Time Job Seekers Act of 2019.";
     
-    $pdf->MultiCell(0, 6, $text, 0, 'J');
+    $pdf->MultiCell(0, 6, $first_paragraph, 0, 'J');
     $pdf->Ln(5);
     
-    $pdf->MultiCell(0, 6, "This certification is being issued to support his/her application for employment and to avail of the benefits provided under R.A. 11261 or the First Time Jobseekers Assistance Act of 2019.", 0, 'J');
+    // Second paragraph - Oath statement with indent and justified text
+    $second_paragraph = "         I further certify that the holder/bearer was informed of his/her rights, including the duties and responsibilities accorded by RA 11261 through the Oath of Undertaking he/she has signed and executed in the presence of our Barangay Official/s.";
+    
+    $pdf->MultiCell(0, 6, $second_paragraph, 0, 'J');
+    $pdf->Ln(5);
+    
+    // Third paragraph - Signing statement with indent and justified text
+    $third_paragraph = "          Signed this " . date('jS') . " day of " . date('F Y') . " in Barangay Sucol, Calumpit, Bulacan.";
+    
+    $pdf->MultiCell(0, 6, $third_paragraph, 0, 'J');
+    $pdf->Ln(5);
+    
+    // Fourth paragraph - Validity statement with indent and justified text
+    $fourth_paragraph = "          This certification is valid only one (1) year from the date of issuance.";
+    
+    $pdf->MultiCell(0, 6, $fourth_paragraph, 0, 'J');
+    
+    // Move to bottom for signature section
+    $pdf->SetY(200); // Position higher up on page
+    
+    // Punong Barangay signature section (bottom right) - adjusted for 1-inch margins
+    $signature_x = 210 - 25.4 - 75; // Right margin - signature width
+    $pdf->SetXY($signature_x, $pdf->GetY() + 5);
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->Cell(75, 6, 'Issued this ' . date('jS') . ' day of ' . date('F Y'), 0, 1, 'C');
+    $pdf->Ln(15);
+    
+    // Get Punong Barangay name
+    global $conn;
+    $punong_barangay_query = "SELECT 
+        CONCAT(first_name, 
+               CASE WHEN middle_initial IS NOT NULL AND middle_initial != '' 
+                    THEN CONCAT(' ', middle_initial, ' ') 
+                    ELSE ' ' 
+               END, 
+               last_name,
+               CASE WHEN suffix IS NOT NULL AND suffix != '' 
+                    THEN CONCAT(' ', suffix) 
+                    ELSE '' 
+               END) as name 
+        FROM barangay_officials 
+        WHERE position = 'Punong Barangay' AND status = 'Active' 
+        LIMIT 1";
+    $punong_result = $conn->query($punong_barangay_query);
+    $punong_name = "PUNONG BARANGAY";
+    
+    if ($punong_result && $punong_result->num_rows > 0) {
+        $punong_data = $punong_result->fetch_assoc();
+        $punong_name = strtoupper($punong_data['name']);
+    }
+    
+    // Get Barangay Secretary name
+    $secretary_query = "SELECT 
+        CONCAT(first_name, 
+               CASE WHEN middle_initial IS NOT NULL AND middle_initial != '' 
+                    THEN CONCAT(' ', middle_initial, ' ') 
+                    ELSE ' ' 
+               END, 
+               last_name,
+               CASE WHEN suffix IS NOT NULL AND suffix != '' 
+                    THEN CONCAT(' ', suffix) 
+                    ELSE '' 
+               END) as name 
+        FROM barangay_officials 
+        WHERE position = 'Barangay Secretary' AND status = 'Active' 
+        LIMIT 1";
+    $secretary_result = $conn->query($secretary_query);
+    $secretary_name = "BARANGAY SECRETARY";
+    
+    if ($secretary_result && $secretary_result->num_rows > 0) {
+        $secretary_data = $secretary_result->fetch_assoc();
+        $secretary_name = strtoupper($secretary_data['name']);
+    }
+    
+    // Barangay Secretary signature section (bottom left)
+    $secretary_x = 25.4; // Left margin
+    $current_y = $pdf->GetY(); // Get current Y position to align both signatures
+    $pdf->SetXY($secretary_x, $current_y);
+    $pdf->SetFont('Arial', 'B', 11);
+    $pdf->Cell(75, 6, $secretary_name, 0, 1, 'C');
+    $pdf->SetXY($secretary_x, $pdf->GetY());
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->Cell(75, 6, 'Barangay Secretary', 0, 1, 'C');
+    
+    // Punong Barangay signature section (bottom right) - same Y position as secretary
+    $pdf->SetXY($signature_x, $current_y);
+    $pdf->SetFont('Arial', 'B', 11);
+    $pdf->Cell(75, 6, $punong_name, 0, 1, 'C');
+    $pdf->SetXY($signature_x, $pdf->GetY());
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->Cell(75, 6, 'Punong Barangay', 0, 1, 'C');
+    
+    // Add footer message at the bottom
+    $pdf->SetY(270); // Position closer to signatures
+    $pdf->SetFont('Arial', 'I', 8);
+    $pdf->Cell(0, 4, 'Not valid without dry seal and signature.', 0, 1, 'C');
 }
 
 function generateBarangayID($pdf, $resident_data, $age, $settings) {
