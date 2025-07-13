@@ -15,6 +15,53 @@ if ($conn->connect_error) {
 }
 $user_id = $_SESSION['user_id'];
 
+// AJAX endpoint for fetching recent certificates
+if (isset($_GET['fetch_recent_certificates'])) {
+    header('Content-Type: application/json');
+    
+    $sql = "SELECT 
+                cr.id,
+                cr.certificate_type,
+                cr.purpose,
+                cr.requested_at,
+                cr.status,
+                cr.certificate_number,
+                CONCAT(i.first_name, ' ', 
+                       COALESCE(i.middle_name, ''), ' ', 
+                       i.last_name, ' ', 
+                       COALESCE(i.suffix, '')) as resident_name
+            FROM certificate_requests cr 
+            LEFT JOIN individuals i ON cr.individual_id = i.id 
+            ORDER BY cr.requested_at DESC 
+            LIMIT 5";
+    
+    $result = $conn->query($sql);
+    $certificates = [];
+    
+    if ($result) {
+        while ($row = $result->fetch_assoc()) {
+            // Format certificate type for display
+            $certificate_type_formatted = ucwords(str_replace('_', ' ', $row['certificate_type']));
+            
+            // Generate certificate number if not present
+            $cert_number = $row['certificate_number'] ?: 'CERT-' . strtoupper($row['certificate_type']) . '-' . date('Y') . '-' . str_pad($row['id'], 4, '0', STR_PAD_LEFT);
+            
+            $certificates[] = [
+                'id' => $row['id'],
+                'certificate_number' => $cert_number,
+                'resident_name' => trim($row['resident_name']),
+                'certificate_type' => $certificate_type_formatted,
+                'purpose' => $row['purpose'] ?: 'N/A',
+                'requested_at' => $row['requested_at'],
+                'status' => $row['status']
+            ];
+        }
+    }
+    
+    echo json_encode($certificates);
+    exit();
+}
+
 $user_first_name = '';
 $user_last_name = '';
 $stmt = $conn->prepare('SELECT first_name, last_name FROM users WHERE id = ?');
@@ -260,7 +307,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     </button>
                 </div>
                 
-                <!-- Recent certificates table placeholder -->
+                <!-- Recent certificates table -->
                 <div class="overflow-x-auto">
                     <table class="w-full">
                         <thead>
@@ -268,9 +315,9 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                                 <th class="text-left py-3 px-4 font-semibold text-gray-700">Certificate No.</th>
                                 <th class="text-left py-3 px-4 font-semibold text-gray-700">Resident Name</th>
                                 <th class="text-left py-3 px-4 font-semibold text-gray-700">Certificate Type</th>
-                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Date Issued</th>
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Date Requested</th>
                                 <th class="text-left py-3 px-4 font-semibold text-gray-700">Purpose</th>
-                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
                             </tr>
                         </thead>
                         <tbody id="recentCertificatesTable">
@@ -348,7 +395,6 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     </div>
                 </div>
 
-                <!-- New Resident Form -->
                 <!-- Purpose -->
                 <div class="form-group" id="purposeField">
                     <label class="form-label" for="purpose">
@@ -387,6 +433,9 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 // If coming from individuals page, show certificate selection
                 showCertificateSelectionForResident(preSelectedResidentId);
             }
+            
+            // Load recent certificates
+            loadRecentCertificates();
         });
 
         // Certificate Modal Functions
@@ -728,6 +777,112 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     }, 300);
                 }
             }, 5000);
+        }
+
+        // Load recent certificates for the table
+        function loadRecentCertificates() {
+            fetch('certificate.php?fetch_recent_certificates=1')
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('recentCertificatesTable');
+                    tableBody.innerHTML = ''; // Clear existing content
+                    
+                    if (data.length === 0) {
+                        tableBody.innerHTML = `
+                            <tr>
+                                <td colspan="6" class="text-center py-8 text-gray-500">
+                                    <i class="fas fa-inbox text-3xl mb-2 block"></i>
+                                    No recent certificates found
+                                </td>
+                            </tr>
+                        `;
+                    } else {
+                        data.forEach(cert => {
+                            const row = document.createElement('tr');
+                            row.className = 'hover:bg-gray-50 transition-colors';
+                            
+                            // Format date nicely
+                            const requestDate = new Date(cert.requested_at);
+                            const formattedDate = requestDate.toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                            });
+                            
+                            // Format time
+                            const formattedTime = requestDate.toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                            
+                            // Status badge styling
+                            let statusBadge = '';
+                            switch(cert.status) {
+                                case 'Pending':
+                                    statusBadge = '<span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Pending</span>';
+                                    break;
+                                case 'Approved':
+                                    statusBadge = '<span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">Approved</span>';
+                                    break;
+                                case 'Issued':
+                                    statusBadge = '<span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Issued</span>';
+                                    break;
+                                case 'Rejected':
+                                    statusBadge = '<span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">Rejected</span>';
+                                    break;
+                                default:
+                                    statusBadge = '<span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">' + cert.status + '</span>';
+                            }
+                            
+                            row.innerHTML = `
+                                <td class="py-3 px-4 border-b">
+                                    <div class="font-mono text-sm text-blue-600">
+                                        ${cert.certificate_number}
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4 border-b">
+                                    <div class="font-medium text-gray-900">
+                                        ${cert.resident_name}
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4 border-b">
+                                    <div class="text-sm text-gray-700">
+                                        ${cert.certificate_type}
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4 border-b">
+                                    <div class="text-sm text-gray-700">
+                                        ${formattedDate}
+                                    </div>
+                                    <div class="text-xs text-gray-500">
+                                        ${formattedTime}
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4 border-b">
+                                    <div class="text-sm text-gray-700">
+                                        ${cert.purpose}
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4 border-b">
+                                    ${statusBadge}
+                                </td>
+                            `;
+                            tableBody.appendChild(row);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching recent certificates:', error);
+                    const tableBody = document.getElementById('recentCertificatesTable');
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center py-8 text-red-500">
+                                <i class="fas fa-exclamation-triangle text-3xl mb-2 block"></i>
+                                Error loading recent certificates
+                            </td>
+                        </tr>
+                    `;
+                });
         }
     </script>
 </body>

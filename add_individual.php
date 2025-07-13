@@ -49,6 +49,7 @@ if (!empty($birthdate)) {
 
 $purok_id = intval($_POST['purok_id']);
 $email = isset($_POST['email']) && !empty(trim($_POST['email'])) ? trim($_POST['email']) : null;
+$contact_no = isset($_POST['contact_no']) && !empty(trim($_POST['contact_no'])) ? trim($_POST['contact_no']) : null;
 // Check if purok_id exists
 $purok_check = $conn->prepare('SELECT id FROM purok WHERE id = ? LIMIT 1');
 $purok_check->bind_param('i', $purok_id);
@@ -62,15 +63,15 @@ if ($purok_check->num_rows === 0) {
 }
 $purok_check->close();
 // Insert
-$stmt = $conn->prepare("INSERT INTO individuals (first_name, middle_name, last_name, suffix, gender, birthdate, civil_status, blood_type, religion, is_pwd, is_voter, is_4ps, is_pregnant, is_solo_parent, is_senior_citizen, purok_id, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+$stmt = $conn->prepare("INSERT INTO individuals (first_name, middle_name, last_name, suffix, gender, birthdate, civil_status, blood_type, religion, is_pwd, is_voter, is_4ps, is_pregnant, is_solo_parent, is_senior_citizen, purok_id, email, contact_no) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 if (!$stmt) {
     echo json_encode(['success' => false, 'error' => 'Failed to prepare statement: ' . $conn->error]);
     $conn->close();
     exit();
 }
-// 9 strings (first_name through religion), 6 ints (status fields), 1 int (purok_id), 1 string (email) = 17 parameters total
+// 9 strings (first_name through religion), 7 ints (status fields + purok_id), 2 strings (email, contact_no) = 18 parameters total
 $stmt->bind_param(
-    'sssssssssiiiiiiis',
+    'sssssssssiiiiiiiss',
     $first_name,
     $middle_name,
     $last_name,
@@ -87,7 +88,8 @@ $stmt->bind_param(
     $is_solo_parent,
     $is_senior_citizen,
     $purok_id,
-    $email
+    $email,
+    $contact_no
 );
 if ($stmt->execute()) {
     $resident_id = $conn->insert_id;

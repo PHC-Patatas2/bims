@@ -487,6 +487,10 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
+                                <label class="form-label">Contact Number</label>
+                                <input type="text" name="contact_no" class="form-input" placeholder="e.g., 09123456789">
+                            </div>
+                            <div>
                                 <label class="form-label">Email Address</label>
                                 <input type="email" name="email" class="form-input" placeholder="e.g., juan.delacruz@email.com">
                             </div>
@@ -859,8 +863,9 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         
         <!-- Libraries for Tabulator export functionality -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+        <!-- Using FPDF for PDF export instead of jsPDF -->
+        <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script> -->
         
         <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1064,7 +1069,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     },
                     {
                         title: "Purok", 
-                        field: "purok", 
+                        field: "purok_name", 
                         headerSort: true, 
                         hozAlign: "center", 
                         vertAlign: "middle", 
@@ -1270,7 +1275,9 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                             {field: "suffix", type: "like", value: val},
                             {field: "gender", type: "like", value: val},
                             {field: "civil_status", type: "like", value: val},
-                            {field: "purok", type: "like", value: val}
+                            {field: "purok_name", type: "like", value: val},
+                            {field: "contact_no", type: "like", value: val},
+                            {field: "email", type: "like", value: val}
                         ];
                         
                         // Use OR filter for search across multiple fields
@@ -1782,7 +1789,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             });
             
             document.getElementById('exportPdf').addEventListener('click', function() {
-                exportData('pdf');
+                exportDataFpdf();
             });
             
             function exportData(format) {
@@ -1801,7 +1808,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     case 'csv':
                         options.delimiter = ',';
                         // Explicitly define columns for CSV export
-                        options.columns = ["first_name", "middle_name", "last_name", "suffix", "gender", "birthdate", "civil_status", "purok"];
+                        options.columns = ["first_name", "middle_name", "last_name", "suffix", "gender", "birthdate", "civil_status", "purok_name"];
                         options.columnHeaders = {
                             "first_name": "First Name",
                             "middle_name": "Middle Name",
@@ -1810,7 +1817,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                             "gender": "Gender",
                             "birthdate": "Birthdate",
                             "civil_status": "Civil Status",
-                            "purok": "Purok"
+                            "purok_name": "Purok"
                         };
                         // Clean data for CSV export
                         options.mutateData = function(data) {
@@ -1825,7 +1832,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                     case 'xlsx':
                         options.sheetName = "Residents Data";
                         // Explicitly define columns for Excel export
-                        options.columns = ["first_name", "middle_name", "last_name", "suffix", "gender", "birthdate", "civil_status", "purok"];
+                        options.columns = ["first_name", "middle_name", "last_name", "suffix", "gender", "birthdate", "civil_status", "purok_name"];
                         options.columnHeaders = {
                             "first_name": "First Name",
                             "middle_name": "Middle Name",
@@ -1834,7 +1841,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                             "gender": "Gender",
                             "birthdate": "Birthdate",
                             "civil_status": "Civil Status",
-                            "purok": "Purok"
+                            "purok_name": "Purok"
                         };
                         // Clean data for Excel export
                         options.mutateData = function(data) {
@@ -1855,94 +1862,72 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                         };
                         window.table.download("xlsx", `${filename}.xlsx`, options);
                         break;
-                        
-                    case 'pdf':
-                        options.orientation = "landscape";
-                        options.title = "Residents Information Report";
-                        // Explicitly define columns to include in PDF export
-                        options.columns = ["first_name", "middle_name", "last_name", "suffix", "gender", "birthdate", "civil_status", "purok"];
-                        options.columnHeaders = {
-                            "first_name": "First Name",
-                            "middle_name": "Middle Name",
-                            "last_name": "Last Name",
-                            "suffix": "Suffix", 
-                            "gender": "Gender",
-                            "birthdate": "Birthdate",
-                            "civil_status": "Civil Status",
-                            "purok": "Purok"
-                        };
-                        options.autoTable = {
-                            styles: {
-                                fontSize: 7,
-                                cellPadding: 1.5,
-                                overflow: 'linebreak',
-                                halign: 'center'
-                            },
-                            headStyles: {
-                                fillColor: [59, 130, 246],
-                                textColor: 255,
-                                fontSize: 8,
-                                fontStyle: 'bold',
-                                halign: 'center'
-                            },
-                            columnStyles: {
-                                0: {cellWidth: 40},  // First Name
-                                1: {cellWidth: 35},  // Middle Name
-                                2: {cellWidth: 40},  // Last Name
-                                3: {cellWidth: 20},  // Suffix
-                                4: {cellWidth: 25},  // Gender
-                                5: {cellWidth: 40},  // Birthdate
-                                6: {cellWidth: 35},  // Civil Status
-                                7: {cellWidth: 25},  // Purok
-                            },
-                            margin: {top: 35, left: 8, right: 8},
-                            pageBreak: 'auto'
-                        };
-                        options.documentProcessing = function(doc) {
-                            // Add header to PDF
-                            doc.setFontSize(16);
-                            doc.text("<?php echo htmlspecialchars($system_title); ?>", 14, 22);
-                            doc.setFontSize(12);
-                            doc.text("Residents Information Report", 14, 28);
-                            doc.setFontSize(10);
-                            doc.text(`Generated on: ${new Date().toLocaleDateString()} by <?php echo htmlspecialchars($user_full_name); ?>`, 14, 34);
-                            
-                            // Add footer with page numbers
-                            const pageCount = doc.internal.getNumberOfPages();
-                            for (let i = 1; i <= pageCount; i++) {
-                                doc.setPage(i);
-                                doc.setFontSize(8);
-                                doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width - 30, doc.internal.pageSize.height - 10);
-                            }
-                            
-                            return doc;
-                        };
-                        // Format data for better PDF display
-                        options.mutateData = function(data) {
-                            return data.map(row => {
-                                // Clean purok name for PDF
-                                if (row.purok) {
-                                    row.purok = row.purok.replace(/\s*\([^)]*\)/g, '').trim();
-                                }
-                                // Format birthdate for better display
-                                if (row.birthdate) {
-                                    try {
-                                        const date = new Date(row.birthdate);
-                                        row.birthdate = date.toLocaleDateString('en-US', { 
-                                            year: 'numeric', 
-                                            month: 'short', 
-                                            day: 'numeric' 
-                                        });
-                                    } catch (e) {
-                                        // Keep original if formatting fails
-                                    }
-                                }
-                                return row;
-                            });
-                        };
-                        window.table.download("pdf", `${filename}.pdf`, options);
-                        break;
                 }
+            }
+            
+            function exportDataFpdf() {
+                // Get current filter type from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const filterType = urlParams.get('filter_type') || '';
+                
+                // Create form to submit to FPDF export script
+                const form = document.createElement('form');
+                form.method = 'GET';
+                form.action = 'export_residents_fpdf.php';
+                form.target = '_blank';
+                
+                // Add filter type if it exists
+                if (filterType) {
+                    const filterInput = document.createElement('input');
+                    filterInput.type = 'hidden';
+                    filterInput.name = 'filter_type';
+                    filterInput.value = filterType;
+                    form.appendChild(filterInput);
+                }
+                
+                document.body.appendChild(form);
+                form.submit();
+                document.body.removeChild(form);
+                
+                // Close modal and show notification
+                closeExportModal();
+                
+                // Show notification
+                setTimeout(() => {
+                    showNotification('PDF export started! Check your downloads.', 'success');
+                }, 300);
+            }
+            
+            function showNotification(message, type = 'info') {
+                // Simple notification system
+                const notification = document.createElement('div');
+                notification.className = `fixed top-20 right-4 p-4 rounded-lg shadow-lg z-50 transition-all duration-300 ${
+                    type === 'success' ? 'bg-green-500 text-white' : 
+                    type === 'error' ? 'bg-red-500 text-white' : 
+                    'bg-blue-500 text-white'
+                }`;
+                notification.innerHTML = `
+                    <div class="flex items-center">
+                        <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation-triangle' : 'info-circle'} mr-2"></i>
+                        <span>${message}</span>
+                        <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.style.opacity = '0';
+                        notification.style.transform = 'translateX(100%)';
+                        setTimeout(() => {
+                            if (notification.parentElement) {
+                                notification.remove();
+                            }
+                        }, 300);
+                    }
+                }, 5000);
             }
             
             function closeExportModal() {
@@ -2140,6 +2125,10 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                             Contact Information
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
+                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50" value="${resident.contact_no || ''}" readonly />
+                            </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                                 <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50" value="${resident.email || ''}" readonly />
@@ -2392,6 +2381,10 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                                             Contact Information
                                         </h3>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="form-label">Contact Number</label>
+                                                <input type="text" name="contact_no" value="${resident.contact_no || ''}" class="form-input" placeholder="e.g., 09123456789">
+                                            </div>
                                             <div>
                                                 <label class="form-label">Email Address</label>
                                                 <input type="email" name="email" value="${resident.email || ''}" class="form-input" placeholder="e.g., juan.delacruz@email.com">

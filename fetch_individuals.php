@@ -47,7 +47,7 @@ if (isset($_GET['filter_type'])) {
     }
 }
 
-$sql = "SELECT i.id, i.first_name, i.middle_name, i.last_name, i.suffix, i.gender, i.birthdate, i.civil_status, i.blood_type, i.religion, i.is_pwd, i.is_voter, i.is_4ps, i.is_pregnant, i.is_solo_parent, i.email, p.name AS purok_name FROM individuals i LEFT JOIN purok p ON i.purok_id = p.id";
+$sql = "SELECT i.id, i.first_name, i.middle_name, i.last_name, i.suffix, i.gender, i.birthdate, i.civil_status, i.blood_type, i.religion, i.is_pwd, i.is_voter, i.is_4ps, i.is_pregnant, i.is_solo_parent, i.email, i.contact_no, p.name AS purok_name FROM individuals i LEFT JOIN purok p ON i.purok_id = p.id";
 if (!empty($where)) {
     $sql .= " WHERE " . implode(' AND ', $where);
 }
@@ -81,6 +81,7 @@ if ($result) {
             "is_pregnant" => $row["is_pregnant"],
             "is_solo_parent" => $row["is_solo_parent"],
             "email" => $row["email"],
+            "contact_no" => $row["contact_no"],
             "purok_name" => $row["purok_name"]
         ];
     }

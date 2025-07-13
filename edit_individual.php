@@ -61,8 +61,10 @@ if (!empty($birthdate)) {
 }
 
 $email = isset($_POST['email']) && !empty(trim($_POST['email'])) ? trim($_POST['email']) : null;
+$contact_no = isset($_POST['contact_no']) && !empty(trim($_POST['contact_no'])) ? trim($_POST['contact_no']) : null;
+$contact_no = isset($_POST['contact_no']) && !empty(trim($_POST['contact_no'])) ? trim($_POST['contact_no']) : null;
 
-$stmt = $conn->prepare("UPDATE individuals SET first_name=?, middle_name=?, last_name=?, suffix=?, gender=?, birthdate=?, civil_status=?, blood_type=?, religion=?, purok_id=?, is_pwd=?, is_voter=?, is_4ps=?, is_pregnant=?, is_solo_parent=?, is_senior_citizen=?, email=? WHERE id=?");
+$stmt = $conn->prepare("UPDATE individuals SET first_name=?, middle_name=?, last_name=?, suffix=?, gender=?, birthdate=?, civil_status=?, blood_type=?, religion=?, purok_id=?, is_pwd=?, is_voter=?, is_4ps=?, is_pregnant=?, is_solo_parent=?, is_senior_citizen=?, email=?, contact_no=? WHERE id=?");
 if (!$stmt) {
     echo json_encode(['success' => false, 'message' => 'Failed to prepare statement.']);
     exit();
@@ -75,7 +77,7 @@ $blood_type = !empty($blood_type) ? $blood_type : null;
 $religion = !empty($religion) ? $religion : null;
 
 $stmt->bind_param(
-    'sssssssssiiiiiiisi', // 9 strings, 1 int (purok_id), 6 integers (status fields), 1 string (email), 1 integer (id)
+    'sssssssssiiiiiiissi', // 9 strings, 1 int (purok_id), 6 integers (status fields), 2 strings (email, contact_no), 1 integer (id)
     $first_name,
     $middle_name,
     $last_name,
@@ -93,6 +95,7 @@ $stmt->bind_param(
     $is_solo_parent,
     $is_senior_citizen,
     $email,
+    $contact_no,
     $id
 );
 $success = $stmt->execute();

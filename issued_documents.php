@@ -13,6 +13,58 @@ if ($conn->connect_error) {
     exit();
 }
 $user_id = $_SESSION['user_id'];
+
+// AJAX endpoint for fetching issued documents
+if (isset($_GET['fetch_documents'])) {
+    header('Content-Type: application/json');
+    
+    $sql = "SELECT 
+                cr.id,
+                cr.certificate_type,
+                cr.purpose,
+                cr.requested_at as issued_date,
+                cr.status,
+                cr.certificate_number,
+                cr.processed_by,
+                CONCAT(i.first_name, ' ', 
+                       COALESCE(i.middle_name, ''), ' ', 
+                       i.last_name, ' ', 
+                       COALESCE(i.suffix, '')) as resident_name,
+                CONCAT(u.first_name, ' ', u.last_name) as issued_by
+            FROM certificate_requests cr 
+            LEFT JOIN individuals i ON cr.individual_id = i.id 
+            LEFT JOIN users u ON cr.processed_by = u.id
+            WHERE cr.status = 'Issued'
+            ORDER BY cr.requested_at DESC";
+    
+    $result = $conn->query($sql);
+    $documents = [];
+    
+    if ($result) {
+        while ($row = $result->fetch_assoc()) {
+            // Format certificate type for display
+            $certificate_type_formatted = ucwords(str_replace('_', ' ', $row['certificate_type']));
+            
+            // Generate certificate number if not present
+            $cert_number = $row['certificate_number'] ?: 'CERT-' . strtoupper($row['certificate_type']) . '-' . date('Y') . '-' . str_pad($row['id'], 4, '0', STR_PAD_LEFT);
+            
+            $documents[] = [
+                'id' => $row['id'],
+                'certificate_number' => $cert_number,
+                'resident_name' => trim($row['resident_name']),
+                'document_type' => $certificate_type_formatted,
+                'purpose' => $row['purpose'] ?: 'N/A',
+                'issued_date' => $row['issued_date'],
+                'status' => $row['status'],
+                'issued_by' => $row['issued_by'] ?: 'System'
+            ];
+        }
+    }
+    
+    echo json_encode($documents);
+    exit();
+}
+
 $user_first_name = '';
 $user_last_name = '';
 $stmt = $conn->prepare('SELECT first_name, last_name FROM users WHERE id = ?');
@@ -175,11 +227,11 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                         <label class="block text-sm font-medium text-gray-700 mb-2">Document Type</label>
                         <select id="documentTypeFilter" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                             <option value="">All Types</option>
-                            <option value="barangay_clearance">Barangay Clearance</option>
-                            <option value="certificate_of_residency">Certificate of Residency</option>
-                            <option value="certificate_of_indigency">Certificate of Indigency</option>
-                            <option value="business_permit">Business Permit</option>
-                            <option value="cedula">Cedula</option>
+                            <option value="clearance">Barangay Clearance</option>
+                            <option value="residency">Certificate of Residency</option>
+                            <option value="indigency">Certificate of Indigency</option>
+                            <option value="first_time_job_seeker">First Time Job Seeker</option>
+                            <option value="barangay_id">Barangay ID</option>
                         </select>
                     </div>
                     <div class="md:w-48">
@@ -321,48 +373,41 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         }
 
         // Sample data for demonstration
-        const sampleDocuments = [
-            {
-                id: 1,
-                certificate_number: 'BC-2024-001',
-                document_type: 'Barangay Clearance',
-                resident_name: 'Juan dela Cruz',
-                issued_by: 'Maria Santos',
-                issued_date: '2024-07-09',
-                purpose: 'Employment Requirements'
-            },
-            {
-                id: 2,
-                certificate_number: 'CR-2024-015',
-                document_type: 'Certificate of Residency',
-                resident_name: 'Ana Rodriguez',
-                issued_by: 'Maria Santos',
-                issued_date: '2024-07-08',
-                purpose: 'Bank Requirements'
-            },
-            {
-                id: 3,
-                certificate_number: 'CI-2024-008',
-                document_type: 'Certificate of Indigency',
-                resident_name: 'Pedro Martinez',
-                issued_by: 'Jose Garcia',
-                issued_date: '2024-07-07',
-                purpose: 'Medical Assistance'
+        let documentsData = [];
+
+        // Fetch real data from the database
+        async function fetchDocuments() {
+            try {
+                const response = await fetch('issued_documents.php?fetch_documents=1');
+                const data = await response.json();
+                documentsData = data;
+                
+                // Update table with real data
+                if (documentsTable) {
+                    documentsTable.setData(documentsData);
+                }
+                
+                // Update statistics
+                updateStatistics();
+            } catch (error) {
+                console.error('Error fetching documents:', error);
+                showNotification('Error loading documents', 'error');
             }
-        ];
+        }
 
         // Initialize Tabulator table
         let documentsTable;
 
         function initializeTable() {
             documentsTable = new Tabulator("#documentsTable", {
-                data: sampleDocuments,
+                data: [],
                 layout: "fitColumns",
                 pagination: "local",
                 paginationSize: 10,
                 paginationSizeSelector: [5, 10, 20, 50],
                 movableColumns: true,
                 resizableColumns: true,
+                placeholder: "Loading documents...",
                 columns: [
                     {title: "Certificate #", field: "certificate_number", width: 150, sorter: "string"},
                     {title: "Document Type", field: "document_type", width: 180, sorter: "string"},
@@ -374,26 +419,55 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                      }
                     },
                     {title: "Purpose", field: "purpose", width: 200, sorter: "string"},
+                    {title: "Status", field: "status", width: 100, sorter: "string",
+                     formatter: function(cell) {
+                         const status = cell.getValue();
+                         const colorClass = status === 'Issued' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+                         return `<span class="px-2 py-1 text-xs rounded-full ${colorClass}">${status}</span>`;
+                     }
+                    },
                     {title: "Actions", formatter: function(cell) {
-                        return '<button onclick="viewDocument(' + cell.getRow().getData().id + ')" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"><i class="fas fa-eye mr-1"></i>View</button>';
-                    }, width: 100, hozAlign: "center", headerSort: false}
+                        const data = cell.getRow().getData();
+                        return `<div class="flex gap-1">
+                                    <button onclick="viewDocument(${data.id})" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button onclick="downloadDocument('${data.certificate_number}')" class="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>`;
+                    }, width: 120, hozAlign: "center", headerSort: false}
                 ]
             });
         }
 
         // Update statistics
         function updateStatistics() {
-            const total = sampleDocuments.length;
-            const today = new Date().toISOString().split('T')[0];
-            const todayDocs = sampleDocuments.filter(doc => doc.issued_date === today).length;
+            const total = documentsData.length;
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
             
+            // Count documents issued today
+            const todayDocs = documentsData.filter(doc => {
+                const docDateStr = doc.issued_date.split(' ')[0]; // Get just the date part (YYYY-MM-DD)
+                return docDateStr === todayStr;
+            }).length;
+            
+            // Count documents issued this week
             const oneWeekAgo = new Date();
             oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-            const weekDocs = sampleDocuments.filter(doc => new Date(doc.issued_date) >= oneWeekAgo).length;
+            const weekDocs = documentsData.filter(doc => {
+                const docDate = new Date(doc.issued_date);
+                return docDate >= oneWeekAgo && docDate <= today;
+            }).length;
             
+            // Count documents issued this month
             const oneMonthAgo = new Date();
             oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-            const monthDocs = sampleDocuments.filter(doc => new Date(doc.issued_date) >= oneMonthAgo).length;
+            const monthDocs = documentsData.filter(doc => {
+                const docDate = new Date(doc.issued_date);
+                return docDate >= oneMonthAgo && docDate <= today;
+            }).length;
 
             document.getElementById('totalDocuments').textContent = total;
             document.getElementById('todayDocuments').textContent = todayDocs;
@@ -415,7 +489,11 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
             document.getElementById('documentTypeFilter').addEventListener('change', function() {
                 const type = this.value;
                 if (type) {
-                    documentsTable.setFilter("document_type", "=", type);
+                    documentsTable.setFilter(function(data) {
+                        // Check if the certificate type matches the selected filter
+                        return data.document_type.toLowerCase().replace(/\s+/g, '_').includes(type) ||
+                               data.document_type.toLowerCase().includes(type.replace(/_/g, ' '));
+                    });
                 } else {
                     documentsTable.clearFilter();
                 }
@@ -427,16 +505,31 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                 
                 if (range === 'today') {
                     const todayStr = today.toISOString().split('T')[0];
-                    documentsTable.setFilter("issued_date", "=", todayStr);
+                    documentsTable.setFilter(function(data) {
+                        const docDateStr = data.issued_date.split(' ')[0]; // Get just the date part
+                        return docDateStr === todayStr;
+                    });
                 } else if (range === 'week') {
-                    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-                    documentsTable.setFilter("issued_date", ">=", weekAgo.toISOString().split('T')[0]);
+                    const weekAgo = new Date();
+                    weekAgo.setDate(weekAgo.getDate() - 7);
+                    documentsTable.setFilter(function(data) {
+                        const docDate = new Date(data.issued_date);
+                        return docDate >= weekAgo && docDate <= today;
+                    });
                 } else if (range === 'month') {
-                    const monthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
-                    documentsTable.setFilter("issued_date", ">=", monthAgo.toISOString().split('T')[0]);
+                    const monthAgo = new Date();
+                    monthAgo.setMonth(monthAgo.getMonth() - 1);
+                    documentsTable.setFilter(function(data) {
+                        const docDate = new Date(data.issued_date);
+                        return docDate >= monthAgo && docDate <= today;
+                    });
                 } else if (range === 'year') {
-                    const yearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
-                    documentsTable.setFilter("issued_date", ">=", yearAgo.toISOString().split('T')[0]);
+                    const yearAgo = new Date();
+                    yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+                    documentsTable.setFilter(function(data) {
+                        const docDate = new Date(data.issued_date);
+                        return docDate >= yearAgo && docDate <= today;
+                    });
                 } else {
                     documentsTable.clearFilter();
                 }
@@ -445,7 +538,7 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
 
         // Modal functions
         function viewDocument(id) {
-            const document = sampleDocuments.find(doc => doc.id === id);
+            const document = documentsData.find(doc => doc.id === id);
             if (document) {
                 const detailsHtml = `
                     <div class="space-y-4">
@@ -473,11 +566,19 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
                             <label class="block text-sm font-medium text-gray-700">Purpose</label>
                             <p class="text-gray-900">${document.purpose}</p>
                         </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Status</label>
+                            <p class="text-gray-900">${document.status}</p>
+                        </div>
                     </div>
                 `;
                 document.getElementById('documentDetails').innerHTML = detailsHtml;
                 document.getElementById('documentModal').classList.remove('hidden');
             }
+        }
+
+        function downloadDocument(certificateNumber) {
+            window.open(`download_certificate.php?id=${certificateNumber}`, '_blank');
         }
 
         function closeDocumentModal() {
@@ -492,9 +593,9 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         function exportDocuments() {
             // Simple CSV export
             const csvContent = "data:text/csv;charset=utf-8," 
-                + "Certificate Number,Document Type,Resident Name,Issued By,Date Issued,Purpose\n"
-                + sampleDocuments.map(doc => 
-                    `${doc.certificate_number},${doc.document_type},${doc.resident_name},${doc.issued_by},${doc.issued_date},${doc.purpose}`
+                + "Certificate Number,Document Type,Resident Name,Issued By,Date Issued,Purpose,Status\n"
+                + documentsData.map(doc => 
+                    `${doc.certificate_number},${doc.document_type},${doc.resident_name},${doc.issued_by},${doc.issued_date},${doc.purpose},${doc.status}`
                   ).join("\n");
 
             const encodedUri = encodeURI(csvContent);
@@ -509,8 +610,8 @@ if ($title_result && $title_row = $title_result->fetch_assoc()) {
         // Initialize everything when page loads
         document.addEventListener('DOMContentLoaded', function() {
             initializeTable();
-            updateStatistics();
             setupFilters();
+            fetchDocuments(); // Fetch real data from database
         });
         // Dropdown open/close effect styles
         const style = document.createElement('style');

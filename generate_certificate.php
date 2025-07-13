@@ -152,9 +152,9 @@ try {
     // Generate certificate
     $certificate_id = generateCertificate($certificate_type, $resident_data, $age, $purpose);
     
-    // Record the certificate request using the certificate_requests table
-    $stmt = $conn->prepare("INSERT INTO certificate_requests (individual_id, certificate_type, requested_at) VALUES (?, ?, NOW())");
-    $stmt->bind_param('is', $resident_id, $certificate_type);
+    // Record the certificate request using the certificate_requests table with complete information
+    $stmt = $conn->prepare("INSERT INTO certificate_requests (individual_id, certificate_type, purpose, requested_at, status, certificate_number, processed_at, processed_by, requested_by) VALUES (?, ?, ?, NOW(), 'Issued', ?, NOW(), ?, ?)");
+    $stmt->bind_param('isssii', $resident_id, $certificate_type, $purpose, $certificate_id, $user_id, $user_id);
     $stmt->execute();
     $stmt->close();
     
@@ -715,7 +715,7 @@ function generateIndigencyCertificate($pdf, $resident_data, $age, $purpose, $set
     $pdf->Ln(5);
     
     // Second paragraph - Purpose statement with indent and justified text
-    $second_paragraph = "         This certification is being issued upon the request of the above-named person for whatever legal purpose it may serve his/her best.";
+    $second_paragraph = "         This certification is being issued upon the request of the above-named person for whatever legal purpose it may serve her best.";
     
     $pdf->MultiCell(0, 6, $second_paragraph, 0, 'J');
     $pdf->Ln(5);
